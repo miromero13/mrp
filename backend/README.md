@@ -31,7 +31,7 @@ psql -U postgres
 
 En la consola de PostgreSQL:
 ```sql
-CREATE DATABASE mrp_ecommerce;
+CREATE DATABASE mrp_db;
 ```
 
 ### 3. Configurar variables de entorno
@@ -43,12 +43,12 @@ Crea un archivo `.env` en la raíz del proyecto backend con las siguientes varia
 SERVER_PORT=8080
 
 # Configuración de la base de datos PostgreSQL
-DB_URL=jdbc:postgresql://localhost:5432/mrp_ecommerce
+DB_URL=jdbc:postgresql://localhost:5432/mrp_db
 DB_USERNAME=postgres
 DB_PASSWORD=tu_contraseña_postgres
 
-# Estrategia de migración de base de datos
-JPA_DDL_AUTO=update
+# Hibernate solo valida el esquema existente
+JPA_DDL_AUTO=validate
 
 # Configuración JWT
 JWT_SECRET=tu_clave_secreta_jwt_muy_segura_y_larga
@@ -56,6 +56,21 @@ JWT_EXPIRATION=86400000
 ```
 
 **Nota:** Reemplaza los valores con tus configuraciones reales.
+
+### 4. Migraciones de base de datos
+
+El proyecto usa **Flyway** para crear y versionar el esquema.
+
+- Las migraciones SQL están en `src/main/resources/db/migration`.
+- Con una base vacía, al arrancar la aplicación se ejecuta `V1__bootstrap_schema.sql`.
+- Esa migración crea las tablas base del modelo actual:
+  - `users`
+  - `role`
+  - `permission`
+  - `permission_role`
+- También contempla renombres desde el esquema legado (`permiso_rol`, `rol_id`, `permiso_id`, `nombre`) para entornos existentes.
+
+No necesitas crear tablas a mano.
 
 ## Ejecutar el proyecto
 
