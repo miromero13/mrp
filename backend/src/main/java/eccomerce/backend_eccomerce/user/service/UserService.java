@@ -44,7 +44,7 @@ public class UserService {
             // Buscar el rol por ID
             RoleEntity role = roleRepository.findById(createUserDto.roleId)
                 .orElseThrow(() -> new RuntimeException("Rol no encontrado con id: " + createUserDto.roleId));
-            user.rol = role;
+            user.role = role;
 
             userRepository.save(user);
             return ResponseMessage.success(user, "Usuario creado correctamente", 1);
@@ -83,7 +83,7 @@ public class UserService {
             if (updateUserDto.roleId != null) {
                 RoleEntity role = roleRepository.findById(updateUserDto.roleId)
                     .orElseThrow(() -> new RuntimeException("Rol no encontrado con id: " + updateUserDto.roleId));
-                user.rol = role;
+                user.role = role;
             }
 
             userRepository.save(user);

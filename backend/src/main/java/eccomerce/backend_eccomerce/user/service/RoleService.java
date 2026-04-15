@@ -30,7 +30,7 @@ public class RoleService {
         try {
             // Crear una nueva entidad de rol
             RoleEntity role = new RoleEntity();
-            role.nombre = createRoleDto.nombre;
+            role.name = createRoleDto.name;
 
             // Asociar los permisos usando UUID
             Set<PermissionEntity> permissions = new HashSet<>();
@@ -39,7 +39,7 @@ public class RoleService {
                     .orElseThrow(() -> new RuntimeException("Permiso no encontrado con id: " + permissionId));
                 permissions.add(permission);
             }
-            role.permisos = permissions;
+            role.permissions = permissions;
 
             roleRepository.save(role);
             return ResponseMessage.success(role, "Rol creado correctamente", 1);
@@ -56,8 +56,8 @@ public class RoleService {
             RoleEntity role = roleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Rol no encontrado con id: " + id));
 
-            if (updateRoleDto.nombre != null && !updateRoleDto.nombre.isEmpty()) {
-                role.nombre = updateRoleDto.nombre;
+            if (updateRoleDto.name != null && !updateRoleDto.name.isEmpty()) {
+                role.name = updateRoleDto.name;
             }
 
             if (updateRoleDto.permissionIds != null && !updateRoleDto.permissionIds.isEmpty()) {
@@ -67,7 +67,7 @@ public class RoleService {
                         .orElseThrow(() -> new RuntimeException("Permiso no encontrado con id: " + permissionId));
                     permissions.add(permission);
                 }
-                role.permisos = permissions;
+                role.permissions = permissions;
             }
 
             roleRepository.save(role);

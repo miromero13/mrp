@@ -74,36 +74,36 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void createSuperAdminRoleIfNotExist() {
-        Optional<RoleEntity> existingSuperAdmin = roleRepository.findByNombre(RoleConstants.SUPERADMIN);
+        Optional<RoleEntity> existingSuperAdmin = roleRepository.findByName(RoleConstants.SUPERADMIN);
         Set<PermissionEntity> allPermissions = new HashSet<>(permissionRepository.findAll());
 
         if (existingSuperAdmin.isEmpty()) {
             RoleEntity superAdminRole = new RoleEntity();
-            superAdminRole.nombre = RoleConstants.SUPERADMIN;
-            superAdminRole.permisos = allPermissions;
+            superAdminRole.name = RoleConstants.SUPERADMIN;
+            superAdminRole.permissions = allPermissions;
             roleRepository.save(superAdminRole);
         } else {
             RoleEntity superAdminRole = existingSuperAdmin.get();
-            if (!hasSamePermissions(superAdminRole.permisos, allPermissions)) {
-                superAdminRole.permisos = allPermissions;
+            if (!hasSamePermissions(superAdminRole.permissions, allPermissions)) {
+                superAdminRole.permissions = allPermissions;
                 roleRepository.save(superAdminRole);
             }
         }
     }
 
     private void createAdminRoleIfNotExist() {
-        Optional<RoleEntity> existingAdmin = roleRepository.findByNombre(RoleConstants.ADMIN);
+        Optional<RoleEntity> existingAdmin = roleRepository.findByName(RoleConstants.ADMIN);
         Set<PermissionEntity> adminPermissions = getPermissionsByNames(PermissionConstants.ADMIN_PERMISSION_NAMES);
 
         if (existingAdmin.isEmpty()) {
             RoleEntity adminRole = new RoleEntity();
-            adminRole.nombre = RoleConstants.ADMIN;
-            adminRole.permisos = adminPermissions;
+            adminRole.name = RoleConstants.ADMIN;
+            adminRole.permissions = adminPermissions;
             roleRepository.save(adminRole);
         } else {
             RoleEntity adminRole = existingAdmin.get();
-            if (!hasSamePermissions(adminRole.permisos, adminPermissions)) {
-                adminRole.permisos = adminPermissions;
+            if (!hasSamePermissions(adminRole.permissions, adminPermissions)) {
+                adminRole.permissions = adminPermissions;
                 roleRepository.save(adminRole);
             }
         }
@@ -143,9 +143,9 @@ public class DataInitializer implements CommandLineRunner {
             superAdminUser.password = passwordEncoder.encode(superadminPassword);
 
             // Asignar rol superadmin
-            RoleEntity superAdminRole = roleRepository.findByNombre(RoleConstants.SUPERADMIN)
+            RoleEntity superAdminRole = roleRepository.findByName(RoleConstants.SUPERADMIN)
                     .orElseThrow(() -> new RuntimeException("Rol superadmin no encontrado"));
-            superAdminUser.rol = superAdminRole;
+            superAdminUser.role = superAdminRole;
 
             userRepository.save(superAdminUser);
         }

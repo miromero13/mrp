@@ -35,7 +35,7 @@ public class UserEntity extends BaseEntity {
     public String password;
 
     @ManyToOne
-    @JoinColumn(name = "rol_id", nullable = false)
-    public RoleEntity rol;
+    @JoinColumn(name = "role_id", nullable = false)
+    public RoleEntity role;
 
 }

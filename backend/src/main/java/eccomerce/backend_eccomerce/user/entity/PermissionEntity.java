@@ -21,7 +21,7 @@ public class PermissionEntity extends BaseEntity {
     @Column(nullable = false)
     public String description;
 
-    @ManyToMany(mappedBy = "permisos")
+    @ManyToMany(mappedBy = "permissions")
     @JsonIgnore
     public Set<RoleEntity> roles = new HashSet<>();
 }

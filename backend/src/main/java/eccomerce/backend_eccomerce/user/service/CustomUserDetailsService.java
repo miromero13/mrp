@@ -24,8 +24,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         UserEntity user = userRepository.findByEmail(email)
             .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con ese correo: " + email));
 
-        Set<GrantedAuthority> authorities = user.rol.permisos.stream()
-            .map(permiso -> new SimpleGrantedAuthority(permiso.name))
+        Set<GrantedAuthority> authorities = user.role.permissions.stream()
+            .map(permission -> new SimpleGrantedAuthority(permission.name))
             .collect(Collectors.toSet());
 
         return new org.springframework.security.core.userdetails.User(user.email, user.password, authorities);

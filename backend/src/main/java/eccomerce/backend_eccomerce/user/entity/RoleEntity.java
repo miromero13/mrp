@@ -17,13 +17,13 @@ import java.util.HashSet;
 @Table(name = "role")
 public class RoleEntity extends BaseEntity {
     @Column(unique = true, nullable = false)
-    public String nombre;
+    public String name;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "permiso_rol",
-        joinColumns = @JoinColumn(name = "rol_id"),
-        inverseJoinColumns = @JoinColumn(name = "permiso_id")
+        name = "permission_role",
+        joinColumns = @JoinColumn(name = "role_id"),
+        inverseJoinColumns = @JoinColumn(name = "permission_id")
     )
-    public Set<PermissionEntity> permisos = new HashSet<>();
+    public Set<PermissionEntity> permissions = new HashSet<>();
 }
