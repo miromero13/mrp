@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
+import java.util.List;
 
 import eccomerce.backend_eccomerce.user.filter.JwtAuthenticationFilter;
 
@@ -45,10 +46,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("*");  // Configura los orígenes permitidos
-        configuration.addAllowedMethod("*");  // Permite todos los métodos HTTP
-        configuration.addAllowedHeader("*");  // Permite todas las cabeceras
-        configuration.setAllowCredentials(true);  // Permite enviar cookies con las solicitudes
+        // Con credenciales habilitadas, el navegador no permite Access-Control-Allow-Origin: *
+        configuration.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:5173"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

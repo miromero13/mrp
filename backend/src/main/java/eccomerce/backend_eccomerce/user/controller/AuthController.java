@@ -1,6 +1,7 @@
 package eccomerce.backend_eccomerce.user.controller;
 
 import eccomerce.backend_eccomerce.common.utils.ResponseMessage;
+import eccomerce.backend_eccomerce.user.dto.AuthLoginResponseDto;
 import eccomerce.backend_eccomerce.user.dto.UserLoginRequestDto;
 import eccomerce.backend_eccomerce.user.service.UserAuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,7 +26,7 @@ public class AuthController {
 
     @PostMapping("/login" )
     @Operation(security = @SecurityRequirement(name = ""))
-    public ResponseMessage<String> login(@Valid @RequestBody UserLoginRequestDto loginRequestDto) {
+    public ResponseMessage<AuthLoginResponseDto> login(@Valid @RequestBody UserLoginRequestDto loginRequestDto) {
         return authService.authenticateUser(loginRequestDto);
     }
 }
