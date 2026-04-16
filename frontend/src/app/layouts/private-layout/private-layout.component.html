@@ -1,0 +1,101 @@
+<div hlmSidebarWrapper>
+  <hlm-sidebar collapsible="icon" variant="sidebar">
+    <div hlmSidebarHeader class="border-b p-4">
+      <div class="flex items-center gap-3">
+        <span class="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground font-semibold">
+          MRP
+        </span>
+        <div class="grid gap-0.5">
+          <p class="text-xs uppercase tracking-[0.08em] text-muted-foreground">Panel privado</p>
+          <h1 class="text-sm font-semibold">Backend control</h1>
+        </div>
+      </div>
+    </div>
+
+    <div hlmSidebarContent class="px-1.5 py-1">
+      @for (node of visibleNavigationNodes(); track node.title) {
+        @if (node.kind === 'module') {
+          <div hlmSidebarGroup class="space-y-0.5">
+            <button
+              hlmSidebarGroupLabel
+              type="button"
+              class="w-full justify-between rounded-md px-2 py-1.5 text-left"
+              (click)="toggleModule(node.title)"
+            >
+              <span class="flex items-center gap-1.5">
+                <ng-icon hlm [name]="node.icon" size="sm" />
+                <span>{{ node.title }}</span>
+              </span>
+              <ng-icon hlm [name]="node.expanded ? 'lucideChevronDown' : 'lucideChevronRight'" size="sm" />
+            </button>
+
+            @if (node.expanded) {
+              <div hlmSidebarGroupContent class="pt-0.5">
+                <ul hlmSidebarMenuSub class="space-y-0.5">
+                  @for (item of node.items; track item.title) {
+                    <li hlmSidebarMenuSubItem>
+                      <a
+                        hlmSidebarMenuSubButton
+                        [routerLink]="item.url"
+                        routerLinkActive="active"
+                        [routerLinkActiveOptions]="{ exact: item.exact ?? true }"
+                      >
+                        <ng-icon hlm [name]="item.icon" size="sm" />
+                        <span>{{ item.title }}</span>
+                      </a>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+        } @else {
+          <div hlmSidebarGroup class="space-y-0.5">
+            <ul hlmSidebarMenu class="space-y-0.5">
+              <li hlmSidebarMenuItem>
+                <a
+                  hlmSidebarMenuButton
+                  [routerLink]="node.url"
+                  routerLinkActive="active"
+                  [routerLinkActiveOptions]="{ exact: node.exact ?? true }"
+                >
+                  <ng-icon hlm [name]="node.icon" size="sm" />
+                  <span>{{ node.title }}</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        }
+      }
+
+      @if (visibleNavigationNodes().length === 0) {
+        <p class="px-2 py-2 text-xs text-muted-foreground">Sin opciones disponibles para tu rol.</p>
+      }
+    </div>
+
+    <div hlmSidebarFooter class="border-t p-4">
+      @if (authService.currentUser()) {
+        <div class="grid gap-0.5 pb-3">
+          <p class="text-sm font-medium">{{ authService.currentUser()?.name }}</p>
+          <p class="text-xs text-muted-foreground">{{ authService.currentUser()?.role?.name }}</p>
+        </div>
+      }
+
+      <button hlmBtn variant="outline" size="sm" type="button" (click)="logout()">Cerrar sesión</button>
+    </div>
+  </hlm-sidebar>
+
+  <main hlmSidebarInset class="flex min-h-dvh flex-col">
+    <header class="flex h-12 items-center justify-between gap-2 border-b px-4">
+      <button type="button" hlmSidebarTrigger aria-label="Abrir o cerrar menu lateral"></button>
+      <div class="grid justify-items-end">
+        <span class="text-xs text-muted-foreground">Bienvenido</span>
+        <strong class="text-sm">{{ authService.currentUser()?.name ?? 'Usuario' }}</strong>
+      </div>
+    </header>
+
+    <section class="flex-1 p-4">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+</div>

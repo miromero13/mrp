@@ -1,0 +1,144 @@
+import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { provideIcons } from '@ng-icons/core';
+import { lucideChevronDown, lucideChevronRight, lucideFolder, lucideHouse, lucideLayoutDashboard } from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmIconImports } from '@spartan-ng/helm/icon';
+import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
+import { AuthService } from '../../core/auth/auth.service';
+import { APP_ROUTE_URLS } from '../../core/config/app-routes.utils';
+import { PERMISOS } from '../../core/config/permisos';
+
+interface NavigationItem {
+  title: string;
+  url: string;
+  icon: string;
+  exact?: boolean;
+  requiredPermissions?: string[];
+}
+
+interface NavigationModule {
+  kind: 'module';
+  title: string;
+  icon: string;
+  items: NavigationItem[];
+  expanded: boolean;
+  requiredPermissions?: string[];
+}
+
+interface NavigationStandaloneItem {
+  kind: 'item';
+  title: string;
+  url: string;
+  icon: string;
+  exact?: boolean;
+  requiredPermissions?: string[];
+}
+
+type NavigationNode = NavigationModule | NavigationStandaloneItem;
+
+@Component({
+  selector: 'app-private-layout',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+    ...HlmButtonImports,
+    ...HlmIconImports,
+    ...HlmSidebarImports,
+  ],
+  providers: [provideIcons({ lucideChevronDown, lucideChevronRight, lucideFolder, lucideHouse, lucideLayoutDashboard })],
+  templateUrl: './private-layout.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class PrivateLayoutComponent {
+  protected readonly authService = inject(AuthService);
+  protected readonly appRouteUrls = APP_ROUTE_URLS;
+
+  protected readonly navigationNodes = signal<NavigationNode[]>([
+    {
+      kind: 'module',
+      title: 'General',
+      icon: 'lucideFolder',
+      requiredPermissions: [PERMISOS.usuarios.listar],
+      items: [
+        {
+          title: 'Dashboard',
+          url: this.appRouteUrls.dashboard,
+          icon: 'lucideHouse',
+          exact: true,
+          requiredPermissions: [PERMISOS.usuarios.listar],
+        },
+      ],
+      expanded: true,
+    },
+    {
+      kind: 'item',
+      title: 'Dashboard simple',
+      url: this.appRouteUrls.dashboard,
+      icon: 'lucideLayoutDashboard',
+      exact: true,
+      requiredPermissions: [PERMISOS.roles.listar],
+    },
+  ]);
+
+  protected readonly userPermissions = computed(() =>
+    this.authService.currentUser()?.role?.permissions?.map((permission) => permission.name) ?? [],
+  );
+
+  protected readonly visibleNavigationNodes = computed<NavigationNode[]>(() => {
+    const userPermissions = this.userPermissions();
+
+    return this.navigationNodes().reduce<NavigationNode[]>((visibleNodes, node) => {
+      if (node.kind === 'item') {
+        if (this.hasRequiredPermissions(node.requiredPermissions, userPermissions)) {
+          visibleNodes.push(node);
+        }
+        return visibleNodes;
+      }
+
+      if (!this.hasRequiredPermissions(node.requiredPermissions, userPermissions)) {
+        return visibleNodes;
+      }
+
+      const visibleItems = node.items.filter((item) =>
+        this.hasRequiredPermissions(item.requiredPermissions, userPermissions),
+      );
+
+      if (visibleItems.length > 0) {
+        visibleNodes.push({ ...node, items: visibleItems });
+      }
+
+      return visibleNodes;
+    }, []);
+  });
+
+  toggleModule(title: string): void {
+    this.navigationNodes.update((nodes) =>
+      nodes.map((node) =>
+        node.kind === 'module' && node.title === title
+          ? { ...node, expanded: !node.expanded }
+          : node,
+      ),
+    );
+  }
+
+  logout(): void {
+    this.authService.logout();
+  }
+
+  private hasRequiredPermissions(requiredPermissions: string[] | undefined, userPermissions: string[]): boolean {
+    if (!requiredPermissions || requiredPermissions.length === 0) {
+      return true;
+    }
+
+    if (userPermissions.length === 0) {
+      return false;
+    }
+
+    return requiredPermissions.every((permission) => userPermissions.includes(permission));
+  }
+}

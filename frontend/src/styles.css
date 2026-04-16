@@ -1,0 +1,78 @@
+@import "tailwindcss";
+@import "@spartan-ng/brain/hlm-tailwind-preset.css";
+
+@source './app/**/*.{ts,html}';
+@source '../libs/ui/**/*.{ts,html}';
+
+@import "@angular/cdk/overlay-prebuilt.css";
+
+:root {
+  color-scheme: light;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --background: 0deg 0% 100%;
+  --foreground: 228.82deg 85.15% 5%;
+  --card: 0deg 0% 100%;
+  --card-foreground: 228.82deg 85.15% 5%;
+  --popover: 0deg 0% 100%;
+  --popover-foreground: 228.82deg 85.15% 5%;
+  --primary: 222.33deg 49.39% 11.3%;
+  --primary-foreground: 344.69deg 27.87% 98.13%;
+  --secondary: 344.79deg 33.25% 96.34%;
+  --secondary-foreground: 222.33deg 49.39% 11.3%;
+  --muted: 344.79deg 33.25% 96.34%;
+  --muted-foreground: 215.37deg 18.38% 47.03%;
+  --accent: 344.79deg 33.25% 96.34%;
+  --accent-foreground: 222.33deg 49.39% 11.3%;
+  --destructive: 351.72deg 100% 40.53%;
+  --border: 214.19deg 33.11% 91.43%;
+  --input: 214.19deg 33.11% 91.43%;
+  --ring: 214.97deg 22.62% 64.51%;
+  --radius: 0.625rem;
+  --sidebar: 220, 10%, 98%;
+  --sidebar-foreground: 220, 10%, 15%;
+  --sidebar-accent: 220, 8%, 96%;
+  --sidebar-accent-foreground: 220, 10%, 22%;
+  --sidebar-border: 220, 5%, 88%;
+  --sidebar-ring: 220, 8%, 70%;
+}
+
+:root.dark {
+  color-scheme: dark;
+
+  --background: 228.82deg 85.15% 5%;
+  --foreground: 344.69deg 27.87% 98.13%;
+  --card: 222.33deg 49.39% 11.3%;
+  --card-foreground: 344.69deg 27.87% 98.13%;
+  --popover: 222.33deg 49.39% 11.3%;
+  --popover-foreground: 344.69deg 27.87% 98.13%;
+  --primary: 214.19deg 33.11% 91.43%;
+  --primary-foreground: 222.33deg 49.39% 11.3%;
+  --secondary: 217.27deg 36.08% 17.54%;
+  --secondary-foreground: 344.69deg 27.87% 98.13%;
+  --muted: 217.27deg 36.08% 17.54%;
+  --muted-foreground: 214.97deg 22.62% 64.51%;
+  --accent: 217.27deg 36.08% 17.54%;
+  --accent-foreground: 344.69deg 27.87% 98.13%;
+  --destructive: 358.76deg 100% 69.84%;
+  --border: 0deg 0% 13.73%;
+  --input: 0deg 0% 18.43%;
+  --ring: 219.99deg 10.27% 46.3%;
+  --sidebar: 220, 10%, 22%;
+  --sidebar-foreground: 220, 10%, 98%;
+  --sidebar-accent: 220, 10%, 26%;
+  --sidebar-accent-foreground: 220, 10%, 98%;
+  --sidebar-border: 0, 0%, 10%;
+  --sidebar-ring: 220, 8%, 65%;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
