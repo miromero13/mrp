@@ -1,18 +1,23 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { provideIcons } from '@ng-icons/core';
+import { lucideCog } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../core/auth/auth.service';
+import { APP_NAME } from '../../core/config/app.config';
 import { APP_ROUTE_URLS } from '../../core/config/app-routes.utils';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, ...HlmCardImports, ...HlmInputImports, ...HlmLabelImports, ...HlmButtonImports],
+  imports: [ReactiveFormsModule, ...HlmCardImports, ...HlmInputImports, ...HlmLabelImports, ...HlmButtonImports, ...HlmIconImports],
+  providers: [provideIcons({ lucideCog })],
   templateUrl: './login.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -21,6 +26,7 @@ export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
+  readonly appName = APP_NAME;
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
 

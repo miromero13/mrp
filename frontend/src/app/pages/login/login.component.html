@@ -1,38 +1,53 @@
-<main class="flex min-h-dvh items-center justify-center p-6">
-  <section hlmCard class="w-full max-w-sm" aria-label="Vista de login">
-    <div hlmCardHeader>
-      <h1 hlmCardTitle>Login</h1>
-      <p hlmCardDescription>Ingresa tus credenciales para acceder al dashboard.</p>
-    </div>
-
-    <div hlmCardContent>
-      <form class="grid gap-4" [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
-        <div class="grid gap-2">
-          <label hlmLabel for="email">Correo</label>
-          <input hlmInput id="email" type="email" formControlName="email" placeholder="correo@ejemplo.com" />
-          @if (emailControl.touched && emailControl.invalid) {
-            <small class="text-sm text-destructive">Escribe un correo valido.</small>
-          }
+<main class="flex min-h-dvh w-full">
+  <div class="w-1/2 bg-background flex flex-col justify-center items-center p-8">
+    <!-- Lado izquierdo: Login con fondo rojo -->
+      <div class="w-full max-w-sm">
+        <div class="flex items-center justify-center gap-2 px-2 mb-4">
+          <span class="grid size-12 place-items-center rounded-xl bg-primary text-primary-foreground font-semibold">
+            <ng-icon hlm [name]="'lucideCog'" size="lg" />
+          </span>
+          <strong class="text-xl">{{ appName }}</strong>
         </div>
+        <p class="mb-6 text-center text-sm text-muted-foreground">
+          Bienvenido de nuevo. Ingresa tus credenciales para continuar.
+        </p>
+        <section class="w-full" aria-label="Vista de login">
 
-        <div class="grid gap-2">
-          <label hlmLabel for="password">Contrasena</label>
-          <input hlmInput id="password" type="password" formControlName="password" placeholder="********" />
-          @if (passwordControl.touched && passwordControl.invalid) {
-            <small class="text-sm text-destructive">La contrasena es obligatoria.</small>
-          }
-        </div>
+          <div hlmCardContent>
+            <form class="grid gap-4" [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+              <div class="grid gap-2">
+                <label hlmLabel for="email">Correo</label>
+                <input hlmInput id="email" type="email" formControlName="email" placeholder="correo@ejemplo.com" />
+                @if (emailControl.touched && emailControl.invalid) {
+                  <small class="text-sm text-destructive">Escribe un correo valido.</small>
+                }
+              </div>
 
-        @if (errorMessage()) {
-          <p class="text-sm text-destructive">{{ errorMessage() }}</p>
-        }
+              <div class="grid gap-2">
+                <label hlmLabel for="password">Contrasena</label>
+                <input hlmInput id="password" type="password" formControlName="password" placeholder="********" />
+                @if (passwordControl.touched && passwordControl.invalid) {
+                  <small class="text-sm text-destructive">La contrasena es obligatoria.</small>
+                }
+              </div>
 
-        <div hlmCardFooter class="px-0 pt-2">
-          <button hlmBtn class="submit-btn" type="submit" [disabled]="loading()">
-            {{ loading() ? 'Ingresando...' : 'Entrar' }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </section>
+              @if (errorMessage()) {
+                <p class="text-sm text-destructive">{{ errorMessage() }}</p>
+              }
+
+              <div hlmCardFooter class="px-0 pt-2">
+                <button hlmBtn class="submit-btn w-full" type="submit" [disabled]="loading()">
+                  {{ loading() ? 'Ingresando...' : 'Iniciar sesion' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
+  </div>
+
+  <!-- Lado derecho: SVG -->
+  <div class="w-1/2 flex items-center justify-center bg-sidebar-accent p-6">
+    <img src="/working.svg" alt="Working illustration" class="w-full h-auto max-w-md" />
+  </div>
 </main>
