@@ -17,6 +17,12 @@ export const PERMISOS = {
     eliminar: 'eliminar_usuario',
     listar: 'listar_usuario',
   },
+  material: {
+    crear: 'crear_material',
+    editar: 'editar_material',
+    eliminar: 'eliminar_material',
+    listar: 'listar_material',
+  }
 } as const;
 
 export const LISTA_PERMISOS = [

@@ -1,16 +1,19 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { map, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ApiResponse, AuthUser, LoginRequest, LoginResponseData } from './auth.models';
 import { apiEndpoint } from '../config/api.config';
 import { API_ROUTES } from '../config/api-routes.utils';
+import { APP_ROUTE_URLS } from '../config/app-routes.utils';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
 
   private readonly tokenStorageKey = 'access_token';
   private readonly userStorageKey = 'auth_user';
@@ -47,6 +50,7 @@ export class AuthService {
 
   logout(): void {
     this.clearToken();
+    void this.router.navigateByUrl(APP_ROUTE_URLS.login);
   }
 
   getToken(): string | null {

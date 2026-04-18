@@ -1,4 +1,6 @@
-const apiUrlFromEnv = import.meta.env['NG_APP_API_URL'] as string | undefined;
+import { ENV_CONFIG } from './env-config';
+
+const apiUrlFromEnv = ENV_CONFIG.NG_APP_API_URL;
 
 function normalizeApiBaseUrl(url?: string): string {
   const fallback = 'http://localhost:8090/api/';
