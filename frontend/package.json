@@ -3,11 +3,12 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "prebuild": "node scripts/generate-env-config.js",
+    "start": "node scripts/generate-env-config.js && ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "postinstall": "node scripts/fix-angular-vite-url.cjs"
+    "postinstall": "node scripts/fix-angular-vite-url.cjs && node scripts/generate-env-config.js"
   },
   "private": true,
   "packageManager": "npm@10.9.3",
