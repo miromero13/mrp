@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/auth/guards/auth.guard';
-import { publicGuard } from './core/auth/guards/public.guard';
-import { permissionsGuard } from './core/auth/guards/permissions.guard';
+import { authGuard } from './core/users/guards/auth.guard';
+import { publicGuard } from './core/users/guards/public.guard';
+import { permissionsGuard } from './core/users/guards/permissions.guard';
 import { APP_ROUTES } from './core/config/app-routes.utils';
 import { PrivateLayoutComponent } from './layouts/private-layout/private-layout.component';
 
@@ -9,7 +9,7 @@ export const routes: Routes = [
 	{
 		path: APP_ROUTES.login,
 		canActivate: [publicGuard],
-		loadComponent: () => import('./pages/login/login.component').then((m) => m.LoginComponent),
+		loadComponent: () => import('./pages/users/auth/login.component').then((m) => m.LoginComponent),
 	},
 	{
 		path: '',

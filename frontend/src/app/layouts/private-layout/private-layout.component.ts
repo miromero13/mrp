@@ -7,7 +7,7 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 import { HlmSidebarService } from '@spartan-ng/helm/sidebar';
-import { AuthService } from '../../core/auth/auth.service';
+import { AuthService } from '../../core/users/services/auth.service';
 import { APP_NAME } from '../../core/config/app.config';
 import { APP_ROUTE_URLS } from '../../core/config/app-routes.utils';
 import { PERMISOS } from '../../core/config/permisos';

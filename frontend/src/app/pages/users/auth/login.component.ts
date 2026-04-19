@@ -9,9 +9,9 @@ import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { finalize } from 'rxjs/operators';
-import { AuthService } from '../../core/auth/auth.service';
-import { APP_NAME } from '../../core/config/app.config';
-import { APP_ROUTE_URLS } from '../../core/config/app-routes.utils';
+import { AuthService } from '../../../core/users/services/auth.service';
+import { APP_NAME } from '../../../core/config/app.config';
+import { APP_ROUTE_URLS } from '../../../core/config/app-routes.utils';
 
 @Component({
   selector: 'app-login',

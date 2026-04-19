@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateChildFn, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
-import { AuthService } from '../auth.service';
+import { AuthService } from '../services/auth.service';
 import { APP_ROUTE_URLS } from '../../config/app-routes.utils';
 
 function hasRequiredPermissions(requiredPermissions: string[] | undefined, userPermissions: string[] | undefined): boolean {

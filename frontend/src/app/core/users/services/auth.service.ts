@@ -3,10 +3,10 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { map, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ApiResponse, AuthUser, LoginRequest, LoginResponseData } from './auth.models';
-import { apiEndpoint } from '../config/api.config';
-import { API_ROUTES } from '../config/api-routes.utils';
-import { APP_ROUTE_URLS } from '../config/app-routes.utils';
+import { ApiResponse, AuthUser, LoginRequest, LoginResponseData } from '../models/auth.models';
+import { apiEndpoint } from '../../config/api.config';
+import { API_ROUTES } from '../../config/api-routes.utils';
+import { APP_ROUTE_URLS } from '../../config/app-routes.utils';
 
 @Injectable({
   providedIn: 'root',
