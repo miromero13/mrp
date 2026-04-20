@@ -1,4 +1,10 @@
 export const PERMISOS = {
+  usuarios: {
+    crear: 'crear_usuario',
+    editar: 'editar_usuario',
+    eliminar: 'eliminar_usuario',
+    listar: 'listar_usuario',
+  },
   roles: {
     crear: 'crear_rol',
     editar: 'editar_rol',
@@ -10,12 +16,6 @@ export const PERMISOS = {
     editar: 'editar_permiso',
     eliminar: 'eliminar_permiso',
     listar: 'listar_permiso',
-  },
-  usuarios: {
-    crear: 'crear_usuario',
-    editar: 'editar_usuario',
-    eliminar: 'eliminar_usuario',
-    listar: 'listar_usuario',
   },
   material: {
     crear: 'crear_material',

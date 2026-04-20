@@ -1,0 +1,68 @@
+<div
+  class="rounded-xl border bg-card"
+  [style.max-height]="maxHeight()"
+  style="overflow: auto"
+  (scroll)="onScroll($event)"
+>
+  <div hlmTableContainer>
+    <table hlmTable class="w-full border-collapse text-sm">
+      <thead hlmTHead class="bg-sidebar-accent">
+        <tr hlmTr class="border-b border-border">
+          @for (column of columns(); track trackColumn($index, column)) {
+            <th
+              hlmTh
+              class="px-4 py-3 font-medium text-foreground"
+              [ngClass]="{
+                'text-right': column.align === 'right',
+                'text-center': column.align === 'center',
+                'text-left': !column.align || column.align === 'left',
+              }"
+            >
+              {{ column.header }}
+            </th>
+          }
+        </tr>
+      </thead>
+
+      <tbody hlmTBody>
+        @if (loading()) {
+          @for (_ of skeletonIndexes(); track $index) {
+            <tr hlmTr class="border-b border-border last:border-b-0">
+              @for (__ of columns(); track $index) {
+                <td hlmTd class="px-4 py-3">
+                  <div hlmSkeleton class="h-5 w-full rounded-md"></div>
+                </td>
+              }
+            </tr>
+          }
+        } @else {
+          @for (row of visibleRows(); track trackRow($index)) {
+            <tr hlmTr class="border-b border-border last:border-b-0 hover:bg-muted/30">
+              @for (column of columns(); track trackColumn($index, column)) {
+                <td
+                  hlmTd
+                  class="px-4 py-3 text-foreground"
+                  [ngClass]="{
+                    'text-right': column.align === 'right',
+                    'text-center': column.align === 'center',
+                    'text-left': !column.align || column.align === 'left',
+                  }"
+                >
+                  {{ column.cell(row) }}
+                </td>
+              }
+            </tr>
+          }
+
+          @if (visibleRows().length === 0) {
+            <tr hlmTr>
+              <td hlmTd [attr.colspan]="columns().length" class="px-4 py-8 text-center text-sm text-muted-foreground">
+                {{ emptyMessage() }}
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
-import { lucideChevronDown, lucideChevronRight, lucideCog, lucideFolder, lucideHouse, lucideLayoutDashboard, lucideLogOut } from '@ng-icons/lucide';
+import { lucideChevronDown, lucideChevronRight, lucideCog, lucideHouse, lucideLayoutDashboard, lucideLogOut, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
@@ -52,7 +52,7 @@ type NavigationNode = NavigationModule | NavigationStandaloneItem;
     ...HlmIconImports,
     ...HlmSidebarImports,
   ],
-  providers: [provideIcons({ lucideChevronDown, lucideChevronRight, lucideCog, lucideFolder, lucideHouse, lucideLayoutDashboard, lucideLogOut })],
+  providers: [provideIcons({ lucideChevronDown, lucideChevronRight, lucideCog, lucideHouse, lucideLayoutDashboard, lucideLogOut, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser })],
   templateUrl: './private-layout.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -64,98 +64,37 @@ export class PrivateLayoutComponent {
 
   protected readonly navigationNodes = signal<NavigationNode[]>([
     {
-      kind: 'module',
-      title: 'General',
-      icon: 'lucideFolder',
-      requiredPermissions: [PERMISOS.usuarios.listar],
-      items: [
-        {
-          title: 'Dashboard',
-          url: this.appRouteUrls.dashboard,
-          icon: 'lucideHouse',
-          exact: true,
-          requiredPermissions: [PERMISOS.usuarios.listar],
-        },
-        {
-          title: 'Dashboard',
-          url: this.appRouteUrls.dashboard,
-          icon: 'lucideHouse',
-          exact: true,
-          requiredPermissions: [PERMISOS.usuarios.listar],
-        },
-        {
-          title: 'Dashboard',
-          url: this.appRouteUrls.dashboard,
-          icon: 'lucideHouse',
-          exact: true,
-          requiredPermissions: [PERMISOS.usuarios.listar],
-        },
-      ],
-      expanded: true,
-    },
-    {
-      kind: 'module',
-      title: 'General',
-      icon: 'lucideFolder',
-      requiredPermissions: [PERMISOS.usuarios.listar],
-      items: [
-        {
-          title: 'Dashboard',
-          url: this.appRouteUrls.dashboard,
-          icon: 'lucideHouse',
-          exact: true,
-          requiredPermissions: [PERMISOS.usuarios.listar],
-        },
-        {
-          title: 'Dashboard',
-          url: this.appRouteUrls.dashboard,
-          icon: 'lucideHouse',
-          exact: true,
-          requiredPermissions: [PERMISOS.usuarios.listar],
-        },
-      ],
-      expanded: true,
-    },
-    {
       kind: 'item',
-      title: 'Dashboard simple',
+      title: 'Dashboard',
       url: this.appRouteUrls.dashboard,
       icon: 'lucideLayoutDashboard',
       exact: true,
-      requiredPermissions: [PERMISOS.roles.listar],
-    },
-    {
-      kind: 'item',
-      title: 'Dashboard simple',
-      url: this.appRouteUrls.dashboard,
-      icon: 'lucideLayoutDashboard',
-      exact: true,
-      requiredPermissions: [PERMISOS.roles.listar],
+      requiredPermissions: [],
     },
     {
       kind: 'module',
-      title: 'General',
-      icon: 'lucideFolder',
-      requiredPermissions: [PERMISOS.usuarios.listar],
+      title: 'Usuarios',
+      icon: 'lucideUser',
+      requiredPermissions: [],
       items: [
         {
-          title: 'Dashboard',
-          url: this.appRouteUrls.dashboard,
-          icon: 'lucideHouse',
+          title: 'Gestionar permisos',
+          url: this.appRouteUrls.permissions,
+          icon: 'lucideUserLock',
           exact: true,
-          requiredPermissions: [PERMISOS.usuarios.listar],
+          requiredPermissions: [PERMISOS.permisos.listar],
         },
         {
-          title: 'Dashboard',
-          url: this.appRouteUrls.dashboard,
-          icon: 'lucideHouse',
+          title: 'Gestionar roles',
+          url: this.appRouteUrls.roles,
+          icon: 'lucideUserRoundCog',
           exact: true,
-          requiredPermissions: [PERMISOS.usuarios.listar],
+          requiredPermissions: [PERMISOS.roles.listar],
         },
         {
-          title: 'Dashboard',
-          url: this.appRouteUrls.dashboard,
-          icon: 'lucideHouse',
+          title: 'Gestionar usuarios',
+          url: this.appRouteUrls.users,
+          icon: 'lucideUsers',
           exact: true,
           requiredPermissions: [PERMISOS.usuarios.listar],
         },
