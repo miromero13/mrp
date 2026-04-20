@@ -10,8 +10,10 @@ import eccomerce.backend_eccomerce.user.entity.UserEntity;
 import eccomerce.backend_eccomerce.user.repository.UserRepository;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Collections;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -20,13 +22,16 @@ public class CustomUserDetailsService implements UserDetailsService {
     private UserRepository userRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         UserEntity user = userRepository.findByEmail(email)
             .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con ese correo: " + email));
 
-        Set<GrantedAuthority> authorities = user.role.permissions.stream()
-            .map(permission -> new SimpleGrantedAuthority(permission.name))
-            .collect(Collectors.toSet());
+        Set<GrantedAuthority> authorities = user.role == null || user.role.permissions == null
+            ? Collections.emptySet()
+            : user.role.permissions.stream()
+                .map(permission -> new SimpleGrantedAuthority(permission.name))
+                .collect(Collectors.toSet());
 
         return new org.springframework.security.core.userdetails.User(user.email, user.password, authorities);
     }

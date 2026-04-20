@@ -2,24 +2,40 @@ package eccomerce.backend_eccomerce.user.provider;
 
 import eccomerce.backend_eccomerce.user.entity.UserEntity;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import javax.crypto.SecretKey;
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 @Component
 public class UserJwtTokenProvider {
 
-    // Generates a random secure key for HS512. 
-    // Note: This resets on every application restart.
-    private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    private SecretKey secretKey;
+
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
     @Value("${jwt.expiration}")
     private long jwtExpirationInMillis;
+
+    @PostConstruct
+    public void init() {
+        try {
+            // Derive a deterministic 64-byte key suitable for HS512 from configured secret text.
+            byte[] keyBytes = MessageDigest.getInstance("SHA-512")
+                    .digest(jwtSecret.getBytes(StandardCharsets.UTF_8));
+            this.secretKey = Keys.hmacShaKeyFor(keyBytes);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("No se pudo inicializar la clave JWT", exception);
+        }
+    }
 
     /**
      * Generate a JWT token
