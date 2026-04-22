@@ -29,7 +29,7 @@ public class IndirectCostController {
     @PostMapping
     public ResponseMessage<IndirectCostResponseDto> create(@Valid @RequestBody IndirectCostRequestDto dto) {
         IndirectCostResponseDto response = indirectCostService.create(dto);
-        return ResponseMessage.success("Costo indirecto registrado correctamente", response);
+        return ResponseMessage.success(response, "Costo indirecto registrado correctamente", 200);
     }
 
     @RequirePermission(PermissionConstants.EDITAR_COSTO_INDIRECTO)
@@ -37,7 +37,7 @@ public class IndirectCostController {
     @PutMapping("/{id}")
     public ResponseMessage<IndirectCostResponseDto> update(@PathVariable UUID id, @Valid @RequestBody IndirectCostRequestDto dto) {
         IndirectCostResponseDto response = indirectCostService.update(id, dto);
-        return ResponseMessage.success("Costo indirecto actualizado correctamente", response);
+        return ResponseMessage.success(response, "Costo indirecto actualizado correctamente", 200);
     }
 
     @RequirePermission(PermissionConstants.ELIMINAR_COSTO_INDIRECTO)
@@ -45,7 +45,7 @@ public class IndirectCostController {
     @DeleteMapping("/{id}")
     public ResponseMessage<Void> deactivate(@PathVariable UUID id) {
         indirectCostService.deactivate(id);
-        return ResponseMessage.success("Costo indirecto desactivado correctamente", null);
+        return ResponseMessage.success(null, "Costo indirecto desactivado correctamente", 200);
     }
 
     @RequirePermission(PermissionConstants.LISTAR_COSTO_INDIRECTO)
@@ -53,6 +53,6 @@ public class IndirectCostController {
     @GetMapping
     public ResponseMessage<List<IndirectCostResponseDto>> findAll() {
         List<IndirectCostResponseDto> response = indirectCostService.findAll();
-        return ResponseMessage.success("Lista de costos indirectos obtenida correctamente", response);
+        return ResponseMessage.success(response, "Lista de costos indirectos obtenida correctamente", 200);
     }
 }
