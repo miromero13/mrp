@@ -48,7 +48,18 @@
                     'text-left': !column.align || column.align === 'left',
                   }"
                 >
-                  {{ column.cell(row) }}
+                  @if (column.id === 'actions') {
+                    <div class="flex items-center justify-end gap-1">
+                      <button hlmBtn variant="ghost" size="icon-sm" (click)="edit.emit(row)" title="Editar">
+                        <ng-icon hlm name="lucidePencil" size="xs" />
+                      </button>
+                      <button hlmBtn variant="ghost" size="icon-sm" class="text-destructive hover:text-destructive" (click)="delete.emit(row)" title="Eliminar">
+                        <ng-icon hlm name="lucideTrash2" size="xs" />
+                      </button>
+                    </div>
+                  } @else {
+                    {{ column.cell(row) }}
+                  }
                 </td>
               }
             </tr>

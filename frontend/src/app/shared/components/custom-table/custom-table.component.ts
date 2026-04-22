@@ -1,7 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, computed, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, input, output, signal } from '@angular/core';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { HlmTableImports } from '@spartan-ng/helm/table';
+import { provideIcons } from '@ng-icons/core';
+import { lucidePencil, lucideTrash2 } from '@ng-icons/lucide';
 
 export type TableColumnAlign = 'left' | 'center' | 'right';
 
@@ -15,7 +19,8 @@ export interface CustomTableColumn<T> {
 @Component({
   selector: 'app-custom-table',
   standalone: true,
-  imports: [CommonModule, ...HlmTableImports, ...HlmSkeletonImports],
+  imports: [CommonModule, ...HlmTableImports, ...HlmSkeletonImports, ...HlmButtonImports, ...HlmIconImports],
+  providers: [provideIcons({ lucidePencil, lucideTrash2 })],
   templateUrl: './custom-table.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -27,6 +32,9 @@ export class CustomTableComponent<T> implements OnInit {
   readonly skeletonRows = input(8);
   readonly maxHeight = input('30rem');
   readonly emptyMessage = input('No hay datos para mostrar.');
+
+  readonly edit = output<T>();
+  readonly delete = output<T>();
 
   private readonly visibleCount = signal(20);
 

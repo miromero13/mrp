@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
-import { lucideChevronDown, lucideChevronRight, lucideCog, lucideHouse, lucideLayoutDashboard, lucideLogOut, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser } from '@ng-icons/lucide';
+import { lucideChevronDown, lucideChevronRight, lucideCog, lucideHouse, lucideLayoutDashboard, lucideLogOut, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser, lucideShoppingCart, lucideBanknote } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
@@ -52,7 +52,7 @@ type NavigationNode = NavigationModule | NavigationStandaloneItem;
     ...HlmIconImports,
     ...HlmSidebarImports,
   ],
-  providers: [provideIcons({ lucideChevronDown, lucideChevronRight, lucideCog, lucideHouse, lucideLayoutDashboard, lucideLogOut, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser })],
+  providers: [provideIcons({ lucideChevronDown, lucideChevronRight, lucideCog, lucideHouse, lucideLayoutDashboard, lucideLogOut, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser, lucideShoppingCart, lucideBanknote })],
   templateUrl: './private-layout.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -97,6 +97,22 @@ export class PrivateLayoutComponent {
           icon: 'lucideUsers',
           exact: true,
           requiredPermissions: [PERMISOS.usuarios.listar],
+        },
+      ],
+      expanded: true,
+    },
+    {
+      kind: 'module',
+      title: 'Compras y Costes',
+      icon: 'lucideShoppingCart',
+      requiredPermissions: [],
+      items: [
+        {
+          title: 'Costos Indirectos',
+          url: this.appRouteUrls.indirectCosts,
+          icon: 'lucideBanknote',
+          exact: true,
+          requiredPermissions: [PERMISOS.indirectCosts.listar],
         },
       ],
       expanded: true,

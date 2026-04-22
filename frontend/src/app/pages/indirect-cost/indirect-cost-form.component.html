@@ -1,0 +1,74 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="space-y-6">
+  @if (serverError()) {
+    <div class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+      {{ serverError() }}
+    </div>
+  }
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="flex flex-col gap-1.5">
+      <label hlmLabel for="categoryId">Categoría</label>
+      <select hlmInput id="categoryId" formControlName="categoryId">
+        <option value="">Seleccione una categoría</option>
+        @for (cat of categories(); track cat.id) {
+          <option [value]="cat.id">{{ cat.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label hlmLabel for="costCenterId">Centro de Costo</label>
+      <select hlmInput id="costCenterId" formControlName="costCenterId">
+        <option value="">Seleccione un centro de costo</option>
+        @for (cc of costCenters(); track cc.id) {
+          <option [value]="cc.id">{{ cc.name }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="flex flex-col gap-1.5 col-span-2">
+      <label hlmLabel for="amount">Monto</label>
+      <input hlmInput id="amount" type="number" formControlName="amount" placeholder="0.00" />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label hlmLabel for="currency">Moneda</label>
+      <select hlmInput id="currency" formControlName="currency">
+        <option value="BOB">BOB</option>
+        <option value="USD">USD</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="flex flex-col gap-1.5">
+      <label hlmLabel for="startDate">Fecha Inicio</label>
+      <input hlmInput id="startDate" type="date" formControlName="startDate" />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label hlmLabel for="endDate">Fecha Fin</label>
+      <input hlmInput id="endDate" type="date" formControlName="endDate" />
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-1.5">
+    <label hlmLabel for="distributionCriterion">Criterio de Distribución</label>
+    <select hlmInput id="distributionCriterion" formControlName="distributionCriterion">
+      <option value="PORCENTAJE_FIJO">Porcentaje Fijo</option>
+      <option value="AREA">Área</option>
+      <option value="CONSUMO">Consumo</option>
+    </select>
+  </div>
+
+  <div class="flex justify-end gap-3 pt-4 border-t">
+    <button hlmBtn variant="ghost" type="button" (click)="cancel()" [disabled]="loading()">
+      Cancelar
+    </button>
+    <button hlmBtn type="submit" [disabled]="loading() || form.invalid">
+      {{ loading() ? 'Guardando...' : 'Guardar Costo' }}
+    </button>
+  </div>
+</form>
