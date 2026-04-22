@@ -4,6 +4,7 @@ export const APP_ROUTES = {
   users: 'users',
   permissions: 'permissions',
   roles: 'roles',
+  indirectCosts: 'indirect-costs',
 } as const;
 
 export const APP_ROUTE_URLS = {
@@ -12,4 +13,5 @@ export const APP_ROUTE_URLS = {
   users: `/${APP_ROUTES.users}`,
   permissions: `/${APP_ROUTES.permissions}`,
   roles: `/${APP_ROUTES.roles}`,
+  indirectCosts: `/${APP_ROUTES.indirectCosts}`,
 } as const;

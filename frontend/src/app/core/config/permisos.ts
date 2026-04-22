@@ -22,6 +22,12 @@ export const PERMISOS = {
     editar: 'editar_material',
     eliminar: 'eliminar_material',
     listar: 'listar_material',
+  },
+  indirectCosts: {
+    crear: 'crear_costo_indirecto',
+    editar: 'editar_costo_indirecto',
+    eliminar: 'eliminar_costo_indirecto',
+    listar: 'listar_costo_indirecto',
   }
 } as const;
 
@@ -38,4 +44,12 @@ export const LISTA_PERMISOS = [
   PERMISOS.usuarios.editar,
   PERMISOS.usuarios.eliminar,
   PERMISOS.usuarios.listar,
+  PERMISOS.material.crear,
+  PERMISOS.material.editar,
+  PERMISOS.material.eliminar,
+  PERMISOS.material.listar,
+  PERMISOS.indirectCosts.crear,
+  PERMISOS.indirectCosts.editar,
+  PERMISOS.indirectCosts.eliminar,
+  PERMISOS.indirectCosts.listar,
 ] as const;
