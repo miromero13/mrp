@@ -3,6 +3,7 @@ package eccomerce.backend_eccomerce.user.dto;
 import java.util.UUID;
 
 import eccomerce.backend_eccomerce.common.enums.GenderEnum;
+import eccomerce.backend_eccomerce.enterprise.dto.EnterpriseSessionDto;
 
 public class UserSessionDto {
     public UUID id;
@@ -12,4 +13,6 @@ public class UserSessionDto {
     public GenderEnum gender;
     public String address;
     public RoleSessionDto role;
+
+    //public EnterpriseSessionDto enterprise;
 }

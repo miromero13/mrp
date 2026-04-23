@@ -2,6 +2,8 @@ package eccomerce.backend_eccomerce.config;
 
 import eccomerce.backend_eccomerce.common.constants.PermissionConstants;
 import eccomerce.backend_eccomerce.common.constants.RoleConstants;
+import eccomerce.backend_eccomerce.enterprise.entity.EnterpriseEntity;
+import eccomerce.backend_eccomerce.enterprise.repository.EnterpriseRepository;
 import eccomerce.backend_eccomerce.user.entity.PermissionEntity;
 import eccomerce.backend_eccomerce.user.entity.RoleEntity;
 import eccomerce.backend_eccomerce.user.entity.UserEntity;
@@ -36,6 +38,9 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private EnterpriseRepository enterpriseRepository;
+
     @Value("${superadmin.email}")
     private String superadminEmail;
 
@@ -53,6 +58,9 @@ public class DataInitializer implements CommandLineRunner {
 
         // Crear rol admin si no existe
         createAdminRoleIfNotExist();
+
+        // Crear empresa si no existe
+        createDefaultEnterpriseIfNotExist();
 
         // Crear usuario superadmin si no existe
         createSuperAdminUserIfNotExist();
@@ -148,6 +156,19 @@ public class DataInitializer implements CommandLineRunner {
             superAdminUser.role = superAdminRole;
 
             userRepository.save(superAdminUser);
+        }
+    }
+
+    private void createDefaultEnterpriseIfNotExist() {
+
+        if (enterpriseRepository.findByNit("0000001").isEmpty()) {
+
+            EnterpriseEntity enterprise = new EnterpriseEntity();
+            enterprise.setName("Default Enterprise");
+            enterprise.setNit("0000001");
+            enterprise.setAddress("N/A");
+
+            enterpriseRepository.save(enterprise);
         }
     }
 }

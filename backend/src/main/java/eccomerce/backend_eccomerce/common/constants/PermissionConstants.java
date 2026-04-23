@@ -20,6 +20,11 @@ public final class PermissionConstants {
     public static final String ELIMINAR_USUARIO = "eliminar_usuario";
     public static final String LISTAR_USUARIO = "listar_usuario";
 
+    public static final String CREAR_EMPRESA = "CREAR_EMPRESA";
+    public static final String EDITAR_EMPRESA = "EDITAR_EMPRESA";
+    public static final String ELIMINAR_EMPRESA = "ELIMINAR_EMPRESA";
+    public static final String LISTAR_EMPRESA = "LISTAR_EMPRESA";
+
     public static final String[] NAMES = {
             CREAR_ROL, EDITAR_ROL, ELIMINAR_ROL, LISTAR_ROL,
             CREAR_PERMISO, EDITAR_PERMISO, ELIMINAR_PERMISO, LISTAR_PERMISO,
