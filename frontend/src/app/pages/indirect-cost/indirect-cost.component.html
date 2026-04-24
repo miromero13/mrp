@@ -30,6 +30,8 @@
       [columns]="tableColumns()"
       [rows]="costs()"
       [loading]="loading()"
+      [pageSize]="10"
+      [skeletonRows]="10"
       emptyMessage="No se encontraron costos indirectos registrados."
       (edit)="editCost($event)"
       (delete)="deleteCost($event.id)"
@@ -39,7 +41,7 @@
     <div class="flex justify-between gap-4 mt-4">
       <div class="text-muted-foreground">Total de costos indirectos registrados: {{ costs().length }}</div>
       <div class="text-muted-foreground">Monto total de los costos indirectos registrados: {{
-        costs().reduce((acc, cost) => acc + cost.amount, 0) }} {{costs()[0].currency}} </div>
+        costs().reduce((acc, cost) => acc + cost.amount, 0) }} {{ costs().length ? costs()[0].currency : ''}} </div>
     </div>
 
     @if (isModalOpen()) {
