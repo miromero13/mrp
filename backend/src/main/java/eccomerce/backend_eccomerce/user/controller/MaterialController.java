@@ -30,37 +30,42 @@ public class MaterialController {
     @Autowired
     private MovementService movementService;
 
-    //@RequirePermission(PermissionConstants.CREAR_MATERIAL)
+    @RequirePermission(PermissionConstants.CREAR_MATERIAL)
     @Operation(summary = "Create a new material")
     @PostMapping
     public ResponseMessage<MaterialEntity> createMaterial(@RequestBody CreateMaterialDto createMaterialDto) {
         return materialService.createMaterial(createMaterialDto);
     }
 
+    @RequirePermission(PermissionConstants.EDITAR_MATERIAL)
     @Operation(summary = "Update an existing material")
     @PutMapping("/{id}")
     public ResponseMessage<MaterialEntity> updateMaterial(@PathVariable @NonNull UUID id, @RequestBody UpdateMaterialDto updateMaterialDto) {
         return materialService.updateMaterial(id, updateMaterialDto);
     }
 
+    @RequirePermission(PermissionConstants.AUMENTAR_STOCK)
     @Operation(summary = "Log a revenue for a material")
     @PostMapping("/{id}/revenue")
     public ResponseMessage<Void> logRevenue(@PathVariable @NonNull UUID id, @RequestBody CreateMovementDto createMovementlDto) {
         return movementService.logRevenue(id, createMovementlDto);        
     }
 
+    @RequirePermission(PermissionConstants.DISMINUIR_STOCK)
     @Operation(summary = "Log an expense for a material")
     @PostMapping("/{id}/expense")
     public ResponseMessage<Void> logExpense(@PathVariable @NonNull UUID id, @RequestBody CreateMovementDto createMovementDto) {
         return movementService.logExpense(id, createMovementDto);
     }
 
+    @RequirePermission(PermissionConstants.LISTAR_MATERIAL)
     @Operation(summary = "Get a material by ID")
     @GetMapping("/{id}")
     public ResponseMessage<MaterialEntity> getMaterialById(@PathVariable @NonNull UUID id) {
         return materialService.getMaterialById(id);
     }
 
+    @RequirePermission(PermissionConstants.LISTAR_MATERIAL)
     @Operation(summary = "Get all materials")
     @GetMapping
     public ResponseMessage<List<MaterialEntity>> listMaterial() {
