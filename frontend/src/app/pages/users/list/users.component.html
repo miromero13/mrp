@@ -5,11 +5,24 @@
         <h1 class="text-xl font-semibold">Usuarios</h1>
         <p class="pt-1 text-sm text-muted-foreground">Listado de usuarios del sistema.</p>
       </div>
+
+      @if (canCreateUser()) {
+        <button hlmBtn type="button" class="gap-2" (click)="openCreateModal()" [disabled]="assignableRoles().length === 0 || loadingRoles()">
+          <ng-icon hlm [name]="'lucidePlus'" size="sm" />
+          <span>Crear usuario</span>
+        </button>
+      }
     </div>
 
     @if (errorMessage()) {
       <p class="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
         {{ errorMessage() }}
+      </p>
+    }
+
+    @if (canCreateUser() && !loadingRoles() && assignableRoles().length === 0) {
+      <p class="mt-3 rounded-md border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-sm text-amber-700">
+        No tienes roles disponibles para asignar con tu sesion actual.
       </p>
     }
 
@@ -24,4 +37,32 @@
       />
     </div>
   </section>
+
+  @if (isCreateModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 px-4 py-6 backdrop-blur-sm">
+      <div class="relative flex w-full max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl">
+        <div class="flex items-start justify-between gap-4 border-b px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold">Crear usuario</h2>
+            <p class="pt-1 text-sm text-muted-foreground">Completa los datos del usuario y selecciona su rol.</p>
+          </div>
+
+          <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="closeCreateModal()" [disabled]="saving()">
+            <ng-icon hlm [name]="'lucideX'" size="sm" />
+          </button>
+        </div>
+
+        <div class="min-h-0 flex-1 overflow-y-auto p-6">
+          <app-user-form
+            [availableRoles]="assignableRoles()"
+            [loading]="saving()"
+            [serverError]="createErrorMessage()"
+            [submitLabel]="'Crear usuario'"
+            (cancelled)="closeCreateModal()"
+            (submitted)="createUser($event)"
+          />
+        </div>
+      </div>
+    </div>
+  }
 </main>

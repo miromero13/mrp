@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { map } from 'rxjs';
 import { ApiResponse } from '../models/auth.models';
-import { UserListItem } from '../models/user.models';
+import { CreateUserFormValue, UserListItem } from '../models/user.models';
 import { apiEndpoint } from '../../config/api.config';
 import { API_ROUTES } from '../../config/api-routes.utils';
 
@@ -15,5 +15,9 @@ export class UserService {
 
   listUsers() {
     return this.http.get<ApiResponse<UserListItem[]>>(this.usersUrl).pipe(map((response) => response.data ?? []));
+  }
+
+  createUser(payload: CreateUserFormValue) {
+    return this.http.post<ApiResponse<UserListItem>>(this.usersUrl, payload);
   }
 }

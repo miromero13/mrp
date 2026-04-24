@@ -10,3 +10,13 @@ export interface UserListItem {
     name: string;
   } | null;
 }
+
+export interface CreateUserFormValue {
+  name: string;
+  email: string;
+  password: string;
+  roleId: string;
+  phone: string | null;
+  address: string | null;
+  gender: 'masculino' | 'femenino' | 'otro' | null;
+}
