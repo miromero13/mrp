@@ -2,6 +2,8 @@ package eccomerce.backend_eccomerce.config;
 
 import eccomerce.backend_eccomerce.common.constants.PermissionConstants;
 import eccomerce.backend_eccomerce.common.constants.RoleConstants;
+import eccomerce.backend_eccomerce.employee.entity.EmployeeEntity;
+import eccomerce.backend_eccomerce.employee.repository.EmployeeRepository;
 import eccomerce.backend_eccomerce.enterprise.entity.EnterpriseEntity;
 import eccomerce.backend_eccomerce.enterprise.repository.EnterpriseRepository;
 import eccomerce.backend_eccomerce.user.entity.PermissionEntity;
@@ -10,6 +12,10 @@ import eccomerce.backend_eccomerce.user.entity.UserEntity;
 import eccomerce.backend_eccomerce.user.repository.PermissionRepository;
 import eccomerce.backend_eccomerce.user.repository.RoleRepository;
 import eccomerce.backend_eccomerce.user.repository.UserRepository;
+import eccomerce.backend_eccomerce.work_shift.entity.EmployeeShiftEntity;
+import eccomerce.backend_eccomerce.work_shift.entity.WorkShiftEntity;
+import eccomerce.backend_eccomerce.work_shift.repository.EmployeeShiftRepository;
+import eccomerce.backend_eccomerce.work_shift.repository.WorkShiftRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -17,6 +23,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,6 +49,15 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private EnterpriseRepository enterpriseRepository;
 
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private WorkShiftRepository workShiftRepository;
+
+    @Autowired
+    private EmployeeShiftRepository employeeShiftRepository;
+
     @Value("${superadmin.email}")
     private String superadminEmail;
 
@@ -64,6 +81,10 @@ public class DataInitializer implements CommandLineRunner {
 
         // Crear usuario superadmin si no existe
         createSuperAdminUserIfNotExist();
+
+        createEmployeeForSuperAdminIfNotExist();
+        createDefaultWorkShiftsIfNotExist();
+        assignDefaultShiftToEmployee();
     }
 
     private void createPermissionsIfNotExist() {
@@ -170,5 +191,77 @@ public class DataInitializer implements CommandLineRunner {
 
             enterpriseRepository.save(enterprise);
         }
+    }
+
+    private void createEmployeeForSuperAdminIfNotExist() {
+
+        Optional<UserEntity> userOpt = userRepository.findByEmail(superadminEmail);
+
+        if (userOpt.isEmpty()) return;
+
+        UserEntity user = userOpt.get();
+
+        if (employeeRepository.findByUser(user).isEmpty()) {
+
+            EmployeeEntity employee = new EmployeeEntity();
+            employee.setUser(user);
+            employee.setInternalCode("EMP-001");
+            employee.setPosition("Administrador");
+            employee.setHourlyRate(new BigDecimal("0.00"));
+            employee.setHireDate(java.time.LocalDate.now());
+            employee.setStatus(true);
+
+            employeeRepository.save(employee);
+        }
+    }
+
+    private void createDefaultWorkShiftsIfNotExist() {
+
+        if (workShiftRepository.count() == 0) {
+
+            EnterpriseEntity enterprise = enterpriseRepository.findByNit("0000001")
+                    .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+
+            WorkShiftEntity morning = new WorkShiftEntity();
+            morning.setName("Turno Mañana");
+            morning.setStartDate(LocalDateTime.of(2026, 4, 24, 8, 0));
+            morning.setEndDate(LocalDateTime.of(2026, 4, 24, 12, 0));
+            morning.setEnterprise(enterprise);
+
+            WorkShiftEntity afternoon = new WorkShiftEntity();
+            afternoon.setName("Turno Tarde");
+            afternoon.setStartDate(LocalDateTime.of(2026, 4, 24, 14, 0));
+            afternoon.setEndDate(LocalDateTime.of(2026, 4, 24, 18, 0));
+            afternoon.setEnterprise(enterprise);
+
+            workShiftRepository.save(morning);
+            workShiftRepository.save(afternoon);
+        }
+    }
+
+    private void assignDefaultShiftToEmployee() {
+
+        Optional<UserEntity> userOpt = userRepository.findByEmail(superadminEmail);
+        if (userOpt.isEmpty()) return;
+
+        UserEntity user = userOpt.get();
+
+        Optional<EmployeeEntity> employeeOpt = employeeRepository.findByUser(user);
+        if (employeeOpt.isEmpty()) return;
+
+        EmployeeEntity employee = employeeOpt.get();
+
+        // Evitar duplicados
+        if (!employeeShiftRepository.findByEmployee(employee).isEmpty()) return;
+
+        WorkShiftEntity shift = workShiftRepository.findAll().stream().findFirst()
+                .orElseThrow(() -> new RuntimeException("No hay turnos disponibles"));
+
+        EmployeeShiftEntity employeeShift = new EmployeeShiftEntity();
+        employeeShift.setEmployee(employee);
+        employeeShift.setWorkShift(shift);
+        employeeShift.setDayOfWeek("MONDAY");
+
+        employeeShiftRepository.save(employeeShift);
     }
 }
