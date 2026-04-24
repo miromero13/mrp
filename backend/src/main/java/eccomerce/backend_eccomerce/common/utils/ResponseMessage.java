@@ -65,6 +65,16 @@ public class ResponseMessage<T> {
       this.countData = countData;
   }
 
+  // Retorna true si la respuesta es exitosa (statusCode 200)
+  public boolean isSuccess() {
+      return this.statusCode == 200;
+  }
+
+  // Retorna true si la respuesta es un error (statusCode != 200)
+  public boolean isError() {
+      return this.statusCode != 200;
+  }
+
   // Métodos para construir respuestas fácilmente
   public static <T> ResponseMessage<T> success(T data, String message, Integer countData) {
       return new ResponseMessage<>(200, message, null, data, countData);

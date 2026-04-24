@@ -1,5 +1,7 @@
 package eccomerce.backend_eccomerce.user.service;
 
+import org.springframework.lang.NonNull;
+
 import eccomerce.backend_eccomerce.common.utils.ResponseMessage;
 import eccomerce.backend_eccomerce.user.dto.CreateRoleDto;
 import eccomerce.backend_eccomerce.user.dto.UpdateRoleDto;
@@ -36,7 +38,7 @@ public class RoleService {
             Set<PermissionEntity> permissions = new HashSet<>();
             for (UUID permissionId : createRoleDto.permissionIds) {
                 PermissionEntity permission = permissionRepository.findById(permissionId)
-                    .orElseThrow(() -> new RuntimeException("Permiso no encontrado con id: " + permissionId));
+                        .orElseThrow(() -> new RuntimeException("Permiso no encontrado con id: " + permissionId));
                 permissions.add(permission);
             }
             role.permissions = permissions;
@@ -44,17 +46,19 @@ public class RoleService {
             roleRepository.save(role);
             return ResponseMessage.success(role, "Rol creado correctamente", 1);
         } catch (DataIntegrityViolationException ex) {
-            return ResponseMessage.error("No se pudo crear el rol", "Violacion de integridad de datos: " + ex.getMostSpecificCause().getMessage(), 400);
+            return ResponseMessage.error("No se pudo crear el rol",
+                    "Violacion de integridad de datos: " + ex.getMostSpecificCause().getMessage(), 400);
         } catch (Exception ex) {
-            return ResponseMessage.error("No se pudo crear el rol", "Ocurrio un error al crear el rol: " + ex.getMessage(), 500);
+            return ResponseMessage.error("No se pudo crear el rol",
+                    "Ocurrio un error al crear el rol: " + ex.getMessage(), 500);
         }
     }
 
     // Actualizar un rol por su UUID
-    public ResponseMessage<RoleEntity> updateRole(UUID id, UpdateRoleDto updateRoleDto) {
+    public ResponseMessage<RoleEntity> updateRole(@NonNull UUID id, UpdateRoleDto updateRoleDto) {
         try {
             RoleEntity role = roleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Rol no encontrado con id: " + id));
+                    .orElseThrow(() -> new RuntimeException("Rol no encontrado con id: " + id));
 
             if (updateRoleDto.name != null && !updateRoleDto.name.isEmpty()) {
                 role.name = updateRoleDto.name;
@@ -64,7 +68,7 @@ public class RoleService {
                 Set<PermissionEntity> permissions = new HashSet<>();
                 for (UUID permissionId : updateRoleDto.permissionIds) {
                     PermissionEntity permission = permissionRepository.findById(permissionId)
-                        .orElseThrow(() -> new RuntimeException("Permiso no encontrado con id: " + permissionId));
+                            .orElseThrow(() -> new RuntimeException("Permiso no encontrado con id: " + permissionId));
                     permissions.add(permission);
                 }
                 role.permissions = permissions;
@@ -75,36 +79,39 @@ public class RoleService {
         } catch (RuntimeException ex) {
             return ResponseMessage.error("No se pudo actualizar el rol", ex.getMessage(), 404);
         } catch (Exception ex) {
-            return ResponseMessage.error("No se pudo actualizar el rol", "Ocurrio un error al actualizar el rol: " + ex.getMessage(), 500);
+            return ResponseMessage.error("No se pudo actualizar el rol",
+                    "Ocurrio un error al actualizar el rol: " + ex.getMessage(), 500);
         }
     }
 
     // Obtener un rol por su UUID
-    public ResponseMessage<RoleEntity> getRoleById(UUID id) {
+    public ResponseMessage<RoleEntity> getRoleById(@NonNull UUID id) {
         try {
             RoleEntity role = roleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Rol no encontrado con id: " + id));
+                    .orElseThrow(() -> new RuntimeException("Rol no encontrado con id: " + id));
 
             return ResponseMessage.success(role, "Rol encontrado", 1);
         } catch (RuntimeException ex) {
             return ResponseMessage.error("No se pudo obtener el rol", ex.getMessage(), 404);
         } catch (Exception ex) {
-            return ResponseMessage.error("No se pudo obtener el rol", "Ocurrio un error al consultar el rol: " + ex.getMessage(), 500);
+            return ResponseMessage.error("No se pudo obtener el rol",
+                    "Ocurrio un error al consultar el rol: " + ex.getMessage(), 500);
         }
     }
 
     // Eliminar un rol por su UUID
-    public ResponseMessage<Void> deleteRole(UUID id) {
+    public ResponseMessage<Void> deleteRole(@NonNull UUID id) {
         try {
             RoleEntity role = roleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Rol no encontrado con id: " + id));
+                    .orElseThrow(() -> new RuntimeException("Rol no encontrado con id: " + id));
 
             roleRepository.delete(role);
             return ResponseMessage.success(null, "Rol eliminado correctamente", null);
         } catch (RuntimeException ex) {
             return ResponseMessage.error("No se pudo eliminar el rol", ex.getMessage(), 404);
         } catch (Exception ex) {
-            return ResponseMessage.error("No se pudo eliminar el rol", "Ocurrio un error al eliminar el rol: " + ex.getMessage(), 500);
+            return ResponseMessage.error("No se pudo eliminar el rol",
+                    "Ocurrio un error al eliminar el rol: " + ex.getMessage(), 500);
         }
     }
 
@@ -114,7 +121,8 @@ public class RoleService {
             List<RoleEntity> roles = roleRepository.findAll();
             return ResponseMessage.success(roles, "Roles obtenidos correctamente", roles.size());
         } catch (Exception ex) {
-            return ResponseMessage.error("No se pudieron obtener los roles", "Ocurrio un error al consultar roles: " + ex.getMessage(), 500);
+            return ResponseMessage.error("No se pudieron obtener los roles",
+                    "Ocurrio un error al consultar roles: " + ex.getMessage(), 500);
         }
     }
 }

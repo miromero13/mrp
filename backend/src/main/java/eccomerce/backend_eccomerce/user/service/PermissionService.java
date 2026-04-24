@@ -7,6 +7,7 @@ import eccomerce.backend_eccomerce.user.entity.PermissionEntity;
 import eccomerce.backend_eccomerce.user.repository.PermissionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,7 +34,7 @@ public class PermissionService {
         }
     }
 
-    public ResponseMessage<PermissionEntity> updatePermission(UUID id, UpdatePermissionDto updatePermissionDto) {
+    public ResponseMessage<PermissionEntity> updatePermission(@NonNull UUID id, UpdatePermissionDto updatePermissionDto) {
         try {
             PermissionEntity permission = permissionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Permiso no encontrado con id: " + id));
@@ -54,7 +55,7 @@ public class PermissionService {
         }
     }
 
-    public ResponseMessage<PermissionEntity> getPermissionById(UUID id) {
+    public ResponseMessage<PermissionEntity> getPermissionById(@NonNull UUID id) {
         try {
             PermissionEntity permission = permissionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Permiso no encontrado con id: " + id));
@@ -67,7 +68,7 @@ public class PermissionService {
         }
     }
 
-    public ResponseMessage<Void> deletePermission(UUID id) {
+    public ResponseMessage<Void> deletePermission(@NonNull UUID id) {
         try {
             PermissionEntity permission = permissionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Permiso no encontrado con id: " + id));

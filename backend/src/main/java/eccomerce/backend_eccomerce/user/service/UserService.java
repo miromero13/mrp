@@ -1,5 +1,7 @@
 package eccomerce.backend_eccomerce.user.service;
 
+import org.springframework.lang.NonNull;
+
 import eccomerce.backend_eccomerce.common.utils.ResponseMessage;
 import eccomerce.backend_eccomerce.user.dto.CreateUserDto;
 import eccomerce.backend_eccomerce.user.dto.UpdateUserDto;
@@ -56,7 +58,7 @@ public class UserService {
     }
 
     // Actualizar un usuario por su UUID
-    public ResponseMessage<UserEntity> updateUser(UUID id, UpdateUserDto updateUserDto) {
+    public ResponseMessage<UserEntity> updateUser(@NonNull UUID id, UpdateUserDto updateUserDto) {
         try {
             UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
@@ -96,7 +98,7 @@ public class UserService {
     }
 
     // Obtener un usuario por su UUID
-    public ResponseMessage<UserEntity> getUserById(UUID id) {
+    public ResponseMessage<UserEntity> getUserById(@NonNull UUID id) {
         try {
             UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
@@ -110,7 +112,7 @@ public class UserService {
     }
 
     // Eliminar un usuario por su UUID
-    public ResponseMessage<Void> deleteUser(UUID id) {
+    public ResponseMessage<Void> deleteUser(@NonNull UUID id) {
         try {
             UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));

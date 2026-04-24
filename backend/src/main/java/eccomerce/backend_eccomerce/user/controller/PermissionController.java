@@ -10,6 +10,7 @@ import eccomerce.backend_eccomerce.user.service.PermissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -54,7 +55,7 @@ public class PermissionController {
     @RequirePermission(PermissionConstants.ELIMINAR_PERMISO)
     @Operation(summary = "Delete a permission by ID")
     @DeleteMapping("/{id}")
-    public ResponseMessage<Void> deletePermission(@PathVariable UUID id) {
+    public ResponseMessage<Void> deletePermission(@PathVariable @NonNull UUID id) {
         return permissionService.deletePermission(id);
     }
 }

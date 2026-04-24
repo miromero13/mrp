@@ -10,6 +10,7 @@ import eccomerce.backend_eccomerce.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,21 +34,21 @@ public class UserController {
     @RequirePermission(PermissionConstants.EDITAR_USUARIO)
     @Operation()
     @PutMapping("/{id}")
-    public ResponseMessage<UserEntity> updateUser(@PathVariable UUID id, @RequestBody UpdateUserDto updateUserDto) {
+    public ResponseMessage<UserEntity> updateUser(@PathVariable @NonNull UUID id, @RequestBody UpdateUserDto updateUserDto) {
         return userService.updateUser(id, updateUserDto);
     }
 
     @RequirePermission(PermissionConstants.LISTAR_USUARIO)
     @Operation()
     @GetMapping("/{id}")
-    public ResponseMessage<UserEntity> getUserById(@PathVariable UUID id) {
+    public ResponseMessage<UserEntity> getUserById(@PathVariable @NonNull UUID id) {
         return userService.getUserById(id);
     }
 
     @RequirePermission(PermissionConstants.ELIMINAR_USUARIO)
     @Operation()
     @DeleteMapping("/{id}")
-    public ResponseMessage<Void> deleteUser(@PathVariable UUID id) {
+    public ResponseMessage<Void> deleteUser(@PathVariable @NonNull UUID id) {
         return userService.deleteUser(id);
     }
 
