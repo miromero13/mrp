@@ -1,0 +1,131 @@
+<form class="grid gap-5" [formGroup]="form" (ngSubmit)="submit()">
+  @if (serverError()) {
+    <p class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+      {{ serverError() }}
+    </p>
+  }
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid gap-2">
+      <label hlmLabel for="user-name">Nombre</label>
+      <input id="user-name" hlmInput formControlName="name" placeholder="Ej. Ana Perez" />
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <p class="text-xs text-destructive">
+          @if (form.controls.name.hasError('required')) {
+            El nombre es obligatorio.
+          } @else if (form.controls.name.hasError('minlength')) {
+            El nombre debe tener al menos 2 caracteres.
+          } @else if (form.controls.name.hasError('maxlength')) {
+            El nombre no puede superar 100 caracteres.
+          }
+        </p>
+      }
+    </div>
+
+    <div class="grid gap-2">
+      <label hlmLabel for="user-email">Email</label>
+      <input id="user-email" hlmInput type="email" formControlName="email" placeholder="correo@empresa.com" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <p class="text-xs text-destructive">
+          @if (form.controls.email.hasError('required')) {
+            El email es obligatorio.
+          } @else if (form.controls.email.hasError('email')) {
+            Ingresa un email valido.
+          }
+        </p>
+      }
+    </div>
+
+    <div class="grid gap-2">
+      <label hlmLabel for="user-password">Password</label>
+      <input id="user-password" hlmInput type="password" formControlName="password" placeholder="********" />
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <p class="text-xs text-destructive">
+          @if (form.controls.password.hasError('required')) {
+            La password es obligatoria.
+          } @else if (form.controls.password.hasError('minlength') || form.controls.password.hasError('maxlength')) {
+            La password debe tener entre 8 y 12 caracteres.
+          } @else if (form.controls.password.hasError('pattern')) {
+            Debe incluir mayuscula, minuscula, numero y caracter especial.
+          }
+        </p>
+      }
+    </div>
+
+    <div class="grid gap-2">
+      <label hlmLabel for="user-phone">Telefono</label>
+      <input id="user-phone" hlmInput formControlName="phone" placeholder="+52 123 456 7890" />
+      @if (form.controls.phone.touched && form.controls.phone.invalid) {
+        <p class="text-xs text-destructive">
+          @if (form.controls.phone.hasError('maxlength')) {
+            El telefono no puede superar 20 caracteres.
+          } @else if (form.controls.phone.hasError('pattern')) {
+            El telefono no es valido.
+          }
+        </p>
+      }
+    </div>
+
+    <div class="grid gap-2">
+      <label hlmLabel>Rol</label>
+      <div
+        hlmSelect
+        [value]="form.controls.roleId.value"
+        (valueChange)="onRoleChange($event)"
+        [disabled]="loading() || availableRoles().length === 0"
+      >
+        <hlm-select-trigger>
+          <span hlmSelectValue [placeholder]="'Selecciona un rol'"></span>
+        </hlm-select-trigger>
+
+        <ng-template hlmSelectPortal>
+          <hlm-select-content>
+            @for (role of availableRoles(); track role.id) {
+              <hlm-select-item [value]="role.id">{{ role.name }}</hlm-select-item>
+            }
+          </hlm-select-content>
+        </ng-template>
+      </div>
+
+      @if (hasRoleError()) {
+        <p class="text-xs text-destructive">Selecciona un rol.</p>
+      }
+    </div>
+
+    <div class="grid gap-2">
+      <label hlmLabel>Genero</label>
+      <div hlmSelect [value]="form.controls.gender.value" (valueChange)="onGenderChange($event)" [disabled]="loading()">
+        <hlm-select-trigger>
+          <span hlmSelectValue [placeholder]="'Sin especificar'"></span>
+        </hlm-select-trigger>
+
+        <ng-template hlmSelectPortal>
+          <hlm-select-content>
+            <hlm-select-item [value]="''">Sin especificar</hlm-select-item>
+            <hlm-select-item [value]="'masculino'">Masculino</hlm-select-item>
+            <hlm-select-item [value]="'femenino'">Femenino</hlm-select-item>
+            <hlm-select-item [value]="'otro'">Otro</hlm-select-item>
+          </hlm-select-content>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid gap-2">
+    <label hlmLabel for="user-address">Direccion</label>
+    <input id="user-address" hlmInput formControlName="address" placeholder="Direccion del usuario" />
+    @if (form.controls.address.touched && form.controls.address.invalid) {
+      <p class="text-xs text-destructive">La direccion no puede superar 200 caracteres.</p>
+    }
+  </div>
+
+  <div class="flex items-center justify-end gap-3 pt-2">
+    <button hlmBtn variant="outline" type="button" (click)="cancel()" [disabled]="loading()">
+      Cancelar
+    </button>
+
+    <button hlmBtn type="submit" [disabled]="loading() || availableRoles().length === 0">
+      {{ loading() ? 'Guardando...' : submitLabel() }}
+    </button>
+  </div>
+</form>
