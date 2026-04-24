@@ -4,6 +4,8 @@ export const APP_ROUTES = {
   users: 'users',
   permissions: 'permissions',
   roles: 'roles',
+  materials: 'materials',
+  movements: 'movements'
 } as const;
 
 export const APP_ROUTE_URLS = {

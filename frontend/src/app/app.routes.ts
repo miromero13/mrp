@@ -38,6 +38,16 @@ export const routes: Routes = [
 				loadComponent: () => import('./pages/users/roles/roles.component').then((m) => m.RolesComponent),
 				data: { permisos: [PERMISOS.roles.listar] },
 			},
+			{
+				path:APP_ROUTES.materials,
+				loadComponent: () => import('./pages/materials/materials.component').then((m) => m.MaterialListComponent),
+				data: {permisos: [PERMISOS.material.listar]}
+			},
+			{
+				path:APP_ROUTES.movements,
+				loadComponent: () => import('./pages/materials/movement-form.component').then((m) => m.MovementFormComponent),
+				//data: {permisos: [PERMISOS.]}
+			},
 			{ path: '', pathMatch: 'full', redirectTo: APP_ROUTES.dashboard },
 		],
 	},

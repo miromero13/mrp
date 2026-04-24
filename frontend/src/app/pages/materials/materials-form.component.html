@@ -1,0 +1,103 @@
+<main class="grid gap-4">
+  <!-- Overlay -->
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6">
+
+      <h2 class="text-xl font-bold text-gray-800 mb-5">
+        {{ material ? 'Editar material' : 'Nuevo material' }}
+      </h2>
+
+      <!-- Error -->
+      @if (errorMsg()) {
+      <div class="bg-red-100 text-red-700 px-3 py-2 rounded mb-4 text-sm">{{ errorMsg() }}</div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+
+        <!-- Código (solo en crear) -->
+        @if (!material) {
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Código *</label>
+          <input formControlName="code" type="text"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Ej: MAT-001">
+          @if (form.get('code')?.invalid && form.get('code')?.touched) {
+          <p class="text-red-500 text-xs mt-1">El código es obligatorio</p>
+          }
+        </div>
+        }
+
+        <!-- Nombre -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+          <input formControlName="name" type="text"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Ej: Cemento portland">
+          @if (form.get('name')?.invalid && form.get('name')?.touched) {
+          <p class="text-red-500 text-xs mt-1">El nombre es obligatorio</p>
+          }
+        </div>
+
+        <!-- Descripción -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+          <textarea formControlName="description" rows="2"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Descripción opcional"></textarea>
+        </div>
+
+        <!-- Unidad de medida -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Unidad de medida *</label>
+          <input formControlName="measureUnit" type="text"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Ej: kg, litros, unidades">
+          @if (form.get('measureUnit')?.invalid && form.get('measureUnit')?.touched) {
+          <p class="text-red-500 text-xs mt-1">La unidad de medida es obligatoria</p>
+          }
+        </div>
+
+        <!-- Stocks -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Stock actual *</label>
+            <input formControlName="currentStock" type="number" min="0"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            @if (form.get('currentStock')?.invalid && form.get('currentStock')?.touched) {
+            <p class="text-red-500 text-xs mt-1">Debe ser mayor o igual a 0</p>
+            }
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Stock mínimo *</label>
+            <input formControlName="minimumStock" type="number" min="0"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            @if (form.get('minimumStock')?.invalid && form.get('minimumStock')?.touched) {
+            <p class="text-red-500 text-xs mt-1">Debe ser mayor o igual a 0</p>
+            }
+          </div>
+        </div>
+
+        <!-- Estado (solo en crear) -->
+        @if (!material) {
+        <div class="flex items-center gap-2">
+          <input formControlName="state" type="checkbox" id="state" class="w-4 h-4 accent-blue-600">
+          <label for="state" class="text-sm text-gray-700">Activo</label>
+        </div>
+        }
+
+        <!-- Botones -->
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" (click)="cancelled.emit()"
+            class="px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="form.invalid || loading()"
+            class="px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition disabled:opacity-50">
+            {{ loading() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</main>
