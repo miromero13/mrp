@@ -4,6 +4,9 @@ export const APP_ROUTES = {
   users: 'users',
   permissions: 'permissions',
   roles: 'roles',
+  enterprises: 'enterprises',
+  employees: 'employees',
+  workshifts: 'workshifts'
 } as const;
 
 export const APP_ROUTE_URLS = {
@@ -12,4 +15,7 @@ export const APP_ROUTE_URLS = {
   users: `/${APP_ROUTES.users}`,
   permissions: `/${APP_ROUTES.permissions}`,
   roles: `/${APP_ROUTES.roles}`,
+  enterprises: `/${APP_ROUTES.enterprises}`,
+  employees: `/${APP_ROUTES.employees}`,
+  workshifts: `/${APP_ROUTES.workshifts}`,
 } as const;

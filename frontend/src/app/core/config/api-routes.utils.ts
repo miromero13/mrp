@@ -11,4 +11,13 @@ export const API_ROUTES = {
   roles: {
     list: 'roles',
   },
+  enterprises: {
+    list: 'enterprises',
+  },
+  employees: {
+    list: 'employees',
+  },
+  workshifts: {
+    list: 'workshifts',
+  },
 } as const;

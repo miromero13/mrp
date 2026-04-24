@@ -101,6 +101,29 @@ export class PrivateLayoutComponent {
       ],
       expanded: true,
     },
+    {
+      kind: 'module',
+      title: 'Administracion',
+      icon: 'lucideUser',
+      requiredPermissions: [],
+      items: [
+        {
+          title: 'Gestionar Empresas',
+          url: this.appRouteUrls.enterprises,
+          icon: 'lucideUserLock',
+          exact: true,
+          requiredPermissions: [PERMISOS.enterprises.listar],
+        },
+        {
+          title: 'Gestionar usuarios',
+          url: this.appRouteUrls.users,
+          icon: 'lucideUsers',
+          exact: true,
+          requiredPermissions: [PERMISOS.usuarios.listar],
+        },
+      ],
+      expanded: true,
+    },
   ]);
 
   protected readonly userPermissions = computed(() =>
