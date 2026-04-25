@@ -14,9 +14,6 @@ export const API_ROUTES = {
   enterprises: {
     list: 'enterprises',
   },
-  employees: {
-    list: 'employees',
-  },
   workshifts: {
     list: 'work-shifts',
   },

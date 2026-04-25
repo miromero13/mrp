@@ -40,10 +40,20 @@ export class UsersComponent implements OnInit {
     () => new Set(this.authService.currentUser()?.role?.permissions?.map((permission) => permission.name) ?? []),
   );
 
+  protected readonly isSuperadmin = computed(() => this.authService.currentUser()?.role?.name === 'superadmin');
+
   protected readonly canCreateUser = computed(() => this.adminPermissionNames().has(PERMISOS.usuarios.crear));
 
   protected readonly assignableRoles = computed<ReadonlyArray<RoleListItem>>(() =>
     this.roles().filter((role) => {
+      if (!this.isSuperadmin() && role.name === 'superadmin') {
+        return false;
+      }
+
+      if (this.isSuperadmin() && role.name === 'employee') {
+        return false;
+      }
+
       const rolePermissions = role.permissions ?? [];
       if (rolePermissions.length === 0) {
         return true;
@@ -73,6 +83,11 @@ export class UsersComponent implements OnInit {
       id: 'role',
       header: 'Rol',
       cell: (user) => user.role?.name || '-',
+    },
+    {
+      id: 'enterprise',
+      header: 'Empresa',
+      cell: (user) => user.enterprise?.name || '-',
     },
   ]);
 

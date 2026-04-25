@@ -101,6 +101,9 @@
       <div class="grid justify-items-end">
         <span class="text-xs text-muted-foreground">Bienvenido</span>
         <strong class="text-sm">{{ authService.currentUser()?.name ?? 'Usuario' }}</strong>
+        @if (authService.currentUser()?.enterprise?.name) {
+          <span class="text-xs text-muted-foreground">{{ authService.currentUser()?.enterprise?.name }}</span>
+        }
       </div>
     </header>
 

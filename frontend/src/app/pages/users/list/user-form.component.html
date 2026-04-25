@@ -9,61 +9,21 @@
     <div class="grid gap-2">
       <label hlmLabel for="user-name">Nombre</label>
       <input id="user-name" hlmInput formControlName="name" placeholder="Ej. Ana Perez" />
-      @if (form.controls.name.touched && form.controls.name.invalid) {
-        <p class="text-xs text-destructive">
-          @if (form.controls.name.hasError('required')) {
-            El nombre es obligatorio.
-          } @else if (form.controls.name.hasError('minlength')) {
-            El nombre debe tener al menos 2 caracteres.
-          } @else if (form.controls.name.hasError('maxlength')) {
-            El nombre no puede superar 100 caracteres.
-          }
-        </p>
-      }
     </div>
 
     <div class="grid gap-2">
       <label hlmLabel for="user-email">Email</label>
       <input id="user-email" hlmInput type="email" formControlName="email" placeholder="correo@empresa.com" />
-      @if (form.controls.email.touched && form.controls.email.invalid) {
-        <p class="text-xs text-destructive">
-          @if (form.controls.email.hasError('required')) {
-            El email es obligatorio.
-          } @else if (form.controls.email.hasError('email')) {
-            Ingresa un email valido.
-          }
-        </p>
-      }
     </div>
 
     <div class="grid gap-2">
       <label hlmLabel for="user-password">Password</label>
       <input id="user-password" hlmInput type="password" formControlName="password" placeholder="********" />
-      @if (form.controls.password.touched && form.controls.password.invalid) {
-        <p class="text-xs text-destructive">
-          @if (form.controls.password.hasError('required')) {
-            La password es obligatoria.
-          } @else if (form.controls.password.hasError('minlength') || form.controls.password.hasError('maxlength')) {
-            La password debe tener entre 8 y 12 caracteres.
-          } @else if (form.controls.password.hasError('pattern')) {
-            Debe incluir mayuscula, minuscula, numero y caracter especial.
-          }
-        </p>
-      }
     </div>
 
     <div class="grid gap-2">
       <label hlmLabel for="user-phone">Telefono</label>
       <input id="user-phone" hlmInput formControlName="phone" placeholder="+52 123 456 7890" />
-      @if (form.controls.phone.touched && form.controls.phone.invalid) {
-        <p class="text-xs text-destructive">
-          @if (form.controls.phone.hasError('maxlength')) {
-            El telefono no puede superar 20 caracteres.
-          } @else if (form.controls.phone.hasError('pattern')) {
-            El telefono no es valido.
-          }
-        </p>
-      }
     </div>
 
     <div class="grid gap-2">
@@ -86,10 +46,6 @@
           </hlm-select-content>
         </ng-template>
       </div>
-
-      @if (hasRoleError()) {
-        <p class="text-xs text-destructive">Selecciona un rol.</p>
-      }
     </div>
 
     <div class="grid gap-2">
@@ -114,17 +70,83 @@
   <div class="grid gap-2">
     <label hlmLabel for="user-address">Direccion</label>
     <input id="user-address" hlmInput formControlName="address" placeholder="Direccion del usuario" />
-    @if (form.controls.address.touched && form.controls.address.invalid) {
-      <p class="text-xs text-destructive">La direccion no puede superar 200 caracteres.</p>
-    }
   </div>
+
+  @if (isEmployeeRoleSelected()) {
+    <section class="grid gap-4 rounded-xl border bg-muted/20 p-4">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <h3 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Horarios de trabajo</h3>
+          <p class="pt-1 text-xs text-muted-foreground">Asigna uno o varios turnos al empleado.</p>
+        </div>
+
+        <button hlmBtn type="button" variant="outline" size="sm" (click)="addAssignment()">Agregar horario</button>
+      </div>
+
+      @if (isSuperadmin()) {
+        <p class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          Superadmin no tiene acceso a turnos.
+        </p>
+      } @else if (loadingWorkShifts()) {
+        <p class="text-sm text-muted-foreground">Cargando turnos disponibles...</p>
+      } @else if (availableWorkShifts().length === 0) {
+        <p class="rounded-md border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-sm text-amber-700">
+          No hay turnos disponibles para tu empresa.
+        </p>
+      } @else {
+        <div class="grid gap-4">
+          @for (assignment of assignments.controls; track trackAssignment($index)) {
+            <div class="grid gap-4 rounded-lg border bg-background p-4 md:grid-cols-[1fr_2fr_auto]">
+              <div class="grid gap-2">
+                <label hlmLabel>Día</label>
+                <div hlmSelect [value]="assignment.get('dayOfWeek')?.value" (valueChange)="onAssignmentDayChange($index, $event)">
+                  <hlm-select-trigger>
+                    <span hlmSelectValue [placeholder]="'Selecciona un día'"></span>
+                  </hlm-select-trigger>
+
+                  <ng-template hlmSelectPortal>
+                    <hlm-select-content>
+                      @for (day of dayOptions; track day.value) {
+                        <hlm-select-item [value]="day.value">{{ day.label }}</hlm-select-item>
+                      }
+                    </hlm-select-content>
+                  </ng-template>
+                </div>
+              </div>
+
+              <div class="grid gap-2">
+                <label hlmLabel>Turno</label>
+                <div hlmSelect [value]="assignment.get('workShiftId')?.value" (valueChange)="onAssignmentShiftChange($index, $event)">
+                  <hlm-select-trigger>
+                    <span hlmSelectValue [placeholder]="'Selecciona un turno'"></span>
+                  </hlm-select-trigger>
+
+                  <ng-template hlmSelectPortal>
+                    <hlm-select-content>
+                      @for (workShift of availableWorkShifts(); track workShift.id) {
+                        <hlm-select-item [value]="workShift.id">{{ workShift.name }}</hlm-select-item>
+                      }
+                    </hlm-select-content>
+                  </ng-template>
+                </div>
+              </div>
+
+              <div class="flex items-end">
+                <button hlmBtn variant="ghost" type="button" (click)="removeAssignment($index)">Quitar</button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  }
 
   <div class="flex items-center justify-end gap-3 pt-2">
     <button hlmBtn variant="outline" type="button" (click)="cancel()" [disabled]="loading()">
       Cancelar
     </button>
 
-    <button hlmBtn type="submit" [disabled]="loading() || availableRoles().length === 0">
+    <button hlmBtn type="submit" [disabled]="loading() || (isEmployeeRoleSelected() && (isSuperadmin() || loadingWorkShifts() || availableWorkShifts().length === 0))">
       {{ loading() ? 'Guardando...' : submitLabel() }}
     </button>
   </div>

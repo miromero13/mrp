@@ -1,11 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
-import { RoleListItem } from '../../../core/users/models/role.models';
 import { CreateWorkShiftFormValue } from '../../../core/workshifts/models/workshift.models';
 
 @Component({
@@ -25,7 +24,6 @@ import { CreateWorkShiftFormValue } from '../../../core/workshifts/models/worksh
 export class WorkShiftFormComponent {
   private readonly formBuilder = inject(FormBuilder);
 
-  readonly availableRoles = input.required<ReadonlyArray<RoleListItem>>();
   readonly submitLabel = input('Guardar Turno');
   readonly loading = input(false);
   readonly serverError = input<string | null>(null);

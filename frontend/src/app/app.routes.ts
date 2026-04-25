@@ -43,10 +43,10 @@ export const routes: Routes = [
 				loadComponent: () => import('./pages/users/enterprises/enterprises.component').then((m) => m.EnterprisesComponent),
 				data: { permisos: [PERMISOS.enterprises.listar] },
 			},
-      {
+			{
 				path: APP_ROUTES.workshifts,
 				loadComponent: () => import('./pages/users/workshifts/workshifts.component').then((m) => m.WorkShiftsComponent),
-				data: { permisos: [PERMISOS.workshifts.listar] },
+				data: { permisos: [PERMISOS.workshifts.listar], blockedRoles: ['superadmin'] },
 			},
 			{ path: '', pathMatch: 'full', redirectTo: APP_ROUTES.dashboard },
 		],

@@ -10,8 +10,6 @@ import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { provideIcons } from '@ng-icons/core';
 import { lucidePlus, lucideX } from '@ng-icons/lucide';
 import { PERMISOS } from '../../../core/config/permisos';
-import { RoleListItem } from '../../../core/users/models/role.models';
-import { RoleService } from '../../../core/users/services/role.service';
 import { WorkShiftFormComponent } from './workshift-form.component';
 
 @Component({
@@ -24,17 +22,14 @@ import { WorkShiftFormComponent } from './workshift-form.component';
 })
 export class WorkShiftsComponent implements OnInit {
   private readonly workShiftService = inject(WorkShiftService);
-  private readonly roleService = inject(RoleService);
   private readonly authService = inject(AuthService);
 
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
-  protected readonly loadingRoles = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly createErrorMessage = signal<string | null>(null);
   protected readonly isCreateModalOpen = signal(false);
   protected readonly workShifts = signal<WorkShiftListItem[]>([]);
-  protected readonly roles = signal<RoleListItem[]>([]);
 
   protected readonly adminPermissionNames = computed(
     () => new Set(this.authService.currentUser()?.role?.permissions?.map((p) => p.name) ?? []),
@@ -44,13 +39,6 @@ export class WorkShiftsComponent implements OnInit {
   // ✅ CORREGIDO: permiso correcto
   protected readonly canCreateWorkShift = computed(() =>
     this.adminPermissionNames().has(PERMISOS.workshifts.crear),
-  );
-
-  protected readonly assignableRoles = computed<ReadonlyArray<RoleListItem>>(() =>
-    this.roles().filter((role) => {
-      const rolePermissions = role.permissions ?? [];
-      return rolePermissions.every((p) => this.adminPermissionNames().has(p.name));
-    }),
   );
 
   // ✅ CORREGIDO: manejo seguro de fechas
@@ -74,7 +62,6 @@ export class WorkShiftsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadWorkShifts();
-    this.loadRoles();
   }
 
   protected openCreateModal(): void {
@@ -107,14 +94,9 @@ export class WorkShiftsComponent implements OnInit {
           this.loadWorkShifts();
         },
         error: (error: HttpErrorResponse) => {
-          if (error.status === 401) {
+          if (error.status === 401 || error.status === 403) {
             this.errorMessage.set('Tu sesión expiró. Inicia sesión nuevamente.');
             this.authService.logout();
-            return;
-          }
-
-          if (error.status === 403) {
-            this.errorMessage.set('No tienes permisos para realizar esta acción.');
             return;
           }
 
@@ -138,44 +120,14 @@ export class WorkShiftsComponent implements OnInit {
       .subscribe({
         next: (data) => this.workShifts.set(data),
         error: (error: HttpErrorResponse) => {
-          if (error.status === 401) {
+          if (error.status === 401 || error.status === 403) {
             this.errorMessage.set('Tu sesión expiró. Inicia sesión nuevamente.');
             this.authService.logout();
             return;
           }
 
-          if (error.status === 403) {
-            this.errorMessage.set('No tienes permisos para realizar esta acción.');
-            return;
-          }
-
           const backendError = error?.error?.error ?? error?.error?.message;
           const fallbackError = error?.message ?? 'No se pudieron cargar los turnos.';
-          this.errorMessage.set(backendError ?? fallbackError);
-        },
-      });
-  }
-
-  protected loadRoles(): void {
-    this.loadingRoles.set(true);
-
-    this.roleService
-      .listRoles()
-      .pipe(
-        take(1),
-        finalize(() => this.loadingRoles.set(false)),
-      )
-      .subscribe({
-        next: (roles) => this.roles.set(roles),
-        error: (error: HttpErrorResponse) => {
-          if (error.status === 403) {
-            this.errorMessage.set('Tu sesión no es válida. Inicia sesión nuevamente.');
-            this.authService.logout();
-            return;
-          }
-
-          const backendError = error?.error?.error ?? error?.error?.message;
-          const fallbackError = error?.message ?? 'No se pudieron cargar los roles.';
           this.errorMessage.set(backendError ?? fallbackError);
         },
       });

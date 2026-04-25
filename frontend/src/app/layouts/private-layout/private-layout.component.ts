@@ -98,13 +98,6 @@ export class PrivateLayoutComponent {
           exact: true,
           requiredPermissions: [PERMISOS.usuarios.listar],
         },
-        {
-          title: 'Gestionar empleados',
-          url: this.appRouteUrls.employees,
-          icon: 'lucideUsers',
-          exact: true,
-          requiredPermissions: [PERMISOS.employees.listar],
-        },
       ],
       expanded: true,
     },
@@ -139,9 +132,14 @@ export class PrivateLayoutComponent {
 
   protected readonly visibleNavigationNodes = computed<NavigationNode[]>(() => {
     const userPermissions = this.userPermissions();
+    const isSuperadmin = this.authService.currentUser()?.role?.name === 'superadmin';
 
     return this.navigationNodes().reduce<NavigationNode[]>((visibleNodes, node) => {
       if (node.kind === 'item') {
+        if (isSuperadmin && node.url === this.appRouteUrls.workshifts) {
+          return visibleNodes;
+        }
+
         if (this.hasRequiredPermissions(node.requiredPermissions, userPermissions)) {
           visibleNodes.push(node);
         }
@@ -153,7 +151,7 @@ export class PrivateLayoutComponent {
       }
 
       const visibleItems = node.items.filter((item) =>
-        this.hasRequiredPermissions(item.requiredPermissions, userPermissions),
+        this.hasRequiredPermissions(item.requiredPermissions, userPermissions) && !(isSuperadmin && item.url === this.appRouteUrls.workshifts),
       );
 
       if (visibleItems.length > 0) {
