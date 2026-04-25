@@ -1,6 +1,7 @@
 package eccomerce.backend_eccomerce.user.service;
 
 import eccomerce.backend_eccomerce.common.utils.ResponseMessage;
+import eccomerce.backend_eccomerce.enterprise.dto.EnterpriseSessionDto;
 import eccomerce.backend_eccomerce.user.dto.AuthLoginResponseDto;
 import eccomerce.backend_eccomerce.user.dto.PermissionSessionDto;
 import eccomerce.backend_eccomerce.user.dto.RoleSessionDto;
@@ -53,6 +54,15 @@ public class UserAuthService {
         userSessionDto.phone = user.phone;
         userSessionDto.gender = user.gender;
         userSessionDto.address = user.address;
+
+        if (user.enterprise != null) {
+            EnterpriseSessionDto enterpriseSessionDto = new EnterpriseSessionDto();
+            enterpriseSessionDto.id = user.enterprise.getId();
+            enterpriseSessionDto.name = user.enterprise.getName();
+            enterpriseSessionDto.nit = user.enterprise.getNit();
+            enterpriseSessionDto.address = user.enterprise.getAddress();
+            userSessionDto.enterprise = enterpriseSessionDto;
+        }
 
         if (user.role != null) {
             RoleSessionDto roleSessionDto = new RoleSessionDto();

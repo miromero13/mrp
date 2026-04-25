@@ -2,8 +2,6 @@ package eccomerce.backend_eccomerce.config;
 
 import eccomerce.backend_eccomerce.common.constants.PermissionConstants;
 import eccomerce.backend_eccomerce.common.constants.RoleConstants;
-import eccomerce.backend_eccomerce.employee.entity.EmployeeEntity;
-import eccomerce.backend_eccomerce.employee.repository.EmployeeRepository;
 import eccomerce.backend_eccomerce.enterprise.entity.EnterpriseEntity;
 import eccomerce.backend_eccomerce.enterprise.repository.EnterpriseRepository;
 import eccomerce.backend_eccomerce.user.entity.PermissionEntity;
@@ -19,17 +17,14 @@ import eccomerce.backend_eccomerce.work_shift.repository.WorkShiftRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -50,9 +45,6 @@ public class DataInitializer implements CommandLineRunner {
     private EnterpriseRepository enterpriseRepository;
 
     @Autowired
-    private EmployeeRepository employeeRepository;
-
-    @Autowired
     private WorkShiftRepository workShiftRepository;
 
     @Autowired
@@ -66,25 +58,15 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     @Transactional
-    public void run(String... args) throws Exception {
-        // Crear permisos si no existen
+    public void run(String... args) {
         createPermissionsIfNotExist();
-
-        // Crear rol superadmin si no existe
         createSuperAdminRoleIfNotExist();
-
-        // Crear rol admin si no existe
         createAdminRoleIfNotExist();
-
-        // Crear empresa si no existe
-        createDefaultEnterpriseIfNotExist();
-
-        // Crear usuario superadmin si no existe
+        createEmployeeRoleIfNotExist();
         createSuperAdminUserIfNotExist();
-
-        createEmployeeForSuperAdminIfNotExist();
+        createEnterprisesAndAdmins();
         createDefaultWorkShiftsIfNotExist();
-        //assignDefaultShiftToEmployee();
+        createSeedEmployeeShifts();
     }
 
     private void createPermissionsIfNotExist() {
@@ -103,53 +85,131 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void createSuperAdminRoleIfNotExist() {
-        Optional<RoleEntity> existingSuperAdmin = roleRepository.findByName(RoleConstants.SUPERADMIN);
         Set<PermissionEntity> allPermissions = new HashSet<>(permissionRepository.findAll());
-
-        if (existingSuperAdmin.isEmpty()) {
-            RoleEntity superAdminRole = new RoleEntity();
-            superAdminRole.name = RoleConstants.SUPERADMIN;
-            superAdminRole.permissions = allPermissions;
-            roleRepository.save(superAdminRole);
-        } else {
-            RoleEntity superAdminRole = existingSuperAdmin.get();
-            if (!hasSamePermissions(superAdminRole.permissions, allPermissions)) {
-                superAdminRole.permissions = allPermissions;
-                roleRepository.save(superAdminRole);
-            }
-        }
+        RoleEntity superAdminRole = roleRepository.findByName(RoleConstants.SUPERADMIN).orElseGet(RoleEntity::new);
+        superAdminRole.name = RoleConstants.SUPERADMIN;
+        superAdminRole.permissions = allPermissions;
+        roleRepository.save(superAdminRole);
     }
 
     private void createAdminRoleIfNotExist() {
-        Optional<RoleEntity> existingAdmin = roleRepository.findByName(RoleConstants.ADMIN);
-        Set<PermissionEntity> adminPermissions = getPermissionsByNames(PermissionConstants.ADMIN_PERMISSION_NAMES);
+        RoleEntity adminRole = roleRepository.findByName(RoleConstants.ADMIN).orElseGet(RoleEntity::new);
+        adminRole.name = RoleConstants.ADMIN;
+        adminRole.permissions = getPermissionsByNames(PermissionConstants.ADMIN_PERMISSION_NAMES);
+        roleRepository.save(adminRole);
+    }
 
-        if (existingAdmin.isEmpty()) {
-            RoleEntity adminRole = new RoleEntity();
-            adminRole.name = RoleConstants.ADMIN;
-            adminRole.permissions = adminPermissions;
-            roleRepository.save(adminRole);
-        } else {
-            RoleEntity adminRole = existingAdmin.get();
-            if (!hasSamePermissions(adminRole.permissions, adminPermissions)) {
-                adminRole.permissions = adminPermissions;
-                roleRepository.save(adminRole);
-            }
+    private void createEmployeeRoleIfNotExist() {
+        RoleEntity employeeRole = roleRepository.findByName(RoleConstants.EMPLOYEE).orElseGet(RoleEntity::new);
+        employeeRole.name = RoleConstants.EMPLOYEE;
+        employeeRole.permissions = getPermissionsByNames(PermissionConstants.EMPLOYEE_PERMISSION_NAMES);
+        roleRepository.save(employeeRole);
+    }
+
+    private void createSuperAdminUserIfNotExist() {
+        if (userRepository.findByEmail(superadminEmail).isEmpty()) {
+            UserEntity superAdminUser = new UserEntity();
+            superAdminUser.name = "Super Admin";
+            superAdminUser.email = superadminEmail;
+            superAdminUser.password = passwordEncoder.encode(superadminPassword);
+            superAdminUser.role = roleRepository.findByName(RoleConstants.SUPERADMIN)
+                    .orElseThrow(() -> new RuntimeException("Rol superadmin no encontrado"));
+            userRepository.save(superAdminUser);
         }
     }
 
-    private boolean hasSamePermissions(Set<PermissionEntity> currentPermissions, Set<PermissionEntity> expectedPermissions) {
-        Set<String> currentNames = currentPermissions.stream()
-                .map(permission -> permission.name)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+    private void createEnterprisesAndAdmins() {
+        List<EnterpriseSeed> seeds = List.of(
+                new EnterpriseSeed("Alpha Textiles", "1000001", "Calle 1 # 10-20", "Admin Alpha", "admin.alpha@mrp.local", "Admin@123A"),
+                new EnterpriseSeed("Beta Foods", "1000002", "Calle 2 # 20-30", "Admin Beta", "admin.beta@mrp.local", "Admin@123B"),
+                new EnterpriseSeed("Gamma Logistics", "1000003", "Calle 3 # 30-40", "Admin Gamma", "admin.gamma@mrp.local", "Admin@123C"),
+                new EnterpriseSeed("Delta Works", "1000004", "Calle 4 # 40-50", "Admin Delta", "admin.delta@mrp.local", "Admin@123D"),
+                new EnterpriseSeed("Omega Services", "1000005", "Calle 5 # 50-60", "Admin Omega", "admin.omega@mrp.local", "Admin@123E")
+        );
 
-        Set<String> expectedNames = expectedPermissions.stream()
-                .map(permission -> permission.name)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        for (EnterpriseSeed seed : seeds) {
+            EnterpriseEntity enterprise = enterpriseRepository.findByNit(seed.nit()).orElseGet(EnterpriseEntity::new);
+            enterprise.setName(seed.name());
+            enterprise.setNit(seed.nit());
+            enterprise.setAddress(seed.address());
+            enterpriseRepository.save(enterprise);
 
-        return currentNames.equals(expectedNames);
+            UserEntity admin = userRepository.findByEmail(seed.adminEmail()).orElseGet(UserEntity::new);
+            admin.name = seed.adminName();
+            admin.email = seed.adminEmail();
+            admin.password = passwordEncoder.encode(seed.adminPassword());
+            admin.role = roleRepository.findByName(RoleConstants.ADMIN)
+                    .orElseThrow(() -> new RuntimeException("Rol admin no encontrado"));
+            admin.enterprise = enterprise;
+            userRepository.save(admin);
+        }
+    }
+
+    private void createDefaultWorkShiftsIfNotExist() {
+        if (workShiftRepository.count() > 0) {
+            return;
+        }
+
+        List<EnterpriseEntity> enterprises = enterpriseRepository.findAll();
+        for (EnterpriseEntity enterprise : enterprises) {
+            WorkShiftEntity morning = new WorkShiftEntity();
+            morning.setName(enterprise.getName() + " - Mañana");
+            morning.setStartDate(LocalDateTime.of(2026, 4, 24, 8, 0));
+            morning.setEndDate(LocalDateTime.of(2026, 4, 24, 12, 0));
+            morning.setEnterprise(enterprise);
+
+            WorkShiftEntity afternoon = new WorkShiftEntity();
+            afternoon.setName(enterprise.getName() + " - Tarde");
+            afternoon.setStartDate(LocalDateTime.of(2026, 4, 24, 14, 0));
+            afternoon.setEndDate(LocalDateTime.of(2026, 4, 24, 18, 0));
+            afternoon.setEnterprise(enterprise);
+
+            workShiftRepository.save(morning);
+            workShiftRepository.save(afternoon);
+        }
+    }
+
+    private void createSeedEmployeeShifts() {
+        if (employeeShiftRepository.count() > 0) {
+            return;
+        }
+
+        List<UserEntity> employees = userRepository.findAll().stream()
+                .filter(user -> user.role != null && RoleConstants.EMPLOYEE.equalsIgnoreCase(user.role.name))
+                .toList();
+
+        if (employees.isEmpty()) {
+            employees = enterpriseRepository.findAll().stream()
+                    .map(enterprise -> {
+                        UserEntity seedEmployee = new UserEntity();
+                        seedEmployee.name = enterprise.getName() + " - Empleado";
+                        seedEmployee.email = "empleado." + enterprise.getNit() + "@mrp.local";
+                        seedEmployee.password = passwordEncoder.encode("Employee@123");
+                        seedEmployee.role = roleRepository.findByName(RoleConstants.EMPLOYEE)
+                                .orElseThrow(() -> new RuntimeException("Rol employee no encontrado"));
+                        seedEmployee.enterprise = enterprise;
+                        return userRepository.save(seedEmployee);
+                    })
+                    .toList();
+        }
+
+        List<WorkShiftEntity> shifts = workShiftRepository.findAll();
+        if (employees.isEmpty() || shifts.isEmpty()) {
+            return;
+        }
+
+        for (UserEntity employee : employees) {
+            WorkShiftEntity shift = shifts.stream()
+                    .filter(workShift -> workShift.getEnterprise() != null && employee.enterprise != null && workShift.getEnterprise().getId().equals(employee.enterprise.getId()))
+                    .findFirst()
+                    .orElse(shifts.get(0));
+
+            EmployeeShiftEntity assignment = new EmployeeShiftEntity();
+            assignment.setUser(employee);
+            assignment.setWorkShift(shift);
+            assignment.setDayOfWeek("MONDAY");
+            employeeShiftRepository.save(assignment);
+        }
     }
 
     private Set<PermissionEntity> getPermissionsByNames(String[] permissionNames) {
@@ -164,103 +224,5 @@ public class DataInitializer implements CommandLineRunner {
         return permissions;
     }
 
-    private void createSuperAdminUserIfNotExist() {
-        if (userRepository.findByEmail(superadminEmail).isEmpty()) {
-            UserEntity superAdminUser = new UserEntity();
-            superAdminUser.name = "Super Admin";
-            superAdminUser.email = superadminEmail;
-            superAdminUser.password = passwordEncoder.encode(superadminPassword);
-
-            // Asignar rol superadmin
-            RoleEntity superAdminRole = roleRepository.findByName(RoleConstants.SUPERADMIN)
-                    .orElseThrow(() -> new RuntimeException("Rol superadmin no encontrado"));
-            superAdminUser.role = superAdminRole;
-
-            userRepository.save(superAdminUser);
-        }
-    }
-
-    private void createDefaultEnterpriseIfNotExist() {
-
-        if (enterpriseRepository.findByNit("0000001").isEmpty()) {
-
-            EnterpriseEntity enterprise = new EnterpriseEntity();
-            enterprise.setName("Default Enterprise");
-            enterprise.setNit("0000001");
-            enterprise.setAddress("N/A");
-
-            enterpriseRepository.save(enterprise);
-        }
-    }
-
-    private void createEmployeeForSuperAdminIfNotExist() {
-
-        Optional<UserEntity> userOpt = userRepository.findByEmail(superadminEmail);
-
-        if (userOpt.isEmpty()) return;
-
-        UserEntity user = userOpt.get();
-
-        if (employeeRepository.findByUser(user).isEmpty()) {
-
-            EmployeeEntity employee = new EmployeeEntity();
-            employee.setUser(user);
-            employee.setInternalCode("EMP-001");
-            employee.setPosition("Administrador");
-            employee.setHourlyRate(new BigDecimal("0.00"));
-            employee.setHireDate(java.time.LocalDate.now());
-            employee.setStatus(true);
-
-            employeeRepository.save(employee);
-        }
-    }
-
-    private void createDefaultWorkShiftsIfNotExist() {
-
-        if (workShiftRepository.count() == 0) {
-
-            EnterpriseEntity enterprise = enterpriseRepository.findByNit("0000001")
-                    .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
-
-            WorkShiftEntity morning = new WorkShiftEntity();
-            morning.setName("Turno Mañana");
-            morning.setStartDate(LocalDateTime.of(2026, 4, 24, 8, 0));
-            morning.setEndDate(LocalDateTime.of(2026, 4, 24, 12, 0));
-            morning.setEnterprise(enterprise);
-
-            WorkShiftEntity afternoon = new WorkShiftEntity();
-            afternoon.setName("Turno Tarde");
-            afternoon.setStartDate(LocalDateTime.of(2026, 4, 24, 14, 0));
-            afternoon.setEndDate(LocalDateTime.of(2026, 4, 24, 18, 0));
-            afternoon.setEnterprise(enterprise);
-
-            workShiftRepository.save(morning);
-            workShiftRepository.save(afternoon);
-        }
-    }
-
- /*   private void assignDefaultShiftToEmployee() {
-
-        Optional<UserEntity> userOpt = userRepository.findByEmail(superadminEmail);
-        if (userOpt.isEmpty()) return;
-
-        UserEntity user = userOpt.get();
-
-        Optional<EmployeeEntity> employeeOpt = employeeRepository.findByUser(user);
-        if (employeeOpt.isEmpty()) return;
-
-        EmployeeEntity employee = employeeOpt.get();
-
-        // Evitar duplicados
-        if (!employeeShiftRepository.findByEmployee(employee).isEmpty()) return;
-
-        WorkShiftEntity shift = workShiftRepository.findAll().stream().findFirst()
-                .orElseThrow(() -> new RuntimeException("No hay turnos disponibles"));
-
-        EmployeeShiftEntity employeeShift = new EmployeeShiftEntity();
-
-        employeeShift.setDayOfWeek("MONDAY");
-
-        employeeShiftRepository.save(employeeShift);
-    }*/
+    private record EnterpriseSeed(String name, String nit, String address, String adminName, String adminEmail, String adminPassword) {}
 }

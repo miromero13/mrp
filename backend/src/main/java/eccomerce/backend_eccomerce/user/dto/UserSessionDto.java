@@ -13,6 +13,5 @@ public class UserSessionDto {
     public GenderEnum gender;
     public String address;
     public RoleSessionDto role;
-
-    //public EnterpriseSessionDto enterprise;
+    public EnterpriseSessionDto enterprise;
 }

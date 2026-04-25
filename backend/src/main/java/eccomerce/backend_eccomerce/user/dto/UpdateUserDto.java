@@ -28,4 +28,6 @@ public class UpdateUserDto {
 
     public UUID roleId;
 
+    public UUID enterpriseId;
+
 }
