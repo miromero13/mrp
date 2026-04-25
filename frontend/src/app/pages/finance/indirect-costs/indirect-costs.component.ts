@@ -1,22 +1,24 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnInit, TemplateRef, ViewChild, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, TemplateRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, take } from 'rxjs/operators';
 import { provideIcons } from '@ng-icons/core';
-import { lucidePencil, lucidePlus, lucideTrash2, lucideX } from '@ng-icons/lucide';
+import { lucideEye, lucidePencil, lucidePlus, lucideTrash2, lucideX } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { CustomTableColumn, CustomTableComponent } from '../../../shared/components/custom-table/custom-table.component';
+import { PERMISOS } from '../../../core/config/permisos';
 import { IndirectCostFormValue, IndirectCostListItem } from '../../../core/enterprises/models/indirect-cost.models';
 import { IndirectCostService } from '../../../core/enterprises/services/indirect-cost.service';
+import { AuthService } from '../../../core/users/services/auth.service';
 
 @Component({
   selector: 'app-indirect-costs',
   standalone: true,
   imports: [CustomTableComponent, ReactiveFormsModule, ...HlmButtonImports, ...HlmIconImports, ...HlmInputImports, ...HlmLabelImports],
-  providers: [provideIcons({ lucidePlus, lucidePencil, lucideTrash2, lucideX })],
+  providers: [provideIcons({ lucideEye, lucidePlus, lucidePencil, lucideTrash2, lucideX })],
   templateUrl: './indirect-costs.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -26,15 +28,28 @@ export class IndirectCostsComponent implements OnInit {
 
   private readonly formBuilder = inject(FormBuilder);
   private readonly indirectCostService = inject(IndirectCostService);
+  private readonly authService = inject(AuthService);
 
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly formErrorMessage = signal<string | null>(null);
   protected readonly isModalOpen = signal(false);
+  protected readonly modalMode = signal<'create' | 'view' | 'edit'>('create');
   protected readonly editingIndirectCostId = signal<string | null>(null);
+  protected readonly selectedIndirectCost = signal<IndirectCostListItem | null>(null);
   protected readonly indirectCosts = signal<IndirectCostListItem[]>([]);
   protected tableColumns: ReadonlyArray<CustomTableColumn<IndirectCostListItem>> = [];
+
+  protected readonly adminPermissionNames = computed(
+    () => new Set(this.authService.currentUser()?.role?.permissions?.map((permission) => permission.name) ?? []),
+  );
+
+  protected readonly canViewIndirectCost = computed(() => this.adminPermissionNames().has(PERMISOS.indirectCosts.listar));
+  protected readonly canEditIndirectCost = computed(() => this.adminPermissionNames().has(PERMISOS.indirectCosts.editar));
+  protected readonly canDeleteIndirectCost = computed(() => this.adminPermissionNames().has(PERMISOS.indirectCosts.eliminar));
+  protected readonly canCreateIndirectCost = computed(() => this.adminPermissionNames().has(PERMISOS.indirectCosts.crear));
+  protected readonly isReadOnly = computed(() => this.modalMode() === 'view');
 
   protected readonly form = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
@@ -59,8 +74,26 @@ export class IndirectCostsComponent implements OnInit {
   }
 
   protected openModal(indirectCost: IndirectCostListItem | null = null): void {
+    this.openIndirectCostModal(indirectCost, indirectCost ? 'edit' : 'create');
+  }
+
+  protected openIndirectCostModal(indirectCost: IndirectCostListItem | null, mode: 'create' | 'view' | 'edit'): void {
+    if (mode === 'create' && !this.canCreateIndirectCost()) {
+      return;
+    }
+
+    if (mode === 'view' && !this.canViewIndirectCost()) {
+      return;
+    }
+
+    if (mode === 'edit' && !this.canEditIndirectCost()) {
+      return;
+    }
+
     this.formErrorMessage.set(null);
+    this.modalMode.set(mode);
     this.editingIndirectCostId.set(indirectCost?.id ?? null);
+    this.selectedIndirectCost.set(indirectCost);
     this.form.reset({
       name: indirectCost?.name ?? '',
       description: indirectCost?.description ?? '',
@@ -77,6 +110,8 @@ export class IndirectCostsComponent implements OnInit {
     this.formErrorMessage.set(null);
     this.isModalOpen.set(false);
     this.editingIndirectCostId.set(null);
+    this.selectedIndirectCost.set(null);
+    this.modalMode.set('create');
   }
 
   protected saveIndirectCost(): void {
@@ -108,6 +143,7 @@ export class IndirectCostsComponent implements OnInit {
         next: () => {
           this.isModalOpen.set(false);
           this.editingIndirectCostId.set(null);
+          this.selectedIndirectCost.set(null);
           this.loadIndirectCosts();
         },
         error: (error: HttpErrorResponse) => {
@@ -119,7 +155,7 @@ export class IndirectCostsComponent implements OnInit {
   }
 
   protected deleteIndirectCost(id: string): void {
-    if (!confirm('¿Eliminar este costo indirecto?')) {
+    if (!this.canDeleteIndirectCost() || !confirm('¿Eliminar este costo indirecto?')) {
       return;
     }
 

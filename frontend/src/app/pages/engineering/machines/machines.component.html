@@ -6,10 +6,12 @@
         <p class="pt-1 text-sm text-muted-foreground">Gestiona las máquinas asociadas a tu empresa.</p>
       </div>
 
-      <button hlmBtn type="button" class="gap-2" (click)="openModal()">
-        <ng-icon hlm [name]="'lucidePlus'" size="sm" />
-        <span>Agregar maquinaria</span>
-      </button>
+      @if (canCreateMachine()) {
+        <button hlmBtn type="button" class="gap-2" (click)="openModal()">
+          <ng-icon hlm [name]="'lucidePlus'" size="sm" />
+          <span>Agregar maquinaria</span>
+        </button>
+      }
     </div>
 
     @if (errorMessage()) {
@@ -32,14 +34,23 @@
 
   <ng-template #machineActions let-machine>
     <div class="flex justify-end gap-2">
-      <button hlmBtn variant="outline" size="sm" type="button" class="gap-2" (click)="openModal(machine)">
-        <ng-icon hlm [name]="'lucidePencil'" size="sm" />
-        <span>Editar</span>
-      </button>
-      <button hlmBtn variant="destructive" size="sm" type="button" class="gap-2" (click)="deleteMachine(machine.id)">
-        <ng-icon hlm [name]="'lucideTrash2'" size="sm" />
-        <span>Eliminar</span>
-      </button>
+      @if (canViewMachine()) {
+        <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="openMachineModal(machine, 'view')">
+          <ng-icon hlm [name]="'lucideEye'" size="sm" />
+        </button>
+      }
+
+      @if (canEditMachine()) {
+        <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="openMachineModal(machine, 'edit')">
+          <ng-icon hlm [name]="'lucidePencil'" size="sm" />
+        </button>
+      }
+
+      @if (canDeleteMachine()) {
+        <button hlmBtn variant="ghost" size="icon-sm" type="button" class="text-destructive" (click)="deleteMachine(machine.id)">
+          <ng-icon hlm [name]="'lucideTrash2'" size="sm" />
+        </button>
+      }
     </div>
   </ng-template>
 
@@ -48,8 +59,10 @@
       <div class="relative flex w-full max-w-3xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl">
         <div class="flex items-start justify-between gap-4 border-b px-6 py-4">
           <div>
-            <h2 class="text-lg font-semibold">{{ editingMachineId() ? 'Editar maquinaria' : 'Agregar maquinaria' }}</h2>
-            <p class="pt-1 text-sm text-muted-foreground">Registra una máquina y su costo.</p>
+            <h2 class="text-lg font-semibold">
+              {{ modalMode() === 'edit' ? 'Editar maquinaria' : modalMode() === 'view' ? 'Detalle de maquinaria' : 'Agregar maquinaria' }}
+            </h2>
+            <p class="pt-1 text-sm text-muted-foreground">{{ modalMode() === 'view' ? 'Revisa la información de la maquinaria.' : 'Registra una máquina y su costo.' }}</p>
           </div>
 
           <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="closeModal()" [disabled]="saving()">
@@ -65,23 +78,25 @@
           <div class="grid gap-4 md:grid-cols-2">
             <div class="grid gap-2">
               <label hlmLabel for="machine-name">Nombre</label>
-              <input id="machine-name" hlmInput formControlName="name" placeholder="Ej. Torno CNC" />
+              <input id="machine-name" hlmInput formControlName="name" placeholder="Ej. Torno CNC" [disabled]="isReadOnly() || saving()" />
             </div>
 
             <div class="grid gap-2">
               <label hlmLabel for="machine-cost">Costo</label>
-              <input id="machine-cost" hlmInput type="number" formControlName="cost" />
+              <input id="machine-cost" hlmInput type="number" formControlName="cost" [disabled]="isReadOnly() || saving()" />
             </div>
 
             <div class="grid gap-2 md:col-span-2">
               <label hlmLabel for="machine-description">Descripción</label>
-              <textarea id="machine-description" class="min-h-24 rounded-md border bg-background px-3 py-2 text-sm outline-none" formControlName="description"></textarea>
+              <textarea id="machine-description" class="min-h-24 rounded-md border bg-background px-3 py-2 text-sm outline-none" formControlName="description" [disabled]="isReadOnly() || saving()"></textarea>
             </div>
           </div>
 
           <div class="flex items-center justify-end gap-3 pt-6">
-            <button hlmBtn variant="outline" type="button" (click)="closeModal()" [disabled]="saving()">Cancelar</button>
-            <button hlmBtn type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar' }}</button>
+            <button hlmBtn variant="outline" type="button" (click)="closeModal()" [disabled]="saving()">Cerrar</button>
+            @if (!isReadOnly()) {
+              <button hlmBtn type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar' }}</button>
+            }
           </div>
         </form>
       </div>

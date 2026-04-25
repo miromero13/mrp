@@ -6,10 +6,12 @@
         <p class="pt-1 text-sm text-muted-foreground">Crea productos, asigna materiales y define sus versiones.</p>
       </div>
 
-      <button hlmBtn type="button" class="gap-2" (click)="openCreateModal()">
-        <ng-icon hlm [name]="'lucidePlus'" size="sm" />
-        <span>Nuevo producto</span>
-      </button>
+      @if (canCreateProduct()) {
+        <button hlmBtn type="button" class="gap-2" (click)="openCreateModal()">
+          <ng-icon hlm [name]="'lucidePlus'" size="sm" />
+          <span>Nuevo producto</span>
+        </button>
+      }
     </div>
 
     @if (errorMessage()) {
@@ -20,7 +22,7 @@
 
     <div class="mt-4">
       <app-custom-table
-        [columns]="tableColumns()"
+        [columns]="tableColumns"
         [rows]="products()"
         [loading]="loading()"
         [pageSize]="25"
@@ -30,21 +32,43 @@
     </div>
   </section>
 
-  @if (isCreateModalOpen()) {
+  <ng-template #productActions let-product>
+    <div class="flex justify-end gap-1">
+      @if (canViewProduct()) {
+        <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="openProductModal(product, 'view')">
+          <ng-icon hlm [name]="'lucideEye'" size="sm" />
+        </button>
+      }
+
+      @if (canEditProduct()) {
+        <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="openProductModal(product, 'edit')">
+          <ng-icon hlm [name]="'lucidePencil'" size="sm" />
+        </button>
+      }
+
+      @if (canDeleteProduct()) {
+        <button hlmBtn variant="ghost" size="icon-sm" type="button" class="text-destructive" (click)="deleteProduct(product)">
+          <ng-icon hlm [name]="'lucideTrash2'" size="sm" />
+        </button>
+      }
+    </div>
+  </ng-template>
+
+  @if (isCreateModalOpen() || isEditModalOpen()) {
     <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 px-4 py-6 backdrop-blur-sm">
       <div class="relative flex w-full max-w-5xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl">
         <div class="flex items-start justify-between gap-4 border-b px-6 py-4">
           <div>
-            <h2 class="text-lg font-semibold">Crear producto</h2>
-            <p class="pt-1 text-sm text-muted-foreground">Registra un producto con materiales y versiones en una sola vista.</p>
+            <h2 class="text-lg font-semibold">{{ modalMode() === 'edit' ? 'Editar producto' : modalMode() === 'view' ? 'Detalle del producto' : 'Crear producto' }}</h2>
+            <p class="pt-1 text-sm text-muted-foreground">{{ modalMode() === 'view' ? 'Revisa la información del producto.' : 'Registra un producto con materiales y versiones en una sola vista.' }}</p>
           </div>
 
-          <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="closeCreateModal()" [disabled]="saving()">
+          <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="modalMode() === 'create' ? closeCreateModal() : closeEditModal()" [disabled]="saving()">
             <ng-icon hlm [name]="'lucideX'" size="sm" />
           </button>
         </div>
 
-        <form class="min-h-0 flex-1 overflow-y-auto p-6" [formGroup]="form" (ngSubmit)="createProduct()">
+        <form class="min-h-0 flex-1 overflow-y-auto p-6" [formGroup]="form" (ngSubmit)="saveProduct()">
           @if (createErrorMessage()) {
             <p class="mb-4 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
               {{ createErrorMessage() }}
@@ -54,22 +78,22 @@
           <div class="grid gap-4 md:grid-cols-2">
             <div class="grid gap-2">
               <label hlmLabel for="product-name">Nombre</label>
-              <input id="product-name" hlmInput formControlName="name" placeholder="Mesa industrial" />
+              <input id="product-name" hlmInput formControlName="name" placeholder="Mesa industrial" [disabled]="saving() || isReadOnly()" />
             </div>
 
             <div class="grid gap-2">
               <label hlmLabel for="product-production-cost">Costo de producción</label>
-              <input id="product-production-cost" hlmInput type="number" formControlName="productionCost" />
+              <input id="product-production-cost" hlmInput type="number" formControlName="productionCost" [disabled]="saving() || isReadOnly()" />
             </div>
 
             <div class="grid gap-2">
               <label hlmLabel for="product-sale-price">Precio de venta</label>
-              <input id="product-sale-price" hlmInput type="number" formControlName="salePrice" />
+              <input id="product-sale-price" hlmInput type="number" formControlName="salePrice" [disabled]="saving() || isReadOnly()" />
             </div>
 
             <div class="grid gap-2 md:col-span-2">
               <label hlmLabel for="product-description">Descripción</label>
-              <textarea id="product-description" class="min-h-24 rounded-md border bg-background px-3 py-2 text-sm outline-none" formControlName="description"></textarea>
+              <textarea id="product-description" class="min-h-24 rounded-md border bg-background px-3 py-2 text-sm outline-none" formControlName="description" [disabled]="saving() || isReadOnly()"></textarea>
             </div>
           </div>
 
@@ -94,6 +118,7 @@
                       class="size-4"
                       [checked]="isMaterialSelected(material.id)"
                       (change)="toggleMaterial(material.id, $any($event.target).checked)"
+                      [disabled]="saving() || isReadOnly()"
                     />
                     <span>{{ material.code }} - {{ material.unitOfMeasure }}</span>
                   </label>
@@ -109,7 +134,7 @@
                 <p class="pt-1 text-xs text-muted-foreground">Agrega colores o variantes del mismo producto.</p>
               </div>
 
-              <button hlmBtn type="button" variant="outline" size="sm" class="gap-2" (click)="addVersion()">
+              <button hlmBtn type="button" variant="outline" size="sm" class="gap-2" (click)="addVersion()" [disabled]="saving() || isReadOnly()">
                 <ng-icon hlm [name]="'lucidePlus'" size="sm" />
                 <span>Agregar versión</span>
               </button>
@@ -118,9 +143,9 @@
             <div class="grid gap-3">
               @for (version of versionGroups; track trackVersion($index)) {
                 <div class="grid gap-2 md:grid-cols-[1fr_auto]" [formGroup]="version">
-                  <input hlmInput formControlName="name" placeholder="Verde / Blanco / Negro" />
+                   <input hlmInput formControlName="name" placeholder="Verde / Blanco / Negro" [disabled]="saving() || isReadOnly()" />
 
-                  <button hlmBtn type="button" variant="ghost" size="icon" (click)="removeVersion($index)">
+                   <button hlmBtn type="button" variant="ghost" size="icon" (click)="removeVersion($index)" [disabled]="saving() || isReadOnly()">
                     <ng-icon hlm [name]="'lucideMinus'" size="sm" />
                   </button>
                 </div>
@@ -129,8 +154,10 @@
           </section>
 
           <div class="flex items-center justify-end gap-3 pt-6">
-            <button hlmBtn variant="outline" type="button" (click)="closeCreateModal()" [disabled]="saving()">Cancelar</button>
-            <button hlmBtn type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Crear producto' }}</button>
+            <button hlmBtn variant="outline" type="button" (click)="modalMode() === 'create' ? closeCreateModal() : closeEditModal()" [disabled]="saving()">Cerrar</button>
+            @if (!isReadOnly()) {
+              <button hlmBtn type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : modalMode() === 'edit' ? 'Guardar cambios' : 'Crear producto' }}</button>
+            }
           </div>
         </form>
       </div>

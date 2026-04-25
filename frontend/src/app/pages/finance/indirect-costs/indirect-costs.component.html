@@ -6,10 +6,12 @@
         <p class="pt-1 text-sm text-muted-foreground">Registra agua, luz, arriendo, mantenimiento y otros costos.</p>
       </div>
 
-      <button hlmBtn type="button" class="gap-2" (click)="openModal()">
-        <ng-icon hlm [name]="'lucidePlus'" size="sm" />
-        <span>Agregar costo</span>
-      </button>
+      @if (canCreateIndirectCost()) {
+        <button hlmBtn type="button" class="gap-2" (click)="openModal()">
+          <ng-icon hlm [name]="'lucidePlus'" size="sm" />
+          <span>Agregar costo</span>
+        </button>
+      }
     </div>
 
     @if (errorMessage()) {
@@ -32,14 +34,23 @@
 
   <ng-template #indirectCostActions let-cost>
     <div class="flex justify-end gap-2">
-      <button hlmBtn variant="outline" size="sm" type="button" class="gap-2" (click)="openModal(cost)">
-        <ng-icon hlm [name]="'lucidePencil'" size="sm" />
-        <span>Editar</span>
-      </button>
-      <button hlmBtn variant="destructive" size="sm" type="button" class="gap-2" (click)="deleteIndirectCost(cost.id)">
-        <ng-icon hlm [name]="'lucideTrash2'" size="sm" />
-        <span>Eliminar</span>
-      </button>
+      @if (canViewIndirectCost()) {
+        <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="openIndirectCostModal(cost, 'view')">
+          <ng-icon hlm [name]="'lucideEye'" size="sm" />
+        </button>
+      }
+
+      @if (canEditIndirectCost()) {
+        <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="openIndirectCostModal(cost, 'edit')">
+          <ng-icon hlm [name]="'lucidePencil'" size="sm" />
+        </button>
+      }
+
+      @if (canDeleteIndirectCost()) {
+        <button hlmBtn variant="ghost" size="icon-sm" type="button" class="text-destructive" (click)="deleteIndirectCost(cost.id)">
+          <ng-icon hlm [name]="'lucideTrash2'" size="sm" />
+        </button>
+      }
     </div>
   </ng-template>
 
@@ -48,8 +59,8 @@
       <div class="relative flex w-full max-w-3xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl">
         <div class="flex items-start justify-between gap-4 border-b px-6 py-4">
           <div>
-            <h2 class="text-lg font-semibold">{{ editingIndirectCostId() ? 'Editar costo indirecto' : 'Agregar costo indirecto' }}</h2>
-            <p class="pt-1 text-sm text-muted-foreground">Registra un gasto indirecto de la empresa.</p>
+            <h2 class="text-lg font-semibold">{{ modalMode() === 'edit' ? 'Editar costo indirecto' : modalMode() === 'view' ? 'Detalle del costo indirecto' : 'Agregar costo indirecto' }}</h2>
+            <p class="pt-1 text-sm text-muted-foreground">{{ modalMode() === 'view' ? 'Revisa la información del costo indirecto.' : 'Registra un gasto indirecto de la empresa.' }}</p>
           </div>
 
           <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="closeModal()" [disabled]="saving()">
@@ -65,23 +76,25 @@
           <div class="grid gap-4 md:grid-cols-2">
             <div class="grid gap-2">
               <label hlmLabel for="indirect-cost-name">Nombre</label>
-              <input id="indirect-cost-name" hlmInput formControlName="name" placeholder="Ej. Luz" />
+              <input id="indirect-cost-name" hlmInput formControlName="name" placeholder="Ej. Luz" [disabled]="saving() || isReadOnly()" />
             </div>
 
             <div class="grid gap-2">
               <label hlmLabel for="indirect-cost-amount">Monto</label>
-              <input id="indirect-cost-amount" hlmInput type="number" formControlName="amount" />
+              <input id="indirect-cost-amount" hlmInput type="number" formControlName="amount" [disabled]="saving() || isReadOnly()" />
             </div>
 
             <div class="grid gap-2 md:col-span-2">
               <label hlmLabel for="indirect-cost-description">Descripción</label>
-              <textarea id="indirect-cost-description" class="min-h-24 rounded-md border bg-background px-3 py-2 text-sm outline-none" formControlName="description"></textarea>
+              <textarea id="indirect-cost-description" class="min-h-24 rounded-md border bg-background px-3 py-2 text-sm outline-none" formControlName="description" [disabled]="saving() || isReadOnly()"></textarea>
             </div>
           </div>
 
           <div class="flex items-center justify-end gap-3 pt-6">
-            <button hlmBtn variant="outline" type="button" (click)="closeModal()" [disabled]="saving()">Cancelar</button>
-            <button hlmBtn type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar' }}</button>
+            <button hlmBtn variant="outline" type="button" (click)="closeModal()" [disabled]="saving()">Cerrar</button>
+            @if (!isReadOnly()) {
+              <button hlmBtn type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar' }}</button>
+            }
           </div>
         </form>
       </div>
