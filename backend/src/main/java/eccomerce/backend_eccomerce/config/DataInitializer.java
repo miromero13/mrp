@@ -4,16 +4,16 @@ import eccomerce.backend_eccomerce.common.constants.PermissionConstants;
 import eccomerce.backend_eccomerce.common.constants.RoleConstants;
 import eccomerce.backend_eccomerce.enterprise.entity.EnterpriseEntity;
 import eccomerce.backend_eccomerce.enterprise.repository.EnterpriseRepository;
-import eccomerce.backend_eccomerce.user.entity.PermissionEntity;
-import eccomerce.backend_eccomerce.user.entity.RoleEntity;
-import eccomerce.backend_eccomerce.user.entity.UserEntity;
-import eccomerce.backend_eccomerce.user.repository.PermissionRepository;
-import eccomerce.backend_eccomerce.user.repository.RoleRepository;
-import eccomerce.backend_eccomerce.user.repository.UserRepository;
-import eccomerce.backend_eccomerce.work_shift.entity.EmployeeShiftEntity;
-import eccomerce.backend_eccomerce.work_shift.entity.WorkShiftEntity;
-import eccomerce.backend_eccomerce.work_shift.repository.EmployeeShiftRepository;
-import eccomerce.backend_eccomerce.work_shift.repository.WorkShiftRepository;
+import eccomerce.backend_eccomerce.users.entity.PermissionEntity;
+import eccomerce.backend_eccomerce.users.entity.RoleEntity;
+import eccomerce.backend_eccomerce.users.entity.UserEntity;
+import eccomerce.backend_eccomerce.users.repository.PermissionRepository;
+import eccomerce.backend_eccomerce.users.repository.RoleRepository;
+import eccomerce.backend_eccomerce.users.repository.UserRepository;
+import eccomerce.backend_eccomerce.users.entity.EmployeeShiftEntity;
+import eccomerce.backend_eccomerce.users.entity.WorkShiftEntity;
+import eccomerce.backend_eccomerce.users.repository.EmployeeShiftRepository;
+import eccomerce.backend_eccomerce.users.repository.WorkShiftRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -60,9 +60,9 @@ public class DataInitializer implements CommandLineRunner {
     @Transactional
     public void run(String... args) {
         createPermissionsIfNotExist();
-        createSuperAdminRoleIfNotExist();
-        createAdminRoleIfNotExist();
-        createEmployeeRoleIfNotExist();
+        syncRolePermissions(RoleConstants.SUPERADMIN, PermissionConstants.SUPERADMIN_PERMISSION_NAMES);
+        syncRolePermissions(RoleConstants.ADMIN, PermissionConstants.ADMIN_PERMISSION_NAMES);
+        syncRolePermissions(RoleConstants.EMPLOYEE, PermissionConstants.EMPLOYEE_PERMISSION_NAMES);
         createSuperAdminUserIfNotExist();
         createEnterprisesAndAdmins();
         createDefaultWorkShiftsIfNotExist();
@@ -70,40 +70,32 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void createPermissionsIfNotExist() {
-        if (PermissionConstants.NAMES.length != PermissionConstants.DESCRIPTIONS.length) {
-            throw new IllegalStateException("NAMES y DESCRIPTIONS deben tener la misma cantidad de elementos");
-        }
+        for (PermissionConstants.PermissionDefinition definition : PermissionConstants.PERMISSIONS) {
+            PermissionEntity permission = permissionRepository.findByName(definition.name())
+                    .orElseGet(PermissionEntity::new);
 
-        for (int i = 0; i < PermissionConstants.NAMES.length; i++) {
-            if (permissionRepository.findByName(PermissionConstants.NAMES[i]).isEmpty()) {
-                PermissionEntity permission = new PermissionEntity();
-                permission.name = PermissionConstants.NAMES[i];
-                permission.description = PermissionConstants.DESCRIPTIONS[i];
+            boolean changed = false;
+            if (!definition.name().equals(permission.name)) {
+                permission.name = definition.name();
+                changed = true;
+            }
+
+            if (!definition.description().equals(permission.description)) {
+                permission.description = definition.description();
+                changed = true;
+            }
+
+            if (changed) {
                 permissionRepository.save(permission);
             }
         }
     }
 
-    private void createSuperAdminRoleIfNotExist() {
-        Set<PermissionEntity> allPermissions = new HashSet<>(permissionRepository.findAll());
-        RoleEntity superAdminRole = roleRepository.findByName(RoleConstants.SUPERADMIN).orElseGet(RoleEntity::new);
-        superAdminRole.name = RoleConstants.SUPERADMIN;
-        superAdminRole.permissions = allPermissions;
-        roleRepository.save(superAdminRole);
-    }
-
-    private void createAdminRoleIfNotExist() {
-        RoleEntity adminRole = roleRepository.findByName(RoleConstants.ADMIN).orElseGet(RoleEntity::new);
-        adminRole.name = RoleConstants.ADMIN;
-        adminRole.permissions = getPermissionsByNames(PermissionConstants.ADMIN_PERMISSION_NAMES);
-        roleRepository.save(adminRole);
-    }
-
-    private void createEmployeeRoleIfNotExist() {
-        RoleEntity employeeRole = roleRepository.findByName(RoleConstants.EMPLOYEE).orElseGet(RoleEntity::new);
-        employeeRole.name = RoleConstants.EMPLOYEE;
-        employeeRole.permissions = getPermissionsByNames(PermissionConstants.EMPLOYEE_PERMISSION_NAMES);
-        roleRepository.save(employeeRole);
+    private void syncRolePermissions(String roleName, String[] permissionNames) {
+        RoleEntity role = roleRepository.findByName(roleName).orElseGet(RoleEntity::new);
+        role.name = roleName;
+        role.permissions = getPermissionsByNames(permissionNames);
+        roleRepository.save(role);
     }
 
     private void createSuperAdminUserIfNotExist() {
