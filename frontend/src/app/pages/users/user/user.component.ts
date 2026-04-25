@@ -15,14 +15,14 @@ import { RoleService } from '../../../core/users/services/role.service';
 import { UserFormComponent } from './user-form.component';
 
 @Component({
-  selector: 'app-users',
-  standalone: true,
-  imports: [CustomTableComponent, UserFormComponent, ...HlmButtonImports, ...HlmIconImports],
-  providers: [provideIcons({ lucidePlus, lucideX })],
-  templateUrl: './users.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+	selector: 'app-user',
+	standalone: true,
+	imports: [CustomTableComponent, UserFormComponent, ...HlmButtonImports, ...HlmIconImports],
+	providers: [provideIcons({ lucidePlus, lucideX })],
+	templateUrl: './user.component.html',
+	changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UsersComponent implements OnInit {
+export class UserComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly roleService = inject(RoleService);
   private readonly authService = inject(AuthService);

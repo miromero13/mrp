@@ -25,7 +25,7 @@ export const routes: Routes = [
 			},
 			{
 				path: APP_ROUTES.users,
-				loadComponent: () => import('./pages/users/list/users.component').then((m) => m.UsersComponent),
+				loadComponent: () => import('./pages/users/user/user.component').then((m) => m.UserComponent),
 				data: { permisos: [PERMISOS.usuarios.listar] },
 			},
 			{
@@ -40,17 +40,17 @@ export const routes: Routes = [
 			},
 			{
 				path: APP_ROUTES.enterprises,
-				loadComponent: () => import('./pages/users/enterprises/enterprises.component').then((m) => m.EnterprisesComponent),
+				loadComponent: () => import('./pages/enterprise/enterprises/enterprises.component').then((m) => m.EnterprisesComponent),
 				data: { permisos: [PERMISOS.enterprises.listar] },
 			},
 			{
 				path: APP_ROUTES.machines,
-				loadComponent: () => import('./pages/users/enterprises/machines.component').then((m) => m.MachinesComponent),
+				loadComponent: () => import('./pages/engineering/machines/machines.component').then((m) => m.MachinesComponent),
 				data: { permisos: [PERMISOS.machines.listar] },
 			},
 			{
 				path: APP_ROUTES.indirectCosts,
-				loadComponent: () => import('./pages/users/enterprises/indirect-costs.component').then((m) => m.IndirectCostsComponent),
+				loadComponent: () => import('./pages/finance/indirect-costs/indirect-costs.component').then((m) => m.IndirectCostsComponent),
 				data: { permisos: [PERMISOS.indirectCosts.listar] },
 			},
 			{
@@ -60,12 +60,12 @@ export const routes: Routes = [
 			},
 			{
 				path: APP_ROUTES.materials,
-				loadComponent: () => import('./pages/users/materials/materials.component').then((m) => m.MaterialsComponent),
+				loadComponent: () => import('./pages/warehouses/materials/materials.component').then((m) => m.MaterialsComponent),
 				data: { permisos: [PERMISOS.material.listar] },
 			},
 			{
 				path: APP_ROUTES.products,
-				loadComponent: () => import('./pages/users/products/products.component').then((m) => m.ProductsComponent),
+				loadComponent: () => import('./pages/engineering/products/products.component').then((m) => m.ProductsComponent),
 				data: { permisos: [PERMISOS.products.listar] },
 			},
 			{ path: '', pathMatch: 'full', redirectTo: APP_ROUTES.dashboard },

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
-import { lucideChevronDown, lucideChevronRight, lucideCog, lucideLayoutDashboard, lucideLogOut, lucidePackage, lucideReceiptText, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser } from '@ng-icons/lucide';
+import { lucideChevronDown, lucideChevronRight, lucideCog, lucideLayoutDashboard, lucideLogOut, lucidePackage, lucideReceiptText, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser, lucideBuilding, lucideBuilding2, lucideWarehouse, lucideHandCoins, lucideBoxes, lucideHardHat, lucideClipboardClock } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
@@ -52,7 +52,7 @@ type NavigationNode = NavigationModule | NavigationStandaloneItem;
     ...HlmIconImports,
     ...HlmSidebarImports,
   ],
-  providers: [provideIcons({ lucideChevronDown, lucideChevronRight, lucideCog, lucideLayoutDashboard, lucideLogOut, lucidePackage, lucideReceiptText, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser })],
+  providers: [provideIcons({ lucideChevronDown, lucideChevronRight, lucideCog, lucideLayoutDashboard, lucideLogOut, lucidePackage, lucideReceiptText, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser, lucideBuilding, lucideBoxes, lucideHardHat, lucideBuilding2, lucideWarehouse, lucideHandCoins, lucideClipboardClock })],
   templateUrl: './private-layout.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -98,21 +98,44 @@ export class PrivateLayoutComponent {
           exact: true,
           requiredPermissions: [PERMISOS.usuarios.listar],
         },
+        {
+          title: 'Gestionar turnos',
+          url: this.appRouteUrls.workshifts,
+          icon: 'lucideClipboardClock',
+          exact: true,
+          requiredPermissions: [PERMISOS.workshifts.listar],
+        },
       ],
       expanded: true,
     },
     {
       kind: 'module',
-      title: 'Administracion',
-      icon: 'lucideUser',
+      title: 'Empresas',
+      icon: 'lucideBuilding2',
       requiredPermissions: [],
       items: [
         {
           title: 'Gestionar empresas',
           url: this.appRouteUrls.enterprises,
-          icon: 'lucideUserLock',
+          icon: 'lucideBuilding',
           exact: true,
           requiredPermissions: [PERMISOS.enterprises.listar],
+        },
+      ],
+      expanded: true,
+    },
+    {
+      kind: 'module',
+      title: 'Ingenieria',
+      icon: 'lucideHardHat',
+      requiredPermissions: [],
+      items: [
+        {
+          title: 'Gestionar productos',
+          url: this.appRouteUrls.products,
+          icon: 'lucidePackage',
+          exact: true,
+          requiredPermissions: [PERMISOS.products.listar],
         },
         {
           title: ' Gestionar maquinaria',
@@ -121,6 +144,32 @@ export class PrivateLayoutComponent {
           exact: true,
           requiredPermissions: [PERMISOS.machines.listar],
         },
+      ],
+      expanded: true,
+    },
+    {
+      kind: 'module',
+      title: 'Almacenes',
+      icon: 'lucideWarehouse',
+      requiredPermissions: [],
+      items: [
+
+        {
+          title: 'Gestionar materiales',
+          url: this.appRouteUrls.materials,
+          icon: 'lucideBoxes',
+          exact: true,
+          requiredPermissions: [PERMISOS.material.listar],
+        },
+      ],
+      expanded: true,
+    },
+    {
+      kind: 'module',
+      title: 'Finanzas',
+      icon: 'lucideHandCoins',
+      requiredPermissions: [],
+      items: [
         {
           title: 'Gestionar costos indirectos',
           url: this.appRouteUrls.indirectCosts,
@@ -128,30 +177,9 @@ export class PrivateLayoutComponent {
           exact: true,
           requiredPermissions: [PERMISOS.indirectCosts.listar],
         },
-        {
-          title: 'Gestionar turnos',
-          url: this.appRouteUrls.workshifts,
-          icon: 'lucideUsers',
-          exact: true,
-          requiredPermissions: [PERMISOS.workshifts.listar],
-        },
-        {
-          title: 'Gestionar materiales',
-          url: this.appRouteUrls.materials,
-          icon: 'lucidePackage',
-          exact: true,
-          requiredPermissions: [PERMISOS.material.listar],
-        },
-        {
-          title: 'Gestionar productos',
-          url: this.appRouteUrls.products,
-          icon: 'lucidePackage',
-          exact: true,
-          requiredPermissions: [PERMISOS.products.listar],
-        },
       ],
       expanded: true,
-    },
+    }
   ]);
 
   protected readonly userPermissions = computed(() =>
