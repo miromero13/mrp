@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
+import java.util.List;
 import java.util.UUID;
 import eccomerce.backend_eccomerce.common.enums.GenderEnum;
 
@@ -34,4 +35,8 @@ public class CreateUserDto {
 
     @NotBlank(message = "Role is required")
     public UUID roleId;
+
+    public UUID enterpriseId;
+
+    public List<CreateUserWorkShiftDto> workShiftAssignments;
 }

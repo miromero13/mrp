@@ -110,4 +110,9 @@ public final class PermissionConstants {
             // ASIGNACION TURNOS
             ASIGNAR_TURNO, ELIMINAR_ASIGNACION_TURNO, LISTAR_ASIGNACION_TURNO
     };
+
+    public static final String[] EMPLOYEE_PERMISSION_NAMES = {
+            LISTAR_TURNO,
+            LISTAR_ASIGNACION_TURNO
+    };
 }
