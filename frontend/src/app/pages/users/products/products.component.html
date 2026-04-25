@@ -1,0 +1,139 @@
+<main class="grid gap-4">
+  <section class="rounded-xl border bg-card p-8 text-card-foreground shadow-xs">
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h1 class="text-xl font-semibold">Productos</h1>
+        <p class="pt-1 text-sm text-muted-foreground">Crea productos, asigna materiales y define sus versiones.</p>
+      </div>
+
+      <button hlmBtn type="button" class="gap-2" (click)="openCreateModal()">
+        <ng-icon hlm [name]="'lucidePlus'" size="sm" />
+        <span>Nuevo producto</span>
+      </button>
+    </div>
+
+    @if (errorMessage()) {
+      <p class="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+        {{ errorMessage() }}
+      </p>
+    }
+
+    <div class="mt-4">
+      <app-custom-table
+        [columns]="tableColumns()"
+        [rows]="products()"
+        [loading]="loading()"
+        [pageSize]="25"
+        [skeletonRows]="10"
+        [emptyMessage]="'No hay productos registrados.'"
+      />
+    </div>
+  </section>
+
+  @if (isCreateModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 px-4 py-6 backdrop-blur-sm">
+      <div class="relative flex w-full max-w-5xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl">
+        <div class="flex items-start justify-between gap-4 border-b px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold">Crear producto</h2>
+            <p class="pt-1 text-sm text-muted-foreground">Registra un producto con materiales y versiones en una sola vista.</p>
+          </div>
+
+          <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="closeCreateModal()" [disabled]="saving()">
+            <ng-icon hlm [name]="'lucideX'" size="sm" />
+          </button>
+        </div>
+
+        <form class="min-h-0 flex-1 overflow-y-auto p-6" [formGroup]="form" (ngSubmit)="createProduct()">
+          @if (createErrorMessage()) {
+            <p class="mb-4 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+              {{ createErrorMessage() }}
+            </p>
+          }
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="grid gap-2">
+              <label hlmLabel for="product-name">Nombre</label>
+              <input id="product-name" hlmInput formControlName="name" placeholder="Mesa industrial" />
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="product-production-cost">Costo de producción</label>
+              <input id="product-production-cost" hlmInput type="number" formControlName="productionCost" />
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="product-sale-price">Precio de venta</label>
+              <input id="product-sale-price" hlmInput type="number" formControlName="salePrice" />
+            </div>
+
+            <div class="grid gap-2 md:col-span-2">
+              <label hlmLabel for="product-description">Descripción</label>
+              <textarea id="product-description" class="min-h-24 rounded-md border bg-background px-3 py-2 text-sm outline-none" formControlName="description"></textarea>
+            </div>
+          </div>
+
+          <section class="mt-6 grid gap-3 rounded-xl border bg-muted/20 p-4">
+            <div>
+              <h3 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Materiales</h3>
+              <p class="pt-1 text-xs text-muted-foreground">Selecciona los materiales que componen este producto.</p>
+            </div>
+
+            @if (loadingMaterials()) {
+              <p class="text-sm text-muted-foreground">Cargando materiales...</p>
+            } @else if (materials().length === 0) {
+              <p class="rounded-md border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-sm text-amber-700">
+                No hay materiales disponibles para tu empresa.
+              </p>
+            } @else {
+              <div class="grid gap-2 md:grid-cols-2">
+                @for (material of materials(); track material.id) {
+                  <label class="flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-sm">
+                    <input
+                      type="checkbox"
+                      class="size-4"
+                      [checked]="isMaterialSelected(material.id)"
+                      (change)="toggleMaterial(material.id, $any($event.target).checked)"
+                    />
+                    <span>{{ material.code }} - {{ material.unitOfMeasure }}</span>
+                  </label>
+                }
+              </div>
+            }
+          </section>
+
+          <section class="mt-6 grid gap-3 rounded-xl border bg-muted/20 p-4">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <h3 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Versiones</h3>
+                <p class="pt-1 text-xs text-muted-foreground">Agrega colores o variantes del mismo producto.</p>
+              </div>
+
+              <button hlmBtn type="button" variant="outline" size="sm" class="gap-2" (click)="addVersion()">
+                <ng-icon hlm [name]="'lucidePlus'" size="sm" />
+                <span>Agregar versión</span>
+              </button>
+            </div>
+
+            <div class="grid gap-3">
+              @for (version of versionGroups; track trackVersion($index)) {
+                <div class="grid gap-2 md:grid-cols-[1fr_auto]" [formGroup]="version">
+                  <input hlmInput formControlName="name" placeholder="Verde / Blanco / Negro" />
+
+                  <button hlmBtn type="button" variant="ghost" size="icon" (click)="removeVersion($index)">
+                    <ng-icon hlm [name]="'lucideMinus'" size="sm" />
+                  </button>
+                </div>
+              }
+            </div>
+          </section>
+
+          <div class="flex items-center justify-end gap-3 pt-6">
+            <button hlmBtn variant="outline" type="button" (click)="closeCreateModal()" [disabled]="saving()">Cancelar</button>
+            <button hlmBtn type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Crear producto' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</main>
