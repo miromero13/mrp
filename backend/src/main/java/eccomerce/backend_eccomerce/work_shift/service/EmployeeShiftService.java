@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Service
 public class EmployeeShiftService {
-    @Autowired
+   /* @Autowired
     private EmployeeRepository employeeRepository;
 
     @Autowired
@@ -88,5 +88,5 @@ public class EmployeeShiftService {
         } catch (Exception ex) {
             return ResponseMessage.error("Error al eliminar turno", ex.getMessage(), 500);
         }
-    }
+    }*/
 }

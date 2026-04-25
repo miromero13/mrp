@@ -28,6 +28,6 @@ public class WorkShiftEntity extends BaseEntity {
     @JoinColumn(name = "enterprise_id")
     private EnterpriseEntity enterprise;
 
-    @OneToMany(mappedBy = "workShift")
-    private List<EmployeeShiftEntity> employeeShifts;
+    /*@OneToMany(mappedBy = "workShift")
+    private List<EmployeeShiftEntity> employeeShifts;*/
 }

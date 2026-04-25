@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { map } from 'rxjs';
 import { ApiResponse } from '../models/auth.models';
-import { EnterpriseListItem } from '../models/enterprise.models';
+import { EnterpriseListItem, CreateEnterpriseFormValue } from '../models/enterprise.models';
 import { apiEndpoint } from '../../config/api.config';
 import { API_ROUTES } from '../../config/api-routes.utils';
 
@@ -15,5 +15,9 @@ export class EnterpriseService {
 
   listEnterprises() {
     return this.http.get<ApiResponse<EnterpriseListItem[]>>(this.enterprisesUrl).pipe(map((response) => response.data ?? []));
+  }
+
+  createEnterprise(payload: CreateEnterpriseFormValue) {
+    return this.http.post<ApiResponse<EnterpriseListItem>>(this.enterprisesUrl, payload);
   }
 }

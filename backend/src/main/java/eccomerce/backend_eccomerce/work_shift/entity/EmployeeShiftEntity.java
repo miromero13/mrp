@@ -15,11 +15,11 @@ import lombok.Setter;
 public class EmployeeShiftEntity extends BaseEntity {
     private String dayOfWeek;
 
-    @ManyToOne
+   /* @ManyToOne
     @JoinColumn(name = "employee_id")
     private EmployeeEntity employee;
 
     @ManyToOne
     @JoinColumn(name = "work_shift_id")
-    private WorkShiftEntity workShift;
+    private WorkShiftEntity workShift;*/
 }

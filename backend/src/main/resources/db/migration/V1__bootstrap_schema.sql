@@ -100,17 +100,17 @@ CREATE TABLE employee_shifts (
      day_of_week VARCHAR(20) NOT NULL, -- 1=Lunes ... 7=Domingo
 
      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-     updated_at TIMESTAMP,
+     updated_at TIMESTAMP--,
 
-     CONSTRAINT fk_employee_shift_employee
-         FOREIGN KEY (employee_id)
-             REFERENCES employees(id)
-             ON DELETE CASCADE,
+  --   CONSTRAINT fk_employee_shift_employee
+  --       FOREIGN KEY (employee_id)
+   --          REFERENCES employees(id)
+   --          ON DELETE CASCADE,
 
-     CONSTRAINT fk_employee_shift_workshift
-         FOREIGN KEY (work_shift_id)
-             REFERENCES work_shifts(id)
-             ON DELETE CASCADE
+   --  CONSTRAINT fk_employee_shift_workshift
+    --     FOREIGN KEY (work_shift_id)
+     --        REFERENCES work_shifts(id)
+     --        ON DELETE CASCADE
 );
 
 DO $$

@@ -1,0 +1,46 @@
+<form class="grid gap-5" [formGroup]="form" (ngSubmit)="submit()">
+  @if (serverError()) {
+    <p class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+      {{ serverError() }}
+    </p>
+  }
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid gap-2">
+      <label hlmLabel for="workshift-name">Nombre</label>
+      <input id="workshift-name" hlmInput formControlName="name" placeholder="Ej. Ana Perez" />
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <p class="text-xs text-destructive">
+          @if (form.controls.name.hasError('required')) {
+            El nombre es obligatorio.
+          } @else if (form.controls.name.hasError('minlength')) {
+            El nombre debe tener al menos 2 caracteres.
+          } @else if (form.controls.name.hasError('maxlength')) {
+            El nombre no puede superar 100 caracteres.
+          }
+        </p>
+      }
+    </div>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid gap-2">
+      <label hlmLabel for="workshift-start">Hora de inicio</label>
+      <input id="workshift-start" hlmInput type="time" formControlName="startTime" />
+    </div>
+    <div class="grid gap-2">
+      <label hlmLabel for="workshift-end">Hora de finalización</label>
+      <input id="workshift-end" hlmInput type="time" formControlName="endTime" />
+    </div>
+  </div>
+
+  <div class="flex items-center justify-end gap-3 pt-2">
+    <button hlmBtn variant="outline" type="button" (click)="cancel()" [disabled]="loading()">
+      Cancelar
+    </button>
+
+    <button hlmBtn type="submit" [disabled]="loading() || availableRoles().length === 0">
+      {{ loading() ? 'Guardando...' : submitLabel() }}
+    </button>
+  </div>
+</form>

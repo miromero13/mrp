@@ -13,7 +13,7 @@ export class EmployeeService {
   private readonly http = inject(HttpClient);
   private readonly employeesUrl = apiEndpoint(API_ROUTES.employees.list);
 
-  listEnterprises() {
+  listEmployees() {
     return this.http.get<ApiResponse<EmployeeListItem[]>>(this.employeesUrl).pipe(map((response) => response.data ?? []));
   }
 }

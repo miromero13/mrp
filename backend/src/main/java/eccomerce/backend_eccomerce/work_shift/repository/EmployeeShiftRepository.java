@@ -10,8 +10,8 @@ import java.util.UUID;
 public interface EmployeeShiftRepository extends JpaRepository<EmployeeShiftEntity, UUID> {
 
     // Validar si ya existe asignación por día
-    boolean existsByEmployeeIdAndDayOfWeek(UUID employeeId, String dayOfWeek);
+    //boolean existsByEmployeeIdAndDayOfWeek(UUID employeeId, String dayOfWeek);
 
     // 🔥 ESTE ES EL QUE TE FALTA
-    List<EmployeeShiftEntity> findByEmployee(EmployeeEntity employee);
+    //List<EmployeeShiftEntity> findByEmployee(EmployeeEntity employee);
 }

@@ -24,22 +24,22 @@ export const PERMISOS = {
     listar: 'listar_material',
   },
   enterprises: {
-    crear: 'crear_enterprise',
-    editar: 'editar_enterprise',
-    eliminar: 'eliminar_enterprise',
-    listar: 'listar_enterprise',
+    crear: 'crear_empresa',
+    editar: 'editar_empresa',
+    eliminar: 'eliminar_empresa',
+    listar: 'listar_empresa',
   },
   employees: {
-    crear: 'crear_employee',
-    editar: 'editar_employee',
-    eliminar: 'eliminar_employee',
-    listar: 'listar_employee',
+    crear: 'crear_empleado',
+    editar: 'editar_empleado',
+    eliminar: 'eliminar_empleado',
+    listar: 'listar_empleado',
   },
-    workshifts: {
-    crear: 'crear_workshift',
-    editar: 'editar_workshift',
-    eliminar: 'eliminar_workshift',
-    listar: 'listar_workshift',
+  workshifts: {
+    crear: 'crear_turno',
+    editar: 'editar_turno',
+    eliminar: 'eliminar_turno',
+    listar: 'listar_turno',
   },
 } as const;
 
