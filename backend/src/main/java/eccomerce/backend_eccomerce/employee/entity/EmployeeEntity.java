@@ -26,6 +26,6 @@ public class EmployeeEntity extends BaseEntity {
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
-    private List<EmployeeShiftEntity> shifts;
+    /*@OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
+    private List<EmployeeShiftEntity> shifts;*/
 }

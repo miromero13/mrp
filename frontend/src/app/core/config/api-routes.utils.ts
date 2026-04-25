@@ -18,6 +18,6 @@ export const API_ROUTES = {
     list: 'employees',
   },
   workshifts: {
-    list: 'workshifts',
+    list: 'work-shifts',
   },
 } as const;

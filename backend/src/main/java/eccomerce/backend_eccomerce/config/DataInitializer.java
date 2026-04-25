@@ -84,7 +84,7 @@ public class DataInitializer implements CommandLineRunner {
 
         createEmployeeForSuperAdminIfNotExist();
         createDefaultWorkShiftsIfNotExist();
-        assignDefaultShiftToEmployee();
+        //assignDefaultShiftToEmployee();
     }
 
     private void createPermissionsIfNotExist() {
@@ -239,7 +239,7 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
-    private void assignDefaultShiftToEmployee() {
+ /*   private void assignDefaultShiftToEmployee() {
 
         Optional<UserEntity> userOpt = userRepository.findByEmail(superadminEmail);
         if (userOpt.isEmpty()) return;
@@ -258,10 +258,9 @@ public class DataInitializer implements CommandLineRunner {
                 .orElseThrow(() -> new RuntimeException("No hay turnos disponibles"));
 
         EmployeeShiftEntity employeeShift = new EmployeeShiftEntity();
-        employeeShift.setEmployee(employee);
-        employeeShift.setWorkShift(shift);
+
         employeeShift.setDayOfWeek("MONDAY");
 
         employeeShiftRepository.save(employeeShift);
-    }
+    }*/
 }
