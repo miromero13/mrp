@@ -1,12 +1,8 @@
 package eccomerce.backend_eccomerce.enterprise.entity;
 
 import eccomerce.backend_eccomerce.common.entity.BaseEntity;
-import eccomerce.backend_eccomerce.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Getter

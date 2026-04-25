@@ -6,9 +6,9 @@ import eccomerce.backend_eccomerce.enterprise.dto.CreateEnterpriseDto;
 import eccomerce.backend_eccomerce.enterprise.dto.UpdateEnterpriseDto;
 import eccomerce.backend_eccomerce.enterprise.entity.EnterpriseEntity;
 import eccomerce.backend_eccomerce.enterprise.repository.EnterpriseRepository;
-import eccomerce.backend_eccomerce.user.entity.UserEntity;
-import eccomerce.backend_eccomerce.user.repository.RoleRepository;
-import eccomerce.backend_eccomerce.user.repository.UserRepository;
+import eccomerce.backend_eccomerce.users.entity.UserEntity;
+import eccomerce.backend_eccomerce.users.repository.RoleRepository;
+import eccomerce.backend_eccomerce.users.repository.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +39,6 @@ public class EnterpriseService {
     @Transactional
     public ResponseMessage<EnterpriseEntity> create(CreateEnterpriseDto dto) {
         try {
-            if (!isCurrentUserSuperadmin()) {
-                return ResponseMessage.error("No se pudo crear la empresa", "Solo superadmin puede crear empresas", 403);
-            }
-
             if (dto.getAdminName() == null || dto.getAdminEmail() == null || dto.getAdminPassword() == null) {
                 return ResponseMessage.error("No se pudo crear la empresa", "Debes enviar los datos del admin", 400);
             }
@@ -88,14 +84,17 @@ public class EnterpriseService {
     // GET ALL
     public ResponseMessage<List<EnterpriseEntity>> findAll() {
         try {
+            if (isCurrentUserSuperadmin()) {
+                List<EnterpriseEntity> enterprises = enterpriseRepository.findAll();
+                return ResponseMessage.success(enterprises, "Empresas obtenidas correctamente", enterprises.size());
+            }
+
             UUID currentEnterpriseId = getCurrentEnterpriseId();
-            List<EnterpriseEntity> enterprises = isCurrentUserSuperadmin()
-                    ? enterpriseRepository.findAll()
-                    : currentEnterpriseId == null
+            List<EnterpriseEntity> enterprises = currentEnterpriseId == null
                     ? List.of()
-                    : enterpriseRepository.findAll().stream()
-                    .filter(enterprise -> enterprise.getId().equals(currentEnterpriseId))
-                    .toList();
+                    : enterpriseRepository.findById(currentEnterpriseId)
+                    .map(List::of)
+                    .orElse(List.of());
             return ResponseMessage.success(enterprises, "Empresas obtenidas correctamente", enterprises.size());
         } catch (Exception ex) {
             return ResponseMessage.error(
@@ -111,11 +110,6 @@ public class EnterpriseService {
         try {
             EnterpriseEntity enterprise = enterpriseRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Empresa no encontrada con id: " + id));
-
-            UUID currentEnterpriseId = getCurrentEnterpriseId();
-            if (!isCurrentUserSuperadmin() && (currentEnterpriseId == null || !enterprise.getId().equals(currentEnterpriseId))) {
-                return ResponseMessage.error("No se pudo obtener la empresa", "No puedes ver empresas fuera de tu sesion", 403);
-            }
 
             return ResponseMessage.success(enterprise, "Empresa encontrada", 1);
 
@@ -135,11 +129,6 @@ public class EnterpriseService {
         try {
             EnterpriseEntity enterprise = enterpriseRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Empresa no encontrada con id: " + id));
-
-            UUID currentEnterpriseId = getCurrentEnterpriseId();
-            if (!isCurrentUserSuperadmin() && (currentEnterpriseId == null || !enterprise.getId().equals(currentEnterpriseId))) {
-                return ResponseMessage.error("No se pudo actualizar la empresa", "No puedes modificar empresas fuera de tu sesion", 403);
-            }
 
             if (dto.getName() != null && !dto.getName().isEmpty()) {
                 enterprise.setName(dto.getName());
@@ -176,11 +165,6 @@ public class EnterpriseService {
         try {
             EnterpriseEntity enterprise = enterpriseRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Empresa no encontrada con id: " + id));
-
-            UUID currentEnterpriseId = getCurrentEnterpriseId();
-            if (!isCurrentUserSuperadmin() && (currentEnterpriseId == null || !enterprise.getId().equals(currentEnterpriseId))) {
-                return ResponseMessage.error("No se pudo eliminar la empresa", "No puedes eliminar empresas fuera de tu sesion", 403);
-            }
 
             enterpriseRepository.delete(enterprise);
 
@@ -224,4 +208,5 @@ public class EnterpriseService {
                 .map(user -> user.enterprise == null ? null : user.enterprise.getId())
                 .orElse(null);
     }
+
 }
