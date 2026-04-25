@@ -1,36 +1,85 @@
 <main class="grid gap-4">
-  <section class="rounded-xl border bg-card p-8 text-card-foreground shadow-xs">
-    <div class="flex items-center justify-between gap-2">
+  @if (loading()) {
+    <section class="rounded-xl border bg-card p-8 text-card-foreground shadow-xs">
+      <h1 class="text-xl font-semibold">Empresa</h1>
+      <p class="mt-2 text-sm text-muted-foreground">Cargando empresas...</p>
+    </section>
+  } @else if (hasSingleEnterprise()) {
+    <section class="rounded-xl border bg-card p-8 text-card-foreground shadow-xs">
       <div>
-        <h1 class="text-xl font-semibold">Empresas</h1>
-        <p class="pt-1 text-sm text-muted-foreground">Listado de empresas del sistema y su administrador principal.</p>
+        <h1 class="text-xl font-semibold">Empresa</h1>
+        <p class="pt-1 text-sm text-muted-foreground">Gestiona los datos base de la empresa.</p>
       </div>
 
-      @if (canCreateEnterprise()) {
-        <button hlmBtn type="button" class="gap-2" (click)="openCreateModal()">
-          <ng-icon hlm [name]="'lucidePlus'" size="sm" />
-          <span>Crear empresa</span>
-        </button>
+      @if (errorMessage()) {
+        <p class="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          {{ errorMessage() }}
+        </p>
       }
-    </div>
 
-    @if (errorMessage()) {
-      <p class="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-        {{ errorMessage() }}
-      </p>
-    }
+      @if (enterpriseErrorMessage()) {
+        <p class="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          {{ enterpriseErrorMessage() }}
+        </p>
+      }
 
-    <div class="mt-4">
-      <app-custom-table
-        [columns]="tableColumns()"
-        [rows]="enterprises()"
-        [loading]="loading()"
-        [pageSize]="25"
-        [skeletonRows]="10"
-        [emptyMessage]="'No hay empresas registradas.'"
-      />
-    </div>
-  </section>
+      <form class="mt-6 grid gap-4" [formGroup]="enterpriseForm" (ngSubmit)="saveEnterprise()">
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="grid gap-2">
+            <label hlmLabel for="enterprise-name">Nombre</label>
+            <input id="enterprise-name" hlmInput formControlName="name" placeholder="Nombre de la empresa" />
+          </div>
+
+          <div class="grid gap-2">
+            <label hlmLabel for="enterprise-nit">NIT</label>
+            <input id="enterprise-nit" hlmInput formControlName="nit" placeholder="0000000-0" />
+          </div>
+
+          <div class="grid gap-2 md:col-span-2">
+            <label hlmLabel for="enterprise-address">Dirección</label>
+            <input id="enterprise-address" hlmInput formControlName="address" placeholder="Dirección de la empresa" />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3">
+          <button hlmBtn type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar empresa' }}</button>
+        </div>
+      </form>
+    </section>
+  } @else {
+    <section class="rounded-xl border bg-card p-8 text-card-foreground shadow-xs">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-semibold">Empresas</h1>
+          <p class="pt-1 text-sm text-muted-foreground">Listado de empresas del usuario autenticado.</p>
+        </div>
+
+        @if (canCreateEnterprise()) {
+          <button hlmBtn type="button" class="gap-2" (click)="openCreateModal()">
+            <ng-icon hlm [name]="'lucidePlus'" size="sm" />
+            <span>Crear empresa</span>
+          </button>
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <p class="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          {{ errorMessage() }}
+        </p>
+      }
+
+      <div class="mt-4">
+        <app-custom-table
+          [columns]="tableColumns()"
+          [rows]="enterprises()"
+          [loading]="loading()"
+          [pageSize]="25"
+          [skeletonRows]="10"
+          [emptyMessage]="'No hay empresas registradas.'"
+        />
+      </div>
+    </section>
+  }
 
   @if (isCreateModalOpen()) {
     <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 px-4 py-6 backdrop-blur-sm">

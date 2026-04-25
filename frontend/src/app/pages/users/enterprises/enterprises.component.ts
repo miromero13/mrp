@@ -1,32 +1,38 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { finalize, take } from 'rxjs/operators';
-import { CustomTableColumn, CustomTableComponent } from '../../../shared/components/custom-table/custom-table.component';
-import { AuthService } from '../../../core/users/services/auth.service';
-import { CreateEnterpriseFormValue, EnterpriseListItem } from '../../../core/enterprises/models/enterprise.models';
-import { EnterpriseService } from '../../../core/enterprises/services/enterprise.service';
-import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { HlmIconImports } from '@spartan-ng/helm/icon';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { provideIcons } from '@ng-icons/core';
 import { lucidePlus, lucideX } from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmIconImports } from '@spartan-ng/helm/icon';
+import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmLabelImports } from '@spartan-ng/helm/label';
+import { finalize, take } from 'rxjs/operators';
 import { PERMISOS } from '../../../core/config/permisos';
+import { CreateEnterpriseFormValue, EnterpriseFormValue, EnterpriseListItem } from '../../../core/enterprises/models/enterprise.models';
+import { EnterpriseService } from '../../../core/enterprises/services/enterprise.service';
+import { AuthService } from '../../../core/users/services/auth.service';
+import { CustomTableColumn, CustomTableComponent } from '../../../shared/components/custom-table/custom-table.component';
 import { EnterpriseFormComponent } from './enterprise-form.component';
 
 @Component({
   selector: 'app-enterprises',
   standalone: true,
-  imports: [CustomTableComponent, EnterpriseFormComponent, ...HlmButtonImports, ...HlmIconImports],
+  imports: [CustomTableComponent, EnterpriseFormComponent, ReactiveFormsModule, ...HlmButtonImports, ...HlmIconImports, ...HlmInputImports, ...HlmLabelImports],
   providers: [provideIcons({ lucidePlus, lucideX })],
   templateUrl: './enterprises.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EnterprisesComponent implements OnInit {
+  private readonly formBuilder = inject(FormBuilder);
   private readonly enterpriseService = inject(EnterpriseService);
   private readonly authService = inject(AuthService);
 
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
+  protected readonly enterpriseErrorMessage = signal<string | null>(null);
+  protected readonly enterprise = signal<EnterpriseListItem | null>(null);
   protected readonly createErrorMessage = signal<string | null>(null);
   protected readonly isCreateModalOpen = signal(false);
   protected readonly enterprises = signal<EnterpriseListItem[]>([]);
@@ -35,10 +41,9 @@ export class EnterprisesComponent implements OnInit {
     () => new Set(this.authService.currentUser()?.role?.permissions?.map((permission) => permission.name) ?? []),
   );
 
-  protected readonly canCreateEnterprise = computed(
-    () => this.authService.currentUser()?.role?.name === 'superadmin' && this.adminPermissionNames().has(PERMISOS.enterprises.crear),
-  );
-
+  protected readonly canCreateEnterprise = computed(() => this.adminPermissionNames().has(PERMISOS.enterprises.crear));
+  protected readonly hasSingleEnterprise = computed(() => this.enterprises().length === 1);
+  protected readonly selectedEnterprise = computed(() => this.enterprises()[0] ?? null);
   protected readonly tableColumns = computed<ReadonlyArray<CustomTableColumn<EnterpriseListItem>>>(() => [
     {
       id: 'name',
@@ -57,8 +62,68 @@ export class EnterprisesComponent implements OnInit {
     },
   ]);
 
+  protected readonly enterpriseForm = this.formBuilder.nonNullable.group({
+    name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+    nit: ['', [Validators.required, Validators.maxLength(20)]],
+    address: ['', [Validators.maxLength(200)]],
+  });
+
   ngOnInit(): void {
     this.loadEnterprises();
+  }
+
+  protected saveEnterprise(): void {
+    const enterprise = this.selectedEnterprise();
+    if (!enterprise || !this.hasSingleEnterprise()) {
+      return;
+    }
+
+    if (this.enterpriseForm.invalid) {
+      this.enterpriseForm.markAllAsTouched();
+      return;
+    }
+
+    const value = this.enterpriseForm.getRawValue();
+    const payload: EnterpriseFormValue = {
+      name: value.name.trim(),
+      nit: value.nit.trim(),
+      address: value.address.trim() || null,
+    };
+
+    this.saving.set(true);
+    this.enterpriseErrorMessage.set(null);
+
+    this.enterpriseService
+      .updateEnterprise(enterprise.id, payload)
+      .pipe(
+        take(1),
+        finalize(() => this.saving.set(false)),
+      )
+      .subscribe({
+        next: (response) => {
+          const updatedEnterprise = response.data ?? null;
+          this.enterprise.set(updatedEnterprise);
+          this.enterprises.set(updatedEnterprise ? [updatedEnterprise] : []);
+          if (updatedEnterprise) {
+            this.enterpriseForm.patchValue({
+              name: updatedEnterprise.name,
+              nit: updatedEnterprise.nit,
+              address: updatedEnterprise.address ?? '',
+            });
+          }
+        },
+        error: (error: HttpErrorResponse) => {
+          if (error.status === 401 || error.status === 403) {
+            this.errorMessage.set('Tu sesión expiró. Inicia sesión nuevamente.');
+            this.authService.logout();
+            return;
+          }
+
+          const backendError = error?.error?.error ?? error?.error?.message;
+          const fallbackError = error?.message ?? 'No se pudo actualizar la empresa.';
+          this.enterpriseErrorMessage.set(backendError ?? fallbackError);
+        },
+      });
   }
 
   protected openCreateModal(): void {
@@ -111,6 +176,7 @@ export class EnterprisesComponent implements OnInit {
   protected loadEnterprises(): void {
     this.loading.set(true);
     this.errorMessage.set(null);
+    this.enterpriseErrorMessage.set(null);
 
     this.enterpriseService
       .listEnterprises()
@@ -119,7 +185,24 @@ export class EnterprisesComponent implements OnInit {
         finalize(() => this.loading.set(false)),
       )
       .subscribe({
-        next: (enterprises) => this.enterprises.set(enterprises),
+        next: (enterprises) => {
+          this.enterprises.set(enterprises);
+          this.enterprise.set(enterprises[0] ?? null);
+
+          if (enterprises.length === 1) {
+            this.enterpriseForm.patchValue({
+              name: enterprises[0].name,
+              nit: enterprises[0].nit,
+              address: enterprises[0].address ?? '',
+            });
+          } else {
+            this.enterpriseForm.reset({
+              name: '',
+              nit: '',
+              address: '',
+            });
+          }
+        },
         error: (error: HttpErrorResponse) => {
           if (error.status === 401 || error.status === 403) {
             this.errorMessage.set('Tu sesión expiró. Inicia sesión nuevamente.');
