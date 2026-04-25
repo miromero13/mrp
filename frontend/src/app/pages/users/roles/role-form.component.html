@@ -8,7 +8,7 @@
 
   <div class="grid gap-2">
     <label hlmLabel for="role-name">Nombre del rol</label>
-    <input id="role-name" hlmInput formControlName="name" placeholder="Ej. Supervisor" />
+    <input id="role-name" hlmInput formControlName="name" placeholder="Ej. Supervisor" [disabled]="loading() || isReadOnly()" />
 
     @if (form.controls.name.touched && form.controls.name.invalid) {
       <p class="text-xs text-destructive">
@@ -54,7 +54,7 @@
 
                   <hlm-switch
                     [checked]="isPermissionSelected(permission.id)"
-                    [disabled]="loading()"
+                    [disabled]="loading() || isReadOnly()"
                     [aria-label]="permission.description || permission.name"
                     (checkedChange)="togglePermission(permission.id, $event)"
                   ></hlm-switch>
@@ -76,8 +76,10 @@
       Cancelar
     </button>
 
-    <button hlmBtn type="submit" [disabled]="loading() || availablePermissions().length === 0">
-      {{ loading() ? 'Guardando...' : submitLabel() }}
-    </button>
+    @if (!isReadOnly()) {
+      <button hlmBtn type="submit" [disabled]="loading() || availablePermissions().length === 0">
+        {{ loading() ? 'Guardando...' : submitLabel() }}
+      </button>
+    }
   </div>
 </form>

@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, OnInit, output, signal } from '@angular/core';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { AuthService } from '../../../core/users/services/auth.service';
-import { CreateUserFormValue } from '../../../core/users/models/user.models';
+import { CreateUserFormValue, UpdateUserFormValue, UserListItem } from '../../../core/users/models/user.models';
 import { RoleListItem } from '../../../core/users/models/role.models';
 import { WorkShiftListItem } from '../../../core/workshifts/models/workshift.models';
 import { WorkShiftService } from '../../../core/workshifts/services/workshift.service';
@@ -35,16 +35,20 @@ export class UserFormComponent implements OnInit {
   private readonly authService = inject(AuthService);
 
   readonly availableRoles = input.required<ReadonlyArray<RoleListItem>>();
+  readonly initialUser = input<UserListItem | null>(null);
+  readonly mode = input<'create' | 'edit' | 'view'>('create');
   readonly submitLabel = input('Guardar usuario');
   readonly loading = input(false);
   readonly serverError = input<string | null>(null);
 
   readonly cancelled = output<void>();
-  readonly submitted = output<CreateUserFormValue>();
+  readonly submitted = output<CreateUserFormValue | UpdateUserFormValue>();
 
   protected readonly availableWorkShifts = signal<ReadonlyArray<WorkShiftListItem>>([]);
   protected readonly loadingWorkShifts = signal(false);
   protected readonly selectedRoleId = signal('');
+  protected readonly isReadOnly = computed(() => this.mode() === 'view');
+  protected readonly isEditMode = computed(() => this.mode() === 'edit');
 
   protected readonly form = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
@@ -77,18 +81,61 @@ export class UserFormComponent implements OnInit {
     return this.form.controls.workShiftAssignments;
   }
 
+  constructor() {
+    effect(() => {
+      const mode = this.mode();
+      const initialUser = this.initialUser();
+
+      this.form.reset({
+        name: initialUser?.name ?? '',
+        email: initialUser?.email ?? '',
+        password: '',
+        phone: initialUser?.phone ?? '',
+        gender: initialUser?.gender ?? '',
+        address: initialUser?.address ?? '',
+        roleId: initialUser?.role?.id ?? '',
+        workShiftAssignments: [],
+      });
+
+      this.selectedRoleId.set(initialUser?.role?.id ?? '');
+      this.assignments.clear();
+
+      if (mode === 'create') {
+        this.form.controls.password.setValidators([
+          Validators.required,
+          Validators.minLength(8),
+          Validators.maxLength(12),
+          Validators.pattern('^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@#$%^&+=]).{8,}$'),
+        ]);
+      } else {
+        this.form.controls.password.setValidators([
+          Validators.minLength(8),
+          Validators.maxLength(12),
+          Validators.pattern('^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@#$%^&+=]).{8,}$'),
+        ]);
+      }
+
+      this.form.controls.password.updateValueAndValidity({ emitEvent: false });
+
+      if (mode === 'create' && !this.isSuperadmin()) {
+        this.loadWorkShifts();
+      }
+    });
+  }
+
   ngOnInit(): void {
-    if (!this.isSuperadmin()) {
-      this.loadWorkShifts();
-    }
   }
 
   protected onRoleChange(roleId: string | null): void {
+    if (this.isReadOnly()) {
+      return;
+    }
+
     this.selectedRoleId.set(roleId ?? '');
     this.form.controls.roleId.setValue(roleId ?? '');
     this.form.controls.roleId.markAsTouched();
 
-    if (this.isEmployeeRoleSelected()) {
+    if (this.mode() === 'create' && this.isEmployeeRoleSelected()) {
       if (this.assignments.length === 0) {
         this.addAssignment();
       }
@@ -99,10 +146,18 @@ export class UserFormComponent implements OnInit {
   }
 
   protected onGenderChange(gender: string | null): void {
+    if (this.isReadOnly()) {
+      return;
+    }
+
     this.form.controls.gender.setValue(gender ?? '');
   }
 
   protected addAssignment(): void {
+    if (this.isReadOnly()) {
+      return;
+    }
+
     this.assignments.push(
       this.formBuilder.nonNullable.group({
         dayOfWeek: ['MONDAY', [Validators.required]],
@@ -112,6 +167,10 @@ export class UserFormComponent implements OnInit {
   }
 
   protected removeAssignment(index: number): void {
+    if (this.isReadOnly()) {
+      return;
+    }
+
     if (this.assignments.length > 1) {
       this.assignments.removeAt(index);
       return;
@@ -123,12 +182,16 @@ export class UserFormComponent implements OnInit {
   protected trackAssignment = (index: number): number => index;
 
   protected submit(): void {
+    if (this.isReadOnly()) {
+      return;
+    }
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    if (this.isEmployeeRoleSelected() && this.assignments.length === 0) {
+    if (this.mode() === 'create' && this.isEmployeeRoleSelected() && this.assignments.length === 0) {
       this.addAssignment();
       this.form.markAllAsTouched();
       return;
@@ -136,18 +199,31 @@ export class UserFormComponent implements OnInit {
 
     const value = this.form.getRawValue();
     const workShiftAssignments = value.workShiftAssignments as Array<{ dayOfWeek: string; workShiftId: string }>;
+    if (this.mode() === 'create') {
+      this.submitted.emit({
+        name: value.name.trim(),
+        email: value.email.trim(),
+        password: value.password,
+        roleId: value.roleId,
+        phone: value.phone.trim() || null,
+        address: value.address.trim() || null,
+        gender: (value.gender || null) as 'masculino' | 'femenino' | 'otro' | null,
+        workShiftAssignments: workShiftAssignments.map((assignment) => ({
+          dayOfWeek: assignment.dayOfWeek,
+          workShiftId: assignment.workShiftId,
+        })),
+      });
+      return;
+    }
+
     this.submitted.emit({
       name: value.name.trim(),
       email: value.email.trim(),
-      password: value.password,
+      password: value.password.trim() || null,
       roleId: value.roleId,
       phone: value.phone.trim() || null,
       address: value.address.trim() || null,
       gender: (value.gender || null) as 'masculino' | 'femenino' | 'otro' | null,
-      workShiftAssignments: workShiftAssignments.map((assignment) => ({
-        dayOfWeek: assignment.dayOfWeek,
-        workShiftId: assignment.workShiftId,
-      })),
     });
   }
 

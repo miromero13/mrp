@@ -8,7 +8,7 @@
   <div class="grid gap-4 md:grid-cols-2">
     <div class="grid gap-2">
       <label hlmLabel for="workshift-name">Nombre</label>
-      <input id="workshift-name" hlmInput formControlName="name" placeholder="Ej. Ana Perez" />
+      <input id="workshift-name" hlmInput formControlName="name" placeholder="Ej. Ana Perez" [disabled]="loading() || isReadOnly()" />
       @if (form.controls.name.touched && form.controls.name.invalid) {
         <p class="text-xs text-destructive">
           @if (form.controls.name.hasError('required')) {
@@ -26,11 +26,11 @@
   <div class="grid gap-4 md:grid-cols-2">
     <div class="grid gap-2">
       <label hlmLabel for="workshift-start">Fecha y hora de inicio</label>
-      <input id="workshift-start" hlmInput type="datetime-local" formControlName="startDate" />
+      <input id="workshift-start" hlmInput type="datetime-local" formControlName="startDate" [disabled]="loading() || isReadOnly()" />
     </div>
     <div class="grid gap-2">
       <label hlmLabel for="workshift-end">Fecha y hora de finalización</label>
-      <input id="workshift-end" hlmInput type="datetime-local" formControlName="endDate" />
+      <input id="workshift-end" hlmInput type="datetime-local" formControlName="endDate" [disabled]="loading() || isReadOnly()" />
     </div>
   </div>
 
@@ -39,8 +39,10 @@
       Cancelar
     </button>
 
-    <button hlmBtn type="submit" [disabled]="loading()">
-      {{ loading() ? 'Guardando...' : submitLabel() }}
-    </button>
+    @if (!isReadOnly()) {
+      <button hlmBtn type="submit" [disabled]="loading()">
+        {{ loading() ? 'Guardando...' : submitLabel() }}
+      </button>
+    }
   </div>
 </form>

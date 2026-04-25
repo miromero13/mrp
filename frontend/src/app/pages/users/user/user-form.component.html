@@ -8,22 +8,22 @@
   <div class="grid gap-4 md:grid-cols-2">
     <div class="grid gap-2">
       <label hlmLabel for="user-name">Nombre</label>
-      <input id="user-name" hlmInput formControlName="name" placeholder="Ej. Ana Perez" />
+      <input id="user-name" hlmInput formControlName="name" placeholder="Ej. Ana Perez" [disabled]="loading() || isReadOnly()" />
     </div>
 
     <div class="grid gap-2">
       <label hlmLabel for="user-email">Email</label>
-      <input id="user-email" hlmInput type="email" formControlName="email" placeholder="correo@empresa.com" />
+      <input id="user-email" hlmInput type="email" formControlName="email" placeholder="correo@empresa.com" [disabled]="loading() || isReadOnly()" />
     </div>
 
     <div class="grid gap-2">
       <label hlmLabel for="user-password">Password</label>
-      <input id="user-password" hlmInput type="password" formControlName="password" placeholder="********" />
+      <input id="user-password" hlmInput type="password" formControlName="password" placeholder="********" [disabled]="loading() || isReadOnly()" />
     </div>
 
     <div class="grid gap-2">
       <label hlmLabel for="user-phone">Telefono</label>
-      <input id="user-phone" hlmInput formControlName="phone" placeholder="+52 123 456 7890" />
+      <input id="user-phone" hlmInput formControlName="phone" placeholder="+52 123 456 7890" [disabled]="loading() || isReadOnly()" />
     </div>
 
     <div class="grid gap-2">
@@ -32,7 +32,7 @@
         hlmSelect
         [value]="form.controls.roleId.value"
         (valueChange)="onRoleChange($event)"
-        [disabled]="loading() || availableRoles().length === 0"
+        [disabled]="loading() || availableRoles().length === 0 || isReadOnly()"
       >
         <hlm-select-trigger>
           <span hlmSelectValue [placeholder]="'Selecciona un rol'"></span>
@@ -50,7 +50,7 @@
 
     <div class="grid gap-2">
       <label hlmLabel>Genero</label>
-      <div hlmSelect [value]="form.controls.gender.value" (valueChange)="onGenderChange($event)" [disabled]="loading()">
+      <div hlmSelect [value]="form.controls.gender.value" (valueChange)="onGenderChange($event)" [disabled]="loading() || isReadOnly()">
         <hlm-select-trigger>
           <span hlmSelectValue [placeholder]="'Sin especificar'"></span>
         </hlm-select-trigger>
@@ -69,10 +69,10 @@
 
   <div class="grid gap-2">
     <label hlmLabel for="user-address">Direccion</label>
-    <input id="user-address" hlmInput formControlName="address" placeholder="Direccion del usuario" />
+    <input id="user-address" hlmInput formControlName="address" placeholder="Direccion del usuario" [disabled]="loading() || isReadOnly()" />
   </div>
 
-  @if (isEmployeeRoleSelected()) {
+  @if (mode() === 'create' && isEmployeeRoleSelected()) {
     <section class="grid gap-4 rounded-xl border bg-muted/20 p-4">
       <div class="flex items-center justify-between gap-2">
         <div>
@@ -80,7 +80,7 @@
           <p class="pt-1 text-xs text-muted-foreground">Asigna uno o varios turnos al empleado.</p>
         </div>
 
-        <button hlmBtn type="button" variant="outline" size="sm" (click)="addAssignment()">Agregar horario</button>
+        <button hlmBtn type="button" variant="outline" size="sm" (click)="addAssignment()" [disabled]="loading()">Agregar horario</button>
       </div>
 
       @if (isSuperadmin()) {
@@ -99,7 +99,7 @@
             <div class="grid gap-4 rounded-lg border bg-background p-4 md:grid-cols-[1fr_2fr_auto]">
               <div class="grid gap-2">
                 <label hlmLabel>Día</label>
-                <div hlmSelect [value]="assignment.get('dayOfWeek')?.value" (valueChange)="onAssignmentDayChange($index, $event)">
+                <div hlmSelect [value]="assignment.get('dayOfWeek')?.value" (valueChange)="onAssignmentDayChange($index, $event)" [disabled]="loading() || isReadOnly()">
                   <hlm-select-trigger>
                     <span hlmSelectValue [placeholder]="'Selecciona un día'"></span>
                   </hlm-select-trigger>
@@ -116,7 +116,7 @@
 
               <div class="grid gap-2">
                 <label hlmLabel>Turno</label>
-                <div hlmSelect [value]="assignment.get('workShiftId')?.value" (valueChange)="onAssignmentShiftChange($index, $event)">
+                <div hlmSelect [value]="assignment.get('workShiftId')?.value" (valueChange)="onAssignmentShiftChange($index, $event)" [disabled]="loading() || isReadOnly()">
                   <hlm-select-trigger>
                     <span hlmSelectValue [placeholder]="'Selecciona un turno'"></span>
                   </hlm-select-trigger>
@@ -132,7 +132,7 @@
               </div>
 
               <div class="flex items-end">
-                <button hlmBtn variant="ghost" type="button" (click)="removeAssignment($index)">Quitar</button>
+                <button hlmBtn variant="ghost" type="button" (click)="removeAssignment($index)" [disabled]="loading()">Quitar</button>
               </div>
             </div>
           }
@@ -146,8 +146,10 @@
       Cancelar
     </button>
 
-    <button hlmBtn type="submit" [disabled]="loading() || (isEmployeeRoleSelected() && (isSuperadmin() || loadingWorkShifts() || availableWorkShifts().length === 0))">
-      {{ loading() ? 'Guardando...' : submitLabel() }}
-    </button>
+    @if (!isReadOnly()) {
+      <button hlmBtn type="submit" [disabled]="loading() || (mode() === 'create' && isEmployeeRoleSelected() && (isSuperadmin() || loadingWorkShifts() || availableWorkShifts().length === 0))">
+        {{ loading() ? 'Guardando...' : submitLabel() }}
+      </button>
+    }
   </div>
 </form>

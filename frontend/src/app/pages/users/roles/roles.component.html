@@ -28,7 +28,7 @@
 
     <div class="mt-4">
       <app-custom-table
-        [columns]="tableColumns()"
+        [columns]="tableColumns"
         [rows]="roles()"
         [loading]="loading()"
         [pageSize]="25"
@@ -37,6 +37,28 @@
       />
     </div>
   </section>
+
+  <ng-template #roleActions let-role>
+    <div class="flex justify-end gap-1">
+      @if (adminPermissionNames().has(PERMISOS.roles.listar)) {
+        <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="openRoleModal(role, 'view')">
+          <ng-icon hlm [name]="'lucideEye'" size="sm" />
+        </button>
+      }
+
+      @if (adminPermissionNames().has(PERMISOS.roles.editar)) {
+        <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="openRoleModal(role, 'edit')">
+          <ng-icon hlm [name]="'lucidePencil'" size="sm" />
+        </button>
+      }
+
+      @if (adminPermissionNames().has(PERMISOS.roles.eliminar)) {
+        <button hlmBtn variant="ghost" size="icon-sm" type="button" class="text-destructive" (click)="deleteRole(role)">
+          <ng-icon hlm [name]="'lucideTrash2'" size="sm" />
+        </button>
+      }
+    </div>
+  </ng-template>
 
   @if (isCreateModalOpen()) {
     <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 px-4 py-6 backdrop-blur-sm">
@@ -60,6 +82,37 @@
             [submitLabel]="'Crear rol'"
             (cancelled)="closeCreateModal()"
             (submitted)="createRole($event)"
+          />
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (isEditModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 px-4 py-6 backdrop-blur-sm">
+      <div class="relative flex w-full max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl">
+        <div class="flex items-start justify-between gap-4 border-b px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold">{{ modalMode() === 'edit' ? 'Editar rol' : 'Detalle del rol' }}</h2>
+            <p class="pt-1 text-sm text-muted-foreground">{{ modalMode() === 'edit' ? 'Ajusta el nombre y permisos del rol.' : 'Revisa la configuración del rol.' }}</p>
+          </div>
+
+          <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="closeEditModal()" [disabled]="saving()">
+            <ng-icon hlm [name]="'lucideX'" size="sm" />
+          </button>
+        </div>
+
+        <div class="min-h-0 flex-1 overflow-y-auto p-6">
+          <app-role-form
+            [availablePermissions]="availablePermissions()"
+            [initialName]="selectedRole()?.name ?? ''"
+            [initialPermissionIds]="selectedRole()?.permissions?.map((permission) => permission.id) ?? []"
+            [mode]="modalMode() ?? 'view'"
+            [loading]="saving()"
+            [serverError]="createErrorMessage()"
+            [submitLabel]="'Guardar rol'"
+            (cancelled)="closeEditModal()"
+            (submitted)="updateRole($event)"
           />
         </div>
       </div>

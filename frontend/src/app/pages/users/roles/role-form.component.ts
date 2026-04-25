@@ -29,6 +29,7 @@ export class RoleFormComponent {
   readonly availablePermissions = input.required<ReadonlyArray<PermissionListItem>>();
   readonly initialName = input('');
   readonly initialPermissionIds = input<ReadonlyArray<string>>([]);
+  readonly mode = input<'create' | 'edit' | 'view'>('create');
   readonly submitLabel = input('Guardar rol');
   readonly loading = input(false);
   readonly serverError = input<string | null>(null);
@@ -65,6 +66,7 @@ export class RoleFormComponent {
   protected readonly hasSelectedPermissionsError = computed(
     () => this.touched() && this.selectedPermissionIds().length === 0,
   );
+  protected readonly isReadOnly = computed(() => this.mode() === 'view');
 
   constructor() {
     effect(() => {
@@ -96,6 +98,10 @@ export class RoleFormComponent {
   }
 
   protected submit(): void {
+    if (this.isReadOnly()) {
+      return;
+    }
+
     this.touched.set(true);
 
     if (this.form.invalid || this.selectedPermissionIds().length === 0) {

@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
-import { CreateWorkShiftFormValue } from '../../../core/workshifts/models/workshift.models';
+import { CreateWorkShiftFormValue, WorkShiftListItem } from '../../../core/workshifts/models/workshift.models';
 
 @Component({
   selector: 'app-workshift-form',
@@ -25,6 +25,8 @@ export class WorkShiftFormComponent {
   private readonly formBuilder = inject(FormBuilder);
 
   readonly submitLabel = input('Guardar Turno');
+  readonly mode = input<'create' | 'edit' | 'view'>('create');
+  readonly initialWorkShift = input<WorkShiftListItem | null>(null);
   readonly loading = input(false);
   readonly serverError = input<string | null>(null);
 
@@ -37,7 +39,24 @@ export class WorkShiftFormComponent {
     endDate: ['', [Validators.required]],
   });
 
+  protected readonly isReadOnly = computed(() => this.mode() === 'view');
+
+  constructor() {
+    effect(() => {
+      const workShift = this.initialWorkShift();
+      this.form.reset({
+        name: workShift?.name ?? '',
+        startDate: workShift?.startdate ? this.toLocalDateTimeValue(workShift.startdate) : '',
+        endDate: workShift?.enddate ? this.toLocalDateTimeValue(workShift.enddate) : '',
+      });
+    });
+  }
+
   protected submit(): void {
+    if (this.isReadOnly()) {
+      return;
+    }
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -55,5 +74,16 @@ export class WorkShiftFormComponent {
     if (!this.loading()) {
       this.cancelled.emit();
     }
+  }
+
+  private toLocalDateTimeValue(value: Date): string {
+    const date = new Date(value);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 }

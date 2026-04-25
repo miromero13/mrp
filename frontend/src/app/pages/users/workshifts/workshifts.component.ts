@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, TemplateRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { finalize, take } from 'rxjs/operators';
 import { CustomTableColumn, CustomTableComponent } from '../../../shared/components/custom-table/custom-table.component';
 import { AuthService } from '../../../core/users/services/auth.service';
@@ -8,7 +8,7 @@ import { WorkShiftService } from '../../../core/workshifts/services/workshift.se
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { provideIcons } from '@ng-icons/core';
-import { lucidePlus, lucideX } from '@ng-icons/lucide';
+import { lucideEye, lucidePencil, lucidePlus, lucideTrash2, lucideX } from '@ng-icons/lucide';
 import { PERMISOS } from '../../../core/config/permisos';
 import { WorkShiftFormComponent } from './workshift-form.component';
 
@@ -16,11 +16,14 @@ import { WorkShiftFormComponent } from './workshift-form.component';
   selector: 'app-workshifts',
   standalone: true,
   imports: [CustomTableComponent, WorkShiftFormComponent, ...HlmButtonImports, ...HlmIconImports],
-  providers: [provideIcons({ lucidePlus, lucideX })],
+  providers: [provideIcons({ lucideEye, lucidePencil, lucidePlus, lucideTrash2, lucideX })],
   templateUrl: './workshifts.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WorkShiftsComponent implements OnInit {
+  @ViewChild('workshiftActions', { static: true })
+  private readonly workshiftActionsTemplate!: TemplateRef<{ $implicit: WorkShiftListItem }>;
+
   private readonly workShiftService = inject(WorkShiftService);
   private readonly authService = inject(AuthService);
 
@@ -29,6 +32,9 @@ export class WorkShiftsComponent implements OnInit {
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly createErrorMessage = signal<string | null>(null);
   protected readonly isCreateModalOpen = signal(false);
+  protected readonly isEditModalOpen = signal(false);
+  protected readonly modalMode = signal<'create' | 'view' | 'edit' | null>(null);
+  protected readonly selectedWorkShift = signal<WorkShiftListItem | null>(null);
   protected readonly workShifts = signal<WorkShiftListItem[]>([]);
 
   protected readonly adminPermissionNames = computed(
@@ -40,27 +46,38 @@ export class WorkShiftsComponent implements OnInit {
   protected readonly canCreateWorkShift = computed(() =>
     this.adminPermissionNames().has(PERMISOS.workshifts.crear),
   );
+  protected readonly canViewWorkShift = computed(() => this.adminPermissionNames().has(PERMISOS.workshifts.listar));
+  protected readonly canEditWorkShift = computed(() => this.adminPermissionNames().has(PERMISOS.workshifts.editar));
+  protected readonly canDeleteWorkShift = computed(() => this.adminPermissionNames().has(PERMISOS.workshifts.eliminar));
 
   // ✅ CORREGIDO: manejo seguro de fechas
-  protected readonly tableColumns = computed<ReadonlyArray<CustomTableColumn<WorkShiftListItem>>>(() => [
-    {
-      id: 'name',
-      header: 'Turno',
-      cell: (ws) => ws.name,
-    },
-    {
-      id: 'startDate',
-      header: 'Hora de inicio',
-      cell: (ws) => new Date(ws.startdate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    },
-    {
-      id: 'endDate',
-      header: 'Hora de finalización',
-      cell: (ws) => new Date(ws.enddate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    },
-  ]);
+  protected tableColumns: ReadonlyArray<CustomTableColumn<WorkShiftListItem>> = [];
 
   ngOnInit(): void {
+    this.tableColumns = [
+      {
+        id: 'name',
+        header: 'Turno',
+        cell: (ws) => ws.name,
+      },
+      {
+        id: 'startDate',
+        header: 'Hora de inicio',
+        cell: (ws) => new Date(ws.startdate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      },
+      {
+        id: 'endDate',
+        header: 'Hora de finalización',
+        cell: (ws) => new Date(ws.enddate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      },
+      {
+        id: 'actions',
+        header: 'Acciones',
+        cell: () => '',
+        template: this.workshiftActionsTemplate,
+        align: 'right',
+      },
+    ];
     this.loadWorkShifts();
   }
 
@@ -68,7 +85,23 @@ export class WorkShiftsComponent implements OnInit {
     if (!this.canCreateWorkShift()) return;
 
     this.createErrorMessage.set(null);
+    this.modalMode.set('create');
     this.isCreateModalOpen.set(true);
+  }
+
+  protected openWorkShiftModal(workShift: WorkShiftListItem, mode: 'view' | 'edit'): void {
+    if (mode === 'view' && !this.canViewWorkShift()) {
+      return;
+    }
+
+    if (mode === 'edit' && !this.canEditWorkShift()) {
+      return;
+    }
+
+    this.selectedWorkShift.set(workShift);
+    this.modalMode.set(mode);
+    this.createErrorMessage.set(null);
+    this.isEditModalOpen.set(true);
   }
 
   protected closeCreateModal(): void {
@@ -76,6 +109,16 @@ export class WorkShiftsComponent implements OnInit {
 
     this.createErrorMessage.set(null);
     this.isCreateModalOpen.set(false);
+    this.modalMode.set(null);
+  }
+
+  protected closeEditModal(): void {
+    if (this.saving()) return;
+
+    this.createErrorMessage.set(null);
+    this.isEditModalOpen.set(false);
+    this.modalMode.set(null);
+    this.selectedWorkShift.set(null);
   }
 
   protected createWorkShift(payload: CreateWorkShiftFormValue): void {
@@ -105,6 +148,49 @@ export class WorkShiftsComponent implements OnInit {
           this.createErrorMessage.set(backendError ?? fallbackError);
         },
       });
+  }
+
+  protected updateWorkShift(payload: CreateWorkShiftFormValue): void {
+    const workShift = this.selectedWorkShift();
+    if (!workShift) {
+      return;
+    }
+
+    this.saving.set(true);
+    this.createErrorMessage.set(null);
+
+    this.workShiftService
+      .updateWorkShift(workShift.id, payload)
+      .pipe(
+        take(1),
+        finalize(() => this.saving.set(false)),
+      )
+      .subscribe({
+        next: () => {
+          this.closeEditModal();
+          this.loadWorkShifts();
+        },
+        error: (error: HttpErrorResponse) => {
+          const backendError = error?.error?.error ?? error?.error?.message;
+          const fallbackError = error?.message ?? 'No se pudo actualizar el turno.';
+          this.createErrorMessage.set(backendError ?? fallbackError);
+        },
+      });
+  }
+
+  protected deleteWorkShift(workShift: WorkShiftListItem): void {
+    if (!this.canDeleteWorkShift() || !confirm('¿Eliminar este turno?')) {
+      return;
+    }
+
+    this.workShiftService.deleteWorkShift(workShift.id).pipe(take(1)).subscribe({
+      next: () => this.loadWorkShifts(),
+      error: (error: HttpErrorResponse) => {
+        const backendError = error?.error?.error ?? error?.error?.message;
+        const fallbackError = error?.message ?? 'No se pudo eliminar el turno.';
+        this.errorMessage.set(backendError ?? fallbackError);
+      },
+    });
   }
 
   protected loadWorkShifts(): void {
