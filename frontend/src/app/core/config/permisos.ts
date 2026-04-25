@@ -22,12 +22,34 @@ export const PERMISOS = {
     editar: 'editar_material',
     eliminar: 'eliminar_material',
     listar: 'listar_material',
+    movimientos: {
+      crear: 'crear_movimiento_material',
+      listar: 'listar_movimiento_material',
+    },
+  },
+  products: {
+    crear: 'crear_producto',
+    editar: 'editar_producto',
+    eliminar: 'eliminar_producto',
+    listar: 'listar_producto',
   },
   enterprises: {
     crear: 'crear_empresa',
     editar: 'editar_empresa',
     eliminar: 'eliminar_empresa',
     listar: 'listar_empresa',
+  },
+  machines: {
+    crear: 'crear_maquinaria',
+    editar: 'editar_maquinaria',
+    eliminar: 'eliminar_maquinaria',
+    listar: 'listar_maquinaria',
+  },
+  indirectCosts: {
+    crear: 'crear_costo_indirecto',
+    editar: 'editar_costo_indirecto',
+    eliminar: 'eliminar_costo_indirecto',
+    listar: 'listar_costo_indirecto',
   },
   workshifts: {
     crear: 'crear_turno',
@@ -55,6 +77,28 @@ export const LISTA_PERMISOS = [
   PERMISOS.enterprises.editar,
   PERMISOS.enterprises.eliminar,
   PERMISOS.enterprises.listar,
+
+  PERMISOS.machines.crear,
+  PERMISOS.machines.editar,
+  PERMISOS.machines.eliminar,
+  PERMISOS.machines.listar,
+
+  PERMISOS.indirectCosts.crear,
+  PERMISOS.indirectCosts.editar,
+  PERMISOS.indirectCosts.eliminar,
+  PERMISOS.indirectCosts.listar,
+
+  PERMISOS.material.crear,
+  PERMISOS.material.editar,
+  PERMISOS.material.eliminar,
+  PERMISOS.material.listar,
+  PERMISOS.material.movimientos.crear,
+  PERMISOS.material.movimientos.listar,
+
+  PERMISOS.products.crear,
+  PERMISOS.products.editar,
+  PERMISOS.products.eliminar,
+  PERMISOS.products.listar,
 
   PERMISOS.workshifts.crear,
   PERMISOS.workshifts.editar,
