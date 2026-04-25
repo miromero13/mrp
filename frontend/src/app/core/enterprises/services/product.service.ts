@@ -20,4 +20,12 @@ export class ProductService {
   createProduct(payload: CreateProductFormValue) {
     return this.http.post<ApiResponse<ProductListItem>>(this.productsUrl, payload);
   }
+
+  updateProduct(id: string, payload: CreateProductFormValue) {
+    return this.http.put<ApiResponse<ProductListItem>>(`${this.productsUrl}/${id}`, payload);
+  }
+
+  deleteProduct(id: string) {
+    return this.http.delete<ApiResponse<void>>(`${this.productsUrl}/${id}`);
+  }
 }

@@ -27,6 +27,14 @@ export class MaterialService {
     return this.http.post<ApiResponse<MaterialListItem>>(this.materialsUrl, payload);
   }
 
+  updateMaterial(id: string, payload: CreateMaterialFormValue) {
+    return this.http.put<ApiResponse<MaterialListItem>>(`${this.materialsUrl}/${id}`, payload);
+  }
+
+  deleteMaterial(id: string) {
+    return this.http.delete<ApiResponse<void>>(`${this.materialsUrl}/${id}`);
+  }
+
   listMaterialMovements() {
     return this.http.get<ApiResponse<MaterialMovementListItem[]>>(this.materialMovementsUrl).pipe(map((response) => response.data ?? []));
   }

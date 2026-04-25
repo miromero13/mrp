@@ -20,4 +20,12 @@ export class RoleService {
   createRole(payload: RoleFormValue) {
     return this.http.post<ApiResponse<RoleListItem>>(this.rolesUrl, payload);
   }
+
+  updateRole(id: string, payload: RoleFormValue) {
+    return this.http.put<ApiResponse<RoleListItem>>(`${this.rolesUrl}/${id}`, payload);
+  }
+
+  deleteRole(id: string) {
+    return this.http.delete<ApiResponse<void>>(`${this.rolesUrl}/${id}`);
+  }
 }

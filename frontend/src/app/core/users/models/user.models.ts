@@ -30,3 +30,13 @@ export interface CreateUserFormValue {
     dayOfWeek: string;
   }>;
 }
+
+export interface UpdateUserFormValue {
+  name: string;
+  email: string;
+  password?: string | null;
+  roleId: string;
+  phone: string | null;
+  address: string | null;
+  gender: 'masculino' | 'femenino' | 'otro' | null;
+}

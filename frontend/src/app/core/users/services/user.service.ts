@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { map } from 'rxjs';
 import { ApiResponse } from '../models/auth.models';
-import { CreateUserFormValue, UserListItem } from '../models/user.models';
+import { CreateUserFormValue, UpdateUserFormValue, UserListItem } from '../models/user.models';
 import { apiEndpoint } from '../../config/api.config';
 import { API_ROUTES } from '../../config/api-routes.utils';
 
@@ -19,5 +19,13 @@ export class UserService {
 
   createUser(payload: CreateUserFormValue) {
     return this.http.post<ApiResponse<UserListItem>>(this.usersUrl, payload);
+  }
+
+  updateUser(id: string, payload: UpdateUserFormValue) {
+    return this.http.put<ApiResponse<UserListItem>>(`${this.usersUrl}/${id}`, payload);
+  }
+
+  deleteUser(id: string) {
+    return this.http.delete<ApiResponse<void>>(`${this.usersUrl}/${id}`);
   }
 }

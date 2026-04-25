@@ -28,4 +28,8 @@ export class EnterpriseService {
   updateEnterprise(id: string, payload: EnterpriseFormValue) {
     return this.http.put<ApiResponse<EnterpriseListItem>>(`${this.enterprisesUrl}/${id}`, payload);
   }
+
+  deleteEnterprise(id: string) {
+    return this.http.delete<ApiResponse<void>>(`${this.enterprisesUrl}/${id}`);
+  }
 }

@@ -20,4 +20,12 @@ export class WorkShiftService {
   createWorkShift(payload: CreateWorkShiftFormValue) {
     return this.http.post<ApiResponse<WorkShiftListItem>>(this.workshiftsUrl, payload);
   }
+
+  updateWorkShift(id: string, payload: CreateWorkShiftFormValue) {
+    return this.http.put<ApiResponse<WorkShiftListItem>>(`${this.workshiftsUrl}/${id}`, payload);
+  }
+
+  deleteWorkShift(id: string) {
+    return this.http.delete<ApiResponse<void>>(`${this.workshiftsUrl}/${id}`);
+  }
 }
