@@ -1,0 +1,70 @@
+<div class="work-center-list container mx-auto p-4">
+  <div class="mb-6">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-3xl font-bold">Centros de Trabajo</h1>
+      <button 
+        (click)="createNew()"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        + Nuevo Centro
+      </button>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <input 
+          type="text" 
+          placeholder="Buscar por nombre o código..."
+          [(ngModel)]="searchText"
+          (input)="onSearchChange()"
+          class="border border-gray-300 rounded px-3 py-2">
+        
+        <select 
+          [(ngModel)]="filterStatus"
+          (change)="onStatusFilterChange()"
+          class="border border-gray-300 rounded px-3 py-2">
+          <option value="ALL">Todos los estados</option>
+          <option value="ACTIVE">Activos</option>
+          <option value="INACTIVE">Inactivos</option>
+          <option value="MAINTENANCE">Mantenimiento</option>
+          <option value="SCHEDULED">Programado</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-8">
+    <p>Cargando...</p>
+  </div>
+
+  <div *ngIf="!loading && filteredWorkCenters.length === 0" class="text-center py-8">
+    <p class="text-gray-500">No hay centros de trabajo</p>
+  </div>
+
+  <div *ngIf="!loading && filteredWorkCenters.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div *ngFor="let workCenter of filteredWorkCenters" class="bg-white rounded shadow p-4 hover:shadow-lg transition">
+      <h3 class="text-lg font-bold mb-2">{{ workCenter.name }}</h3>
+      <p class="text-gray-600 text-sm mb-2">Código: <strong>{{ workCenter.code }}</strong></p>
+      <p class="text-gray-600 text-sm mb-2">Planta: <strong>{{ workCenter.plant }}</strong></p>
+      <p class="text-gray-600 text-sm mb-2">Tipo: <strong>{{ workCenter.resourceType }}</strong></p>
+      <p class="text-gray-600 text-sm mb-2">Estado: <span [ngClass]="{'badge-active': workCenter.status === 'ACTIVE', 'badge-inactive': workCenter.status !== 'ACTIVE'}" class="badge">{{ workCenter.status }}</span></p>
+      
+      <div class="flex gap-2 mt-4">
+        <button 
+          (click)="viewDetail(workCenter.id)"
+          class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded text-sm">
+          Ver
+        </button>
+        <button 
+          (click)="editWorkCenter(workCenter.id)"
+          class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-2 rounded text-sm">
+          Editar
+        </button>
+        <button 
+          (click)="deleteWorkCenter(workCenter.id)"
+          class="flex-1 bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded text-sm">
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

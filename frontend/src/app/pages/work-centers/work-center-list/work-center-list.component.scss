@@ -1,0 +1,19 @@
+.work-center-list {
+  .badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: bold;
+
+    &.badge-active {
+      background-color: #10b981;
+      color: white;
+    }
+
+    &.badge-inactive {
+      background-color: #ef4444;
+      color: white;
+    }
+  }
+}

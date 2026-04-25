@@ -1,0 +1,14 @@
+.work-center-form {
+  form {
+    label {
+      color: #374151;
+    }
+
+    input, textarea, select {
+      &:disabled {
+        background-color: #f3f4f6;
+        cursor: not-allowed;
+      }
+    }
+  }
+}

@@ -28,13 +28,16 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource())) 
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authorize -> authorize
-                // Permitir acceso sin autenticación a las rutas de Swagger
+                // Permitir acceso sin autenticación a las rutas de Swagger y Login
                 .requestMatchers(
-                    "/docs/**",           // <-- AGREGA ESTA LÍNEA
+                    "/",
+                    "/api",
+                    "/docs/**",
                     "/v3/api-docs/**", 
                     "/swagger-ui/**", 
                     "/swagger-ui.html",
-                    "/auth/login"
+                    "/auth/login",
+                    "/auth/**"
                 ).permitAll()
                 // Otras rutas necesitan autenticación
                 .anyRequest().authenticated()

@@ -1,0 +1,212 @@
+<div class="work-center-form container mx-auto p-4">
+  <h1 class="text-3xl font-bold mb-6">
+    {{ isEditMode ? 'Editar Centro de Trabajo' : 'Crear Nuevo Centro de Trabajo' }}
+  </h1>
+
+  <div *ngIf="loading" class="text-center py-8">
+    <p>Cargando...</p>
+  </div>
+
+  <div *ngIf="!loading" class="bg-white rounded shadow p-6">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Código -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Código *</label>
+          <input 
+            type="text"
+            formControlName="code"
+            [disabled]="isEditMode"
+            class="w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="Ej: MC001">
+          <div *ngIf="form.get('code')?.invalid && form.get('code')?.touched" class="text-red-500 text-sm mt-1">
+            El código es requerido
+          </div>
+        </div>
+
+        <!-- Nombre -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Nombre *</label>
+          <input 
+            type="text"
+            formControlName="name"
+            class="w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="Ej: Máquina CNC 001">
+          <div *ngIf="form.get('name')?.invalid && form.get('name')?.touched" class="text-red-500 text-sm mt-1">
+            El nombre es requerido
+          </div>
+        </div>
+
+        <!-- Descripción -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium mb-1">Descripción</label>
+          <textarea 
+            formControlName="description"
+            class="w-full border border-gray-300 rounded px-3 py-2"
+            rows="3"
+            placeholder="Descripción del centro de trabajo"></textarea>
+        </div>
+
+        <!-- Planta -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Planta *</label>
+          <input 
+            type="text"
+            formControlName="plant"
+            class="w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="Ej: Planta A">
+          <div *ngIf="form.get('plant')?.invalid && form.get('plant')?.touched" class="text-red-500 text-sm mt-1">
+            La planta es requerida
+          </div>
+        </div>
+
+        <!-- Línea Productiva -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Línea Productiva</label>
+          <input 
+            type="text"
+            formControlName="productionLine"
+            class="w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="Ej: Línea 1">
+        </div>
+
+        <!-- Tipo de Recurso -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Tipo de Recurso *</label>
+          <select 
+            formControlName="resourceType"
+            class="w-full border border-gray-300 rounded px-3 py-2">
+            <option value="">Seleccionar...</option>
+            <option *ngFor="let type of resourceTypes" [value]="type">{{ type }}</option>
+          </select>
+          <div *ngIf="form.get('resourceType')?.invalid && form.get('resourceType')?.touched" class="text-red-500 text-sm mt-1">
+            El tipo de recurso es requerido
+          </div>
+        </div>
+
+        <!-- Capacidad -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Capacidad (piezas/hora) *</label>
+          <input 
+            type="number"
+            formControlName="capacity"
+            class="w-full border border-gray-300 rounded px-3 py-2"
+            step="0.1"
+            placeholder="Ej: 100">
+          <div *ngIf="form.get('capacity')?.invalid && form.get('capacity')?.touched" class="text-red-500 text-sm mt-1">
+            La capacidad es requerida y debe ser mayor a 0
+          </div>
+        </div>
+
+        <!-- Costo por Hora -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Costo por Hora ($) *</label>
+          <input 
+            type="number"
+            formControlName="costPerHour"
+            class="w-full border border-gray-300 rounded px-3 py-2"
+            step="0.01"
+            placeholder="Ej: 50">
+          <div *ngIf="form.get('costPerHour')?.invalid && form.get('costPerHour')?.touched" class="text-red-500 text-sm mt-1">
+            El costo por hora es requerido
+          </div>
+        </div>
+
+        <!-- Eficiencia Objetivo -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Eficiencia Objetivo (%) *</label>
+          <input 
+            type="number"
+            formControlName="targetEfficiency"
+            class="w-full border border-gray-300 rounded px-3 py-2"
+            step="0.1"
+            min="0"
+            max="100"
+            placeholder="Ej: 85">
+          <div *ngIf="form.get('targetEfficiency')?.invalid && form.get('targetEfficiency')?.touched" class="text-red-500 text-sm mt-1">
+            La eficiencia debe estar entre 0 y 100
+          </div>
+        </div>
+
+        <!-- OEE Actual -->
+        <div>
+          <label class="block text-sm font-medium mb-1">OEE Actual (%)</label>
+          <input 
+            type="number"
+            formControlName="currentOee"
+            class="w-full border border-gray-300 rounded px-3 py-2"
+            step="0.1"
+            min="0"
+            max="100"
+            placeholder="Ej: 78">
+        </div>
+
+        <!-- Estado -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Estado</label>
+          <select 
+            formControlName="status"
+            class="w-full border border-gray-300 rounded px-3 py-2">
+            <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+          </select>
+        </div>
+
+        <!-- Calendario -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Calendario</label>
+          <input 
+            type="text"
+            formControlName="calendar"
+            class="w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="Ej: Calendario_A">
+        </div>
+
+        <!-- Próxima Fecha de Mantenimiento -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Próxima Fecha de Mantenimiento</label>
+          <input 
+            type="date"
+            formControlName="nextMaintenanceDate"
+            class="w-full border border-gray-300 rounded px-3 py-2">
+        </div>
+
+        <!-- Checkboxes -->
+        <div class="md:col-span-2 flex gap-6">
+          <div class="flex items-center">
+            <input 
+              type="checkbox"
+              id="bottleneck"
+              formControlName="isBottleneck"
+              class="mr-2">
+            <label for="bottleneck" class="text-sm">Cuello de Botella</label>
+          </div>
+
+          <div class="flex items-center">
+            <input 
+              type="checkbox"
+              id="critical"
+              formControlName="isCriticalResource"
+              class="mr-2">
+            <label for="critical" class="text-sm">Recurso Crítico</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex gap-2">
+        <button 
+          type="submit"
+          [disabled]="form.invalid || submitting"
+          class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">
+          {{ submitting ? 'Guardando...' : 'Guardar' }}
+        </button>
+        <button 
+          type="button"
+          (click)="cancel()"
+          class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
