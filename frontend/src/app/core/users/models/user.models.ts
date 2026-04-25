@@ -5,6 +5,11 @@ export interface UserListItem {
   phone: string | null;
   gender: string | null;
   address: string | null;
+  enterprise: {
+    id: string;
+    name: string;
+    nit: string;
+  } | null;
   role: {
     id: string;
     name: string;
@@ -19,4 +24,9 @@ export interface CreateUserFormValue {
   phone: string | null;
   address: string | null;
   gender: 'masculino' | 'femenino' | 'otro' | null;
+  enterpriseId?: string | null;
+  workShiftAssignments: Array<{
+    workShiftId: string;
+    dayOfWeek: string;
+  }>;
 }

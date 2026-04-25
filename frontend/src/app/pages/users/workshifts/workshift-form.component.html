@@ -25,12 +25,12 @@
 
   <div class="grid gap-4 md:grid-cols-2">
     <div class="grid gap-2">
-      <label hlmLabel for="workshift-start">Hora de inicio</label>
-      <input id="workshift-start" hlmInput type="time" formControlName="startTime" />
+      <label hlmLabel for="workshift-start">Fecha y hora de inicio</label>
+      <input id="workshift-start" hlmInput type="datetime-local" formControlName="startDate" />
     </div>
     <div class="grid gap-2">
-      <label hlmLabel for="workshift-end">Hora de finalización</label>
-      <input id="workshift-end" hlmInput type="time" formControlName="endTime" />
+      <label hlmLabel for="workshift-end">Fecha y hora de finalización</label>
+      <input id="workshift-end" hlmInput type="datetime-local" formControlName="endDate" />
     </div>
   </div>
 
@@ -39,7 +39,7 @@
       Cancelar
     </button>
 
-    <button hlmBtn type="submit" [disabled]="loading() || availableRoles().length === 0">
+    <button hlmBtn type="submit" [disabled]="loading()">
       {{ loading() ? 'Guardando...' : submitLabel() }}
     </button>
   </div>

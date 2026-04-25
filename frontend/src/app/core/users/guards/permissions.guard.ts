@@ -19,7 +19,13 @@ export const permissionsGuard: CanActivateChildFn = (childRoute, _state: RouterS
   const authService = inject(AuthService);
   const router = inject(Router);
   const requiredPermissions = childRoute.data['permisos'] as string[] | undefined;
+  const blockedRoles = childRoute.data['blockedRoles'] as string[] | undefined;
+  const currentRole = authService.currentUser()?.role?.name;
   const userPermissions = authService.currentUser()?.role?.permissions?.map((permission) => permission.name);
+
+  if (blockedRoles?.includes(currentRole ?? '')) {
+    return router.createUrlTree([APP_ROUTE_URLS.dashboard]);
+  }
 
   if (hasRequiredPermissions(requiredPermissions, userPermissions)) {
     return true;

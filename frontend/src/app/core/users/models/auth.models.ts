@@ -10,6 +10,12 @@ export interface AuthUser {
   phone: string | null;
   gender: string | null;
   address: string | null;
+  enterprise: {
+    id: string;
+    name: string;
+    nit: string;
+    address: string | null;
+  } | null;
   role: {
     id: string;
     name: string;

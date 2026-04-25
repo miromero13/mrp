@@ -1,57 +1,88 @@
-<form class="grid gap-5" [formGroup]="form" (ngSubmit)="submit()">
+<form class="grid gap-6" [formGroup]="form" (ngSubmit)="submit()">
   @if (serverError()) {
     <p class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
       {{ serverError() }}
     </p>
   }
 
-  <div class="grid gap-4 md:grid-cols-2">
-    <div class="grid gap-2">
-      <label hlmLabel for="enterprise-name">Nombre</label>
-      <input id="enterprise-name" hlmInput formControlName="name" placeholder="Ej. Ana Perez" />
-      @if (form.controls.name.touched && form.controls.name.invalid) {
-        <p class="text-xs text-destructive">
-          @if (form.controls.name.hasError('required')) {
-            El nombre es obligatorio.
-          } @else if (form.controls.name.hasError('minlength')) {
-            El nombre debe tener al menos 2 caracteres.
-          } @else if (form.controls.name.hasError('maxlength')) {
-            El nombre no puede superar 100 caracteres.
-          }
-        </p>
-      }
+  <section class="grid gap-4 rounded-xl border bg-muted/20 p-4">
+    <div>
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Empresa</h3>
+      <p class="pt-1 text-xs text-muted-foreground">Se crea junto con su administrador principal.</p>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2">
+      <div class="grid gap-2">
+        <label hlmLabel for="enterprise-name">Nombre</label>
+        <input id="enterprise-name" hlmInput formControlName="name" placeholder="Ej. Grupo MRP" />
+      </div>
+
+      <div class="grid gap-2">
+        <label hlmLabel for="enterprise-nit">NIT</label>
+        <input id="enterprise-nit" hlmInput formControlName="nit" placeholder="0000000-0" />
+      </div>
     </div>
 
     <div class="grid gap-2">
-      <label hlmLabel for="enterprise-nit">NIT</label>
-      <input id="enterprise-nit" hlmInput formControlName="nit" placeholder="NIT de la empresa" />
-      @if (form.controls.nit.touched && form.controls.nit.invalid) {
-        <p class="text-xs text-destructive">
-          @if (form.controls.nit.hasError('required')) {
-            El NIT es obligatorio.
-          } @else if (form.controls.nit.hasError('maxlength')) {
-            El NIT no puede superar 20 caracteres.
-          }
-        </p>
-      }
+      <label hlmLabel for="enterprise-address">Dirección</label>
+      <input id="enterprise-address" hlmInput formControlName="address" placeholder="Dirección de la empresa" />
     </div>
-  </div>
+  </section>
 
-  <div class="grid gap-2">
-    <label hlmLabel for="enterprise-address">Direccion</label>
-    <input id="enterprise-address" hlmInput formControlName="address" placeholder="Direccion de la empresa" />
-    @if (form.controls.address.touched && form.controls.address.invalid) {
-      <p class="text-xs text-destructive">La direccion no puede superar 200 caracteres.</p>
-    }
-  </div>
+  <section class="grid gap-4 rounded-xl border bg-muted/20 p-4">
+    <div>
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Administrador</h3>
+      <p class="pt-1 text-xs text-muted-foreground">Este usuario quedará ligado a la empresa creada.</p>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2">
+      <div class="grid gap-2">
+        <label hlmLabel for="admin-name">Nombre</label>
+        <input id="admin-name" hlmInput formControlName="adminName" placeholder="Nombre del admin" />
+      </div>
+
+      <div class="grid gap-2">
+        <label hlmLabel for="admin-email">Email</label>
+        <input id="admin-email" hlmInput formControlName="adminEmail" placeholder="admin@empresa.com" />
+      </div>
+
+      <div class="grid gap-2">
+        <label hlmLabel for="admin-password">Contraseña</label>
+        <input id="admin-password" hlmInput type="password" formControlName="adminPassword" placeholder="Contraseña segura" />
+      </div>
+
+      <div class="grid gap-2">
+        <label hlmLabel for="admin-phone">Teléfono</label>
+        <input id="admin-phone" hlmInput formControlName="adminPhone" placeholder="Opcional" />
+      </div>
+
+      <div class="grid gap-2">
+        <label hlmLabel for="admin-address">Dirección</label>
+        <input id="admin-address" hlmInput formControlName="adminAddress" placeholder="Opcional" />
+      </div>
+
+      <div class="grid gap-2">
+        <label hlmLabel for="admin-gender">Género</label>
+        <div hlmSelect [value]="form.controls.adminGender.value" (valueChange)="onGenderChange($event)">
+          <hlm-select-trigger>
+            <span hlmSelectValue [placeholder]="'Sin especificar'"></span>
+          </hlm-select-trigger>
+
+          <ng-template hlmSelectPortal>
+            <hlm-select-content>
+              <hlm-select-item [value]="''">Sin especificar</hlm-select-item>
+              <hlm-select-item [value]="'masculino'">Masculino</hlm-select-item>
+              <hlm-select-item [value]="'femenino'">Femenino</hlm-select-item>
+              <hlm-select-item [value]="'otro'">Otro</hlm-select-item>
+            </hlm-select-content>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <div class="flex items-center justify-end gap-3 pt-2">
-    <button hlmBtn variant="outline" type="button" (click)="cancel()" [disabled]="loading()">
-      Cancelar
-    </button>
-
-    <button hlmBtn type="submit" [disabled]="loading() || availableRoles().length === 0">
-      {{ loading() ? 'Guardando...' : submitLabel() }}
-    </button>
+    <button hlmBtn variant="outline" type="button" (click)="cancel()" [disabled]="loading()">Cancelar</button>
+    <button hlmBtn type="submit" [disabled]="loading()">{{ loading() ? 'Guardando...' : submitLabel() }}</button>
   </div>
 </form>

@@ -29,12 +29,6 @@ export const PERMISOS = {
     eliminar: 'eliminar_empresa',
     listar: 'listar_empresa',
   },
-  employees: {
-    crear: 'crear_empleado',
-    editar: 'editar_empleado',
-    eliminar: 'eliminar_empleado',
-    listar: 'listar_empleado',
-  },
   workshifts: {
     crear: 'crear_turno',
     editar: 'editar_turno',
@@ -61,11 +55,6 @@ export const LISTA_PERMISOS = [
   PERMISOS.enterprises.editar,
   PERMISOS.enterprises.eliminar,
   PERMISOS.enterprises.listar,
-
-  PERMISOS.employees.crear,
-  PERMISOS.employees.editar,
-  PERMISOS.employees.eliminar,
-  PERMISOS.employees.listar,
 
   PERMISOS.workshifts.crear,
   PERMISOS.workshifts.editar,
