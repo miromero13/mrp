@@ -174,8 +174,6 @@ public final class PermissionConstants {
             PERMISSION_PERMISSION_NAMES,
             USER_PERMISSION_NAMES,
             ENTERPRISE_PERMISSION_NAMES,
-            MACHINE_PERMISSION_NAMES,
-            INDIRECT_COST_PERMISSION_NAMES,
             EMPLOYEE_PERMISSION_SET_NAMES
     );
 
