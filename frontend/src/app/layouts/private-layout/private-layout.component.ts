@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
-import { lucideChevronDown, lucideChevronRight, lucideCog, lucideHouse, lucideLayoutDashboard, lucideLogOut, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser } from '@ng-icons/lucide';
+import { lucideChevronDown, lucideChevronRight, lucideCog, lucideLayoutDashboard, lucideLogOut, lucidePackage, lucideReceiptText, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
@@ -52,7 +52,7 @@ type NavigationNode = NavigationModule | NavigationStandaloneItem;
     ...HlmIconImports,
     ...HlmSidebarImports,
   ],
-  providers: [provideIcons({ lucideChevronDown, lucideChevronRight, lucideCog, lucideHouse, lucideLayoutDashboard, lucideLogOut, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser })],
+  providers: [provideIcons({ lucideChevronDown, lucideChevronRight, lucideCog, lucideLayoutDashboard, lucideLogOut, lucidePackage, lucideReceiptText, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser })],
   templateUrl: './private-layout.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -115,11 +115,39 @@ export class PrivateLayoutComponent {
           requiredPermissions: [PERMISOS.enterprises.listar],
         },
         {
+          title: ' Gestionar maquinaria',
+          url: this.appRouteUrls.machines,
+          icon: 'lucideCog',
+          exact: true,
+          requiredPermissions: [PERMISOS.machines.listar],
+        },
+        {
+          title: 'Gestionar costos indirectos',
+          url: this.appRouteUrls.indirectCosts,
+          icon: 'lucideReceiptText',
+          exact: true,
+          requiredPermissions: [PERMISOS.indirectCosts.listar],
+        },
+        {
           title: 'Gestionar turnos',
           url: this.appRouteUrls.workshifts,
           icon: 'lucideUsers',
           exact: true,
           requiredPermissions: [PERMISOS.workshifts.listar],
+        },
+        {
+          title: 'Gestionar materiales',
+          url: this.appRouteUrls.materials,
+          icon: 'lucidePackage',
+          exact: true,
+          requiredPermissions: [PERMISOS.material.listar],
+        },
+        {
+          title: 'Gestionar productos',
+          url: this.appRouteUrls.products,
+          icon: 'lucidePackage',
+          exact: true,
+          requiredPermissions: [PERMISOS.products.listar],
         },
       ],
       expanded: true,
@@ -132,14 +160,9 @@ export class PrivateLayoutComponent {
 
   protected readonly visibleNavigationNodes = computed<NavigationNode[]>(() => {
     const userPermissions = this.userPermissions();
-    const isSuperadmin = this.authService.currentUser()?.role?.name === 'superadmin';
 
     return this.navigationNodes().reduce<NavigationNode[]>((visibleNodes, node) => {
       if (node.kind === 'item') {
-        if (isSuperadmin && node.url === this.appRouteUrls.workshifts) {
-          return visibleNodes;
-        }
-
         if (this.hasRequiredPermissions(node.requiredPermissions, userPermissions)) {
           visibleNodes.push(node);
         }
@@ -150,9 +173,7 @@ export class PrivateLayoutComponent {
         return visibleNodes;
       }
 
-      const visibleItems = node.items.filter((item) =>
-        this.hasRequiredPermissions(item.requiredPermissions, userPermissions) && !(isSuperadmin && item.url === this.appRouteUrls.workshifts),
-      );
+      const visibleItems = node.items.filter((item) => this.hasRequiredPermissions(item.requiredPermissions, userPermissions));
 
       if (visibleItems.length > 0) {
         visibleNodes.push({ ...node, items: visibleItems });

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, computed, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, TemplateRef, computed, input, signal } from '@angular/core';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 
@@ -9,6 +9,7 @@ export interface CustomTableColumn<T> {
   id: string;
   header: string;
   cell: (row: T) => string;
+  template?: TemplateRef<{ $implicit: T }>;
   align?: TableColumnAlign;
 }
 

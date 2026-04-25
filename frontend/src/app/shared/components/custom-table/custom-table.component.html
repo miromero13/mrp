@@ -48,7 +48,14 @@
                     'text-left': !column.align || column.align === 'left',
                   }"
                 >
-                  {{ column.cell(row) }}
+                  @if (column.template) {
+                    <ng-container
+                      [ngTemplateOutlet]="column.template"
+                      [ngTemplateOutletContext]="{ $implicit: row }"
+                    ></ng-container>
+                  } @else {
+                    {{ column.cell(row) }}
+                  }
                 </td>
               }
             </tr>
