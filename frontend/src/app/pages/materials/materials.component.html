@@ -1,0 +1,105 @@
+<main class="grid gap-4">
+  <div class="p-6">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">Materiales</h1>
+      <button (click)="openCreate()"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition">
+        + Nuevo material
+      </button>
+    </div>
+
+    <!-- Error -->
+    @if (errorMsg()) {
+      <div class="bg-red-100 text-red-700 px-4 py-3 rounded mb-4">{{ errorMsg() }}</div>
+    }
+
+    <!-- Tabla -->
+    <div class="overflow-x-auto rounded-lg shadow">
+      <table class="min-w-full bg-white text-sm">
+        <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+          <tr>
+            <th class="px-4 py-3 text-left">Código</th>
+            <th class="px-4 py-3 text-left">Nombre</th>
+            <th class="px-4 py-3 text-left">Unidad</th>
+            <th class="px-4 py-3 text-right">Stock actual</th>
+            <th class="px-4 py-3 text-right">Stock mínimo</th>
+            <th class="px-4 py-3 text-center">Estado</th>
+            <th class="px-4 py-3 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          @if (loading()) {
+            <tr>
+              <td colspan="7" class="text-center py-8 text-gray-400">Cargando...</td>
+            </tr>
+          } @else if (materials().length === 0) {
+            <tr>
+              <td colspan="7" class="text-center py-8 text-gray-400">No hay materiales registrados</td>
+            </tr>
+          } @else {
+            @for (mat of materials(); track mat.id) {
+              <tr class="hover:bg-gray-50 transition">
+                <td class="px-4 py-3 font-mono">{{ mat.code }}</td>
+                <td class="px-4 py-3 font-medium">{{ mat.name }}</td>
+                <td class="px-4 py-3 text-gray-500">{{ mat.measureUnit }}</td>
+                <td class="px-4 py-3 text-right"
+                  [class.text-red-600]="mat.currentStock <= mat.minimumStock"
+                  [class.font-semibold]="mat.currentStock <= mat.minimumStock">
+                  {{ mat.currentStock }}
+                </td>
+                <td class="px-4 py-3 text-right text-gray-500">{{ mat.minimumStock }}</td>
+                <td class="px-4 py-3 text-center">
+                  <span [class]="mat.state
+                    ? 'bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium'
+                    : 'bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-medium'">
+                    {{ mat.state ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-center space-x-2">
+                  <button (click)="openMovement(mat, 'ENTRADA')"
+                    class="bg-green-500 hover:bg-green-600 text-white text-xs px-2 py-1 rounded transition">
+                    Entrada
+                  </button>
+                  <button (click)="openMovement(mat, 'SALIDA')"
+                    class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-2 py-1 rounded transition">
+                    Salida
+                  </button>
+                  <button (click)="openEdit(mat)"
+                    class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-2 py-1 rounded transition">
+                    Editar
+                  </button>
+                  <button (click)="confirmDelete(mat)"
+                    class="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded transition">
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal formulario material -->
+  @if (showForm()) {
+    <app-material-form
+      [material]="selectedMaterial()"
+      (saved)="onSaved()"
+      (cancelled)="showForm.set(false)">
+    </app-material-form>
+  }
+
+  <!-- Modal movimiento -->
+  @if (showMovement()) {
+    <app-movement-form
+      [material]="selectedMaterial()!"
+      [movementType]="movementType()"
+      (saved)="onSaved()"
+      (cancelled)="showMovement.set(false)">
+    </app-movement-form>
+  }
+  
+</main>

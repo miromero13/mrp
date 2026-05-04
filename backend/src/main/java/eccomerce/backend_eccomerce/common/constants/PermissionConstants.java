@@ -20,20 +20,33 @@ public final class PermissionConstants {
     public static final String ELIMINAR_USUARIO = "eliminar_usuario";
     public static final String LISTAR_USUARIO = "listar_usuario";
 
+    public static final String CREAR_MATERIAL = "crear_material";
+    public static final String EDITAR_MATERIAL = "editar_material";
+    public static final String ELIMINAR_MATERIAL = "eliminar_material";
+    public static final String LISTAR_MATERIAL = "listar_material";
+
+    public static final String AUMENTAR_STOCK = "aumentar_stock";
+    public static final String DISMINUIR_STOCK = "disminuir_stock";
+
     public static final String[] NAMES = {
             CREAR_ROL, EDITAR_ROL, ELIMINAR_ROL, LISTAR_ROL,
             CREAR_PERMISO, EDITAR_PERMISO, ELIMINAR_PERMISO, LISTAR_PERMISO,
-            CREAR_USUARIO, EDITAR_USUARIO, ELIMINAR_USUARIO, LISTAR_USUARIO
+            CREAR_USUARIO, EDITAR_USUARIO, ELIMINAR_USUARIO, LISTAR_USUARIO,
+            CREAR_MATERIAL, EDITAR_MATERIAL, ELIMINAR_MATERIAL, LISTAR_MATERIAL,
+            AUMENTAR_STOCK, DISMINUIR_STOCK
     };
 
     public static final String[] DESCRIPTIONS = {
             "Crear nuevos roles", "Editar roles existentes", "Eliminar roles", "Listar todos los roles",
             "Crear nuevos permisos", "Editar permisos existentes", "Eliminar permisos", "Listar todos los permisos",
-            "Crear nuevos usuarios", "Editar usuarios existentes", "Eliminar usuarios", "Listar todos los usuarios"
+            "Crear nuevos usuarios", "Editar usuarios existentes", "Eliminar usuarios", "Listar todos los usuarios",
+            "Crear nuevos materiales", "Editar materiales existentes", "Eliminar materiales existentes", "Listar todos los materiales",
+            "Aumentar stock de materiales", "Disminuir stock de materiales"
     };
 
     public static final String[] ADMIN_PERMISSION_NAMES = {
             CREAR_ROL, EDITAR_ROL, ELIMINAR_ROL, LISTAR_ROL,
-            CREAR_USUARIO, EDITAR_USUARIO, ELIMINAR_USUARIO, LISTAR_USUARIO
+            CREAR_USUARIO, EDITAR_USUARIO, ELIMINAR_USUARIO, LISTAR_USUARIO,
+            //si el adm puede crear materiales se le agrega el permiso
     };
 }

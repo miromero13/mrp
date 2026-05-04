@@ -39,6 +39,31 @@ CREATE TABLE IF NOT EXISTS permission_role (
     CONSTRAINT fk_permission_role_permission FOREIGN KEY (permission_id) REFERENCES permission (id)
 );
 
+CREATE TABLE IF NOT EXISTS materials (
+    id UUID NOT NULL,
+    created_at TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL,
+    updated_at TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL,
+    code VARCHAR(100) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    description VARCHAR(255),
+    measure_unit VARCHAR(20) NOT NULL,
+    current_stock DOUBLE PRECISION NOT NULL,
+    minimum_stock DOUBLE PRECISION NOT NULL,
+    state BOOLEAN NOT NULL,
+    CONSTRAINT material_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS material_movements (
+    id UUID NOT NULL,
+    material_id UUID NOT NULL,
+    created_at TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL,
+    updated_at TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL,
+    movement_type VARCHAR(10) NOT NULL,
+    amount DOUBLE PRECISION NOT NULL,
+    CONSTRAINT material_movements_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_material_movements_material FOREIGN KEY (material_id) REFERENCES materials (id)
+);
+
 DO $$
 BEGIN
     IF EXISTS (
