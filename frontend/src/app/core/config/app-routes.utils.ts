@@ -4,6 +4,12 @@ export const APP_ROUTES = {
   users: 'users',
   permissions: 'permissions',
   roles: 'roles',
+  enterprises: 'enterprises',
+  machines: 'machines',
+  indirectCosts: 'indirect-costs',
+  workshifts: 'workshifts',
+  materials: 'materials',
+  products: 'products',
 } as const;
 
 export const APP_ROUTE_URLS = {
@@ -12,4 +18,10 @@ export const APP_ROUTE_URLS = {
   users: `/${APP_ROUTES.users}`,
   permissions: `/${APP_ROUTES.permissions}`,
   roles: `/${APP_ROUTES.roles}`,
+  enterprises: `/${APP_ROUTES.enterprises}`,
+  machines: `/${APP_ROUTES.machines}`,
+  indirectCosts: `/${APP_ROUTES.indirectCosts}`,
+  workshifts: `/${APP_ROUTES.workshifts}`,
+  materials: `/${APP_ROUTES.materials}`,
+  products: `/${APP_ROUTES.products}`,
 } as const;

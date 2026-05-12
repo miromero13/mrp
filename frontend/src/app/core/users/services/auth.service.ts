@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { map, throwError } from 'rxjs';
+import { firstValueFrom, map, of, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ApiResponse, AuthUser, LoginRequest, LoginResponseData } from '../models/auth.models';
 import { apiEndpoint } from '../../config/api.config';
@@ -18,6 +18,7 @@ export class AuthService {
   private readonly tokenStorageKey = 'access_token';
   private readonly userStorageKey = 'auth_user';
   private readonly authUrl = apiEndpoint(API_ROUTES.auth.login);
+  private readonly sessionUrl = apiEndpoint(API_ROUTES.auth.session);
 
   private readonly canUseStorage = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
 
@@ -48,13 +49,50 @@ export class AuthService {
     );
   }
 
+  initializeSession(): Promise<void> {
+    if (!this.getToken()) {
+      return Promise.resolve();
+    }
+
+    return firstValueFrom(
+      this.http.get<ApiResponse<AuthUser>>(this.sessionUrl).pipe(
+        map((response) => {
+          if (!response.data) {
+            throw new Error(response.error ?? response.message ?? 'No se pudo actualizar la sesion.');
+          }
+
+          this.setUser(response.data);
+        }),
+        catchError((error) => {
+          if (error?.status === 401 || error?.status === 403 || error?.status === 404) {
+            this.clearAuthState();
+          }
+
+          return of(void 0);
+        }),
+      ),
+    ).then(() => void 0);
+  }
+
   logout(): void {
-    this.clearToken();
+    this.clearAuthState();
     void this.router.navigateByUrl(APP_ROUTE_URLS.login);
   }
 
   getToken(): string | null {
     return this.tokenSignal();
+  }
+
+  updateCurrentEnterprise(enterprise: AuthUser['enterprise']): void {
+    const currentUser = this.currentUser();
+    if (!currentUser) {
+      return;
+    }
+
+    this.setUser({
+      ...currentUser,
+      enterprise,
+    });
   }
 
   private extractToken(response: ApiResponse<LoginResponseData>): string | null {
@@ -106,5 +144,9 @@ export class AuthService {
     if (this.canUseStorage) {
       localStorage.removeItem(this.tokenStorageKey);
     }
+  }
+
+  private clearAuthState(): void {
+    this.clearToken();
   }
 }

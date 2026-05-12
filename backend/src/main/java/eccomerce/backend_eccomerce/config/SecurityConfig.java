@@ -14,7 +14,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
 import java.util.List;
 
-import eccomerce.backend_eccomerce.user.filter.JwtAuthenticationFilter;
+import eccomerce.backend_eccomerce.users.filter.JwtAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {

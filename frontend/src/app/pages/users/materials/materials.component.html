@@ -1,0 +1,213 @@
+<main class="grid gap-4">
+  <section class="rounded-2xl border bg-card p-6 text-card-foreground shadow-xs md:p-8">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div class="space-y-1">
+        <h1 class="text-2xl font-semibold tracking-tight">Materiales</h1>
+        <p class="text-sm text-muted-foreground">Gestiona materiales y movimientos de entrada/salida.</p>
+      </div>
+    </div>
+
+    @if (errorMessage()) {
+      <p class="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+        {{ errorMessage() }}
+      </p>
+    }
+
+    <div brnTabs [brnTabs]="activeTab()" (brnTabsChange)="setActiveTab($event)" class="mt-6 grid gap-6">
+      @if (visibleTabs().length > 0) {
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-3">
+            <div brnTabsList class="inline-flex w-fit rounded-lg bg-sidebar-accent p-1">
+              @if (canViewMaterialsTab()) {
+                <button
+                  brnTabsTrigger="materials"
+                  type="button"
+                  class="inline-flex h-9 items-center justify-center rounded-md px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=inactive]:text-muted-foreground"
+                >
+                  Materiales
+                </button>
+              }
+
+              @if (canViewMovementsTab()) {
+                <button
+                  brnTabsTrigger="movements"
+                  type="button"
+                  class="inline-flex h-9 items-center justify-center rounded-md px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=inactive]:text-muted-foreground"
+                >
+                  Movimientos
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            @if (canCreateMaterial()) {
+              <button hlmBtn type="button" class="gap-2" (click)="openCreateModal()">
+                <ng-icon hlm [name]="'lucidePlus'" size="sm" />
+                <span>Nuevo material</span>
+              </button>
+            }
+
+            @if (canCreateMovement()) {
+              <button hlmBtn type="button" class="gap-2" (click)="openMovementModal()">
+                <ng-icon hlm [name]="'lucidePlus'" size="sm" />
+                <span>Registrar movimiento</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <section brnTabsContent="materials" class="grid gap-4 outline-none">
+          <app-custom-table
+            [columns]="tableColumns()"
+            [rows]="materials()"
+            [loading]="loading()"
+            [pageSize]="25"
+            [skeletonRows]="10"
+            [emptyMessage]="'No hay materiales registrados.'"
+          />
+        </section>
+
+        <section brnTabsContent="movements" class="grid gap-4 outline-none">
+          <app-custom-table
+            [columns]="movementTableColumns()"
+            [rows]="movements()"
+            [loading]="loadingMovements()"
+            [pageSize]="25"
+            [skeletonRows]="10"
+            [emptyMessage]="'No hay movimientos registrados.'"
+          />
+        </section>
+      } @else {
+        <p class="rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">No tienes permisos para ver esta sección.</p>
+      }
+    </div>
+  </section>
+
+  @if (isCreateModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 px-4 py-6 backdrop-blur-sm">
+      <div class="relative flex w-full max-w-3xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl">
+        <div class="flex items-start justify-between gap-4 border-b px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold">Crear material</h2>
+            <p class="pt-1 text-sm text-muted-foreground">Agrega un material para usarlo en productos.</p>
+          </div>
+
+          <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="closeCreateModal()" [disabled]="saving()">
+            <ng-icon hlm [name]="'lucideX'" size="sm" />
+          </button>
+        </div>
+
+        <form class="min-h-0 flex-1 overflow-y-auto p-6" [formGroup]="form" (ngSubmit)="createMaterial()">
+          @if (createErrorMessage()) {
+            <p class="mb-4 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+              {{ createErrorMessage() }}
+            </p>
+          }
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="grid gap-2">
+              <label hlmLabel for="material-code">Código</label>
+              <input id="material-code" hlmInput formControlName="code" placeholder="MAT-001" />
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="material-unit">Unidad de medida</label>
+              <input id="material-unit" hlmInput formControlName="unitOfMeasure" placeholder="kg, m, pza" />
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="material-stock-min">Stock mínimo</label>
+              <input id="material-stock-min" hlmInput type="number" formControlName="stockMin" />
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="material-stock-current">Stock actual</label>
+              <input id="material-stock-current" hlmInput type="number" formControlName="stockCurrent" />
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-6">
+            <button hlmBtn variant="outline" type="button" (click)="closeCreateModal()" [disabled]="saving()">Cancelar</button>
+            <button hlmBtn type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Crear material' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (isMovementModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 px-4 py-6 backdrop-blur-sm">
+      <div class="relative flex w-full max-w-3xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl">
+        <div class="flex items-start justify-between gap-4 border-b px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold">Registrar entrada / salida</h2>
+            <p class="pt-1 text-sm text-muted-foreground">Registra el consumo, deterioro o ingreso de materiales.</p>
+          </div>
+
+          <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="closeMovementModal()" [disabled]="movementSaving()">
+            <ng-icon hlm [name]="'lucideX'" size="sm" />
+          </button>
+        </div>
+
+        <form class="min-h-0 flex-1 overflow-y-auto p-6" [formGroup]="movementForm" (ngSubmit)="createMovement()">
+          @if (movementErrorMessage()) {
+            <p class="mb-4 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+              {{ movementErrorMessage() }}
+            </p>
+          }
+
+          @if (materials().length === 0) {
+            <p class="mb-4 rounded-md border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-sm text-amber-700">
+              No hay materiales disponibles para registrar movimientos.
+            </p>
+          }
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="grid gap-2">
+              <label hlmLabel for="movement-material">Material</label>
+              <select id="movement-material" hlmInput formControlName="materialId">
+                @for (material of materials(); track material.id) {
+                  <option [value]="material.id">{{ material.code }} - {{ material.unitOfMeasure }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="movement-type">Tipo</label>
+              <select id="movement-type" hlmInput formControlName="type">
+                <option [value]="'ENTRY'">Entrada</option>
+                <option [value]="'EXIT'">Salida</option>
+              </select>
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="movement-quantity">Cantidad</label>
+              <input id="movement-quantity" hlmInput type="number" formControlName="quantity" />
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="movement-unit-price">Precio unitario</label>
+              <input id="movement-unit-price" hlmInput type="number" formControlName="unitPrice" />
+            </div>
+
+            <div class="grid gap-2 md:col-span-2">
+              <label hlmLabel for="movement-reason">Motivo / detalle</label>
+              <textarea
+                id="movement-reason"
+                class="min-h-24 rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                formControlName="reason"
+                placeholder="Uso en producción, deterioro, ajuste, ingreso por compra..."
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-6">
+            <button hlmBtn variant="outline" type="button" (click)="closeMovementModal()" [disabled]="movementSaving()">Cancelar</button>
+            <button hlmBtn type="submit" [disabled]="movementSaving()">{{ movementSaving() ? 'Guardando...' : 'Registrar movimiento' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</main>

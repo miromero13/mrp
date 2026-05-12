@@ -69,6 +69,10 @@ El proyecto usa **Flyway** para crear y versionar el esquema.
   - `permission`
   - `permission_role`
 - También contempla renombres desde el esquema legado (`permiso_rol`, `rol_id`, `permiso_id`, `nombre`) para entornos existentes.
+- Las migraciones posteriores agregan:
+  - `V2__refactor_enterprises_users_and_shifts.sql`
+  - `V3__add_materials_and_products.sql`
+- El módulo de enterprise ahora incluye materiales, productos y versiones de producto, visibles solo para usuarios `admin` de su propia empresa.
 
 No necesitas crear tablas a mano.
 

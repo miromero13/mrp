@@ -7,4 +7,5 @@ public final class RoleConstants {
 
     public static final String SUPERADMIN = "superadmin";
     public static final String ADMIN = "admin";
+    public static final String EMPLOYEE = "employee";
 }

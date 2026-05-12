@@ -1,0 +1,90 @@
+<main class="grid gap-4">
+  <section class="rounded-xl border bg-card p-8 text-card-foreground shadow-xs">
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h1 class="text-xl font-semibold">Maquinaria</h1>
+        <p class="pt-1 text-sm text-muted-foreground">Gestiona las máquinas asociadas a tu empresa.</p>
+      </div>
+
+      <button hlmBtn type="button" class="gap-2" (click)="openModal()">
+        <ng-icon hlm [name]="'lucidePlus'" size="sm" />
+        <span>Agregar maquinaria</span>
+      </button>
+    </div>
+
+    @if (errorMessage()) {
+      <p class="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+        {{ errorMessage() }}
+      </p>
+    }
+
+    <div class="mt-4">
+      <app-custom-table
+        [columns]="tableColumns"
+        [rows]="machines()"
+        [loading]="loading()"
+        [pageSize]="25"
+        [skeletonRows]="8"
+        [emptyMessage]="'No hay maquinaria registrada.'"
+      />
+    </div>
+  </section>
+
+  <ng-template #machineActions let-machine>
+    <div class="flex justify-end gap-2">
+      <button hlmBtn variant="outline" size="sm" type="button" class="gap-2" (click)="openModal(machine)">
+        <ng-icon hlm [name]="'lucidePencil'" size="sm" />
+        <span>Editar</span>
+      </button>
+      <button hlmBtn variant="destructive" size="sm" type="button" class="gap-2" (click)="deleteMachine(machine.id)">
+        <ng-icon hlm [name]="'lucideTrash2'" size="sm" />
+        <span>Eliminar</span>
+      </button>
+    </div>
+  </ng-template>
+
+  @if (isModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 px-4 py-6 backdrop-blur-sm">
+      <div class="relative flex w-full max-w-3xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl">
+        <div class="flex items-start justify-between gap-4 border-b px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold">{{ editingMachineId() ? 'Editar maquinaria' : 'Agregar maquinaria' }}</h2>
+            <p class="pt-1 text-sm text-muted-foreground">Registra una máquina y su costo.</p>
+          </div>
+
+          <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="closeModal()" [disabled]="saving()">
+            <ng-icon hlm [name]="'lucideX'" size="sm" />
+          </button>
+        </div>
+
+        <form class="min-h-0 flex-1 overflow-y-auto p-6" [formGroup]="form" (ngSubmit)="saveMachine()">
+          @if (formErrorMessage()) {
+            <p class="mb-4 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">{{ formErrorMessage() }}</p>
+          }
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="grid gap-2">
+              <label hlmLabel for="machine-name">Nombre</label>
+              <input id="machine-name" hlmInput formControlName="name" placeholder="Ej. Torno CNC" />
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="machine-cost">Costo</label>
+              <input id="machine-cost" hlmInput type="number" formControlName="cost" />
+            </div>
+
+            <div class="grid gap-2 md:col-span-2">
+              <label hlmLabel for="machine-description">Descripción</label>
+              <textarea id="machine-description" class="min-h-24 rounded-md border bg-background px-3 py-2 text-sm outline-none" formControlName="description"></textarea>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-6">
+            <button hlmBtn variant="outline" type="button" (click)="closeModal()" [disabled]="saving()">Cancelar</button>
+            <button hlmBtn type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</main>

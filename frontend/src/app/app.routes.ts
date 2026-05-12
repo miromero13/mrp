@@ -38,6 +38,36 @@ export const routes: Routes = [
 				loadComponent: () => import('./pages/users/roles/roles.component').then((m) => m.RolesComponent),
 				data: { permisos: [PERMISOS.roles.listar] },
 			},
+			{
+				path: APP_ROUTES.enterprises,
+				loadComponent: () => import('./pages/users/enterprises/enterprises.component').then((m) => m.EnterprisesComponent),
+				data: { permisos: [PERMISOS.enterprises.listar] },
+			},
+			{
+				path: APP_ROUTES.machines,
+				loadComponent: () => import('./pages/users/enterprises/machines.component').then((m) => m.MachinesComponent),
+				data: { permisos: [PERMISOS.machines.listar] },
+			},
+			{
+				path: APP_ROUTES.indirectCosts,
+				loadComponent: () => import('./pages/users/enterprises/indirect-costs.component').then((m) => m.IndirectCostsComponent),
+				data: { permisos: [PERMISOS.indirectCosts.listar] },
+			},
+			{
+				path: APP_ROUTES.workshifts,
+				loadComponent: () => import('./pages/users/workshifts/workshifts.component').then((m) => m.WorkShiftsComponent),
+				data: { permisos: [PERMISOS.workshifts.listar] },
+			},
+			{
+				path: APP_ROUTES.materials,
+				loadComponent: () => import('./pages/users/materials/materials.component').then((m) => m.MaterialsComponent),
+				data: { permisos: [PERMISOS.material.listar] },
+			},
+			{
+				path: APP_ROUTES.products,
+				loadComponent: () => import('./pages/users/products/products.component').then((m) => m.ProductsComponent),
+				data: { permisos: [PERMISOS.products.listar] },
+			},
 			{ path: '', pathMatch: 'full', redirectTo: APP_ROUTES.dashboard },
 		],
 	},

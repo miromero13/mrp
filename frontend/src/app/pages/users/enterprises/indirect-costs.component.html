@@ -1,0 +1,90 @@
+<main class="grid gap-4">
+  <section class="rounded-xl border bg-card p-8 text-card-foreground shadow-xs">
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h1 class="text-xl font-semibold">Costos indirectos</h1>
+        <p class="pt-1 text-sm text-muted-foreground">Registra agua, luz, arriendo, mantenimiento y otros costos.</p>
+      </div>
+
+      <button hlmBtn type="button" class="gap-2" (click)="openModal()">
+        <ng-icon hlm [name]="'lucidePlus'" size="sm" />
+        <span>Agregar costo</span>
+      </button>
+    </div>
+
+    @if (errorMessage()) {
+      <p class="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+        {{ errorMessage() }}
+      </p>
+    }
+
+    <div class="mt-4">
+      <app-custom-table
+        [columns]="tableColumns"
+        [rows]="indirectCosts()"
+        [loading]="loading()"
+        [pageSize]="25"
+        [skeletonRows]="8"
+        [emptyMessage]="'No hay costos indirectos registrados.'"
+      />
+    </div>
+  </section>
+
+  <ng-template #indirectCostActions let-cost>
+    <div class="flex justify-end gap-2">
+      <button hlmBtn variant="outline" size="sm" type="button" class="gap-2" (click)="openModal(cost)">
+        <ng-icon hlm [name]="'lucidePencil'" size="sm" />
+        <span>Editar</span>
+      </button>
+      <button hlmBtn variant="destructive" size="sm" type="button" class="gap-2" (click)="deleteIndirectCost(cost.id)">
+        <ng-icon hlm [name]="'lucideTrash2'" size="sm" />
+        <span>Eliminar</span>
+      </button>
+    </div>
+  </ng-template>
+
+  @if (isModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 px-4 py-6 backdrop-blur-sm">
+      <div class="relative flex w-full max-w-3xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl">
+        <div class="flex items-start justify-between gap-4 border-b px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold">{{ editingIndirectCostId() ? 'Editar costo indirecto' : 'Agregar costo indirecto' }}</h2>
+            <p class="pt-1 text-sm text-muted-foreground">Registra un gasto indirecto de la empresa.</p>
+          </div>
+
+          <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="closeModal()" [disabled]="saving()">
+            <ng-icon hlm [name]="'lucideX'" size="sm" />
+          </button>
+        </div>
+
+        <form class="min-h-0 flex-1 overflow-y-auto p-6" [formGroup]="form" (ngSubmit)="saveIndirectCost()">
+          @if (formErrorMessage()) {
+            <p class="mb-4 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">{{ formErrorMessage() }}</p>
+          }
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="grid gap-2">
+              <label hlmLabel for="indirect-cost-name">Nombre</label>
+              <input id="indirect-cost-name" hlmInput formControlName="name" placeholder="Ej. Luz" />
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="indirect-cost-amount">Monto</label>
+              <input id="indirect-cost-amount" hlmInput type="number" formControlName="amount" />
+            </div>
+
+            <div class="grid gap-2 md:col-span-2">
+              <label hlmLabel for="indirect-cost-description">Descripción</label>
+              <textarea id="indirect-cost-description" class="min-h-24 rounded-md border bg-background px-3 py-2 text-sm outline-none" formControlName="description"></textarea>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-6">
+            <button hlmBtn variant="outline" type="button" (click)="closeModal()" [disabled]="saving()">Cancelar</button>
+            <button hlmBtn type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</main>
