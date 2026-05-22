@@ -3,6 +3,7 @@ package eccomerce.backend_eccomerce.engineering.service;
 import eccomerce.backend_eccomerce.common.utils.ResponseMessage;
 import eccomerce.backend_eccomerce.engineering.dto.CreateMachineDto;
 import eccomerce.backend_eccomerce.engineering.dto.UpdateMachineDto;
+import eccomerce.backend_eccomerce.engineering.enums.MachineStatus;
 import eccomerce.backend_eccomerce.enterprise.entity.EnterpriseEntity;
 import eccomerce.backend_eccomerce.engineering.entity.MachineEntity;
 import eccomerce.backend_eccomerce.enterprise.repository.EnterpriseRepository;
@@ -33,9 +34,11 @@ public class MachineService {
             EnterpriseEntity enterprise = resolveCurrentEnterprise();
 
             MachineEntity machine = new MachineEntity();
+            machine.setSerialNumber(dto.getSerialNumber());
             machine.setName(dto.getName());
             machine.setDescription(dto.getDescription());
             machine.setCost(dto.getCost());
+            machine.setStatus(resolveStatus(dto.getStatus()).name());
             machine.setEnterprise(enterprise);
 
             machineRepository.save(machine);
@@ -79,6 +82,9 @@ public class MachineService {
             MachineEntity machine = machineRepository.findByIdAndEnterpriseId(id, enterprise.getId())
                     .orElseThrow(() -> new RuntimeException("Maquinaria no encontrada"));
 
+            if (dto.getSerialNumber() != null && !dto.getSerialNumber().isBlank()) {
+                machine.setSerialNumber(dto.getSerialNumber());
+            }
             if (dto.getName() != null && !dto.getName().isBlank()) {
                 machine.setName(dto.getName());
             }
@@ -87,6 +93,9 @@ public class MachineService {
             }
             if (dto.getCost() != null) {
                 machine.setCost(dto.getCost());
+            }
+            if (dto.getStatus() != null && !dto.getStatus().isBlank()) {
+                machine.setStatus(resolveStatus(dto.getStatus()).name());
             }
 
             machineRepository.save(machine);
@@ -136,6 +145,14 @@ public class MachineService {
         return userRepository.findByEmail(email)
                 .map(user -> user.enterprise == null ? null : user.enterprise.getId())
                 .orElse(null);
+    }
+
+    private MachineStatus resolveStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return MachineStatus.ACTIVE;
+        }
+
+        return MachineStatus.valueOf(status.trim().toUpperCase());
     }
 
 }

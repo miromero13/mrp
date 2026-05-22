@@ -30,8 +30,8 @@ public class ProductController {
 
     @RequirePermission(PermissionConstants.LISTAR_PRODUCTO)
     @GetMapping
-    public ResponseMessage<List<ProductEntity>> findAll() {
-        return productService.findAll();
+    public ResponseMessage<List<ProductEntity>> findAll(@RequestParam(required = false) UUID enterpriseId) {
+        return productService.findAll(enterpriseId);
     }
 
     @RequirePermission(PermissionConstants.LISTAR_PRODUCTO)

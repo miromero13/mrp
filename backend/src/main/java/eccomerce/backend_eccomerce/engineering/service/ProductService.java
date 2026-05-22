@@ -6,11 +6,9 @@ import eccomerce.backend_eccomerce.engineering.dto.CreateProductDto;
 import eccomerce.backend_eccomerce.engineering.dto.ProductVersionDto;
 import eccomerce.backend_eccomerce.engineering.dto.UpdateProductDto;
 import eccomerce.backend_eccomerce.enterprise.entity.EnterpriseEntity;
-import eccomerce.backend_eccomerce.warehouses.entity.MaterialEntity;
 import eccomerce.backend_eccomerce.engineering.entity.ProductEntity;
 import eccomerce.backend_eccomerce.engineering.entity.ProductVersionEntity;
 import eccomerce.backend_eccomerce.enterprise.repository.EnterpriseRepository;
-import eccomerce.backend_eccomerce.warehouses.repository.MaterialRepository;
 import eccomerce.backend_eccomerce.engineering.repository.ProductRepository;
 import eccomerce.backend_eccomerce.users.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,18 +16,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
 public class ProductService {
     @Autowired
     private ProductRepository productRepository;
-
-    @Autowired
-    private MaterialRepository materialRepository;
 
     @Autowired
     private EnterpriseRepository enterpriseRepository;
@@ -40,10 +33,6 @@ public class ProductService {
     @Transactional
     public ResponseMessage<ProductEntity> create(CreateProductDto dto) {
         try {
-            if (isCurrentUserSuperadmin()) {
-                return ResponseMessage.error("No se pudo crear el producto", "Superadmin no tiene acceso a productos", 403);
-            }
-
             EnterpriseEntity enterprise = resolveCurrentEnterprise();
             if (productRepository.existsByNameAndEnterpriseId(dto.name, enterprise.getId())) {
                 return ResponseMessage.error("No se pudo crear el producto", "Ya existe un producto con ese nombre en tu empresa", 400);
@@ -55,7 +44,6 @@ public class ProductService {
             product.setProductionCost(dto.productionCost);
             product.setSalePrice(dto.salePrice);
             product.setEnterprise(enterprise);
-            product.setMaterials(resolveMaterials(dto.materialIds, enterprise.getId()));
 
             for (ProductVersionDto versionDto : dto.versions) {
                 ProductVersionEntity version = new ProductVersionEntity();
@@ -71,13 +59,9 @@ public class ProductService {
         }
     }
 
-    public ResponseMessage<List<ProductEntity>> findAll() {
+    public ResponseMessage<List<ProductEntity>> findAll(UUID enterpriseId) {
         try {
-            if (isCurrentUserSuperadmin()) {
-                return ResponseMessage.error("No se pudieron obtener los productos", "Superadmin no tiene acceso a productos", 403);
-            }
-
-            EnterpriseEntity enterprise = resolveCurrentEnterprise();
+            EnterpriseEntity enterprise = enterpriseId != null ? resolveEnterprise(enterpriseId) : resolveCurrentEnterprise();
             List<ProductEntity> products = productRepository.findByEnterpriseId(enterprise.getId());
             return ResponseMessage.success(products, "Productos obtenidos correctamente", products.size());
         } catch (Exception ex) {
@@ -87,10 +71,6 @@ public class ProductService {
 
     public ResponseMessage<ProductEntity> findById(UUID id) {
         try {
-            if (isCurrentUserSuperadmin()) {
-                return ResponseMessage.error("No se pudo obtener el producto", "Superadmin no tiene acceso a productos", 403);
-            }
-
             EnterpriseEntity enterprise = resolveCurrentEnterprise();
             ProductEntity product = productRepository.findByIdAndEnterpriseId(id, enterprise.getId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
@@ -105,10 +85,6 @@ public class ProductService {
     @Transactional
     public ResponseMessage<ProductEntity> update(UUID id, UpdateProductDto dto) {
         try {
-            if (isCurrentUserSuperadmin()) {
-                return ResponseMessage.error("No se pudo actualizar el producto", "Superadmin no tiene acceso a productos", 403);
-            }
-
             EnterpriseEntity enterprise = resolveCurrentEnterprise();
             ProductEntity product = productRepository.findByIdAndEnterpriseId(id, enterprise.getId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
@@ -124,9 +100,6 @@ public class ProductService {
             }
             if (dto.salePrice != null) {
                 product.setSalePrice(dto.salePrice);
-            }
-            if (dto.materialIds != null) {
-                product.setMaterials(resolveMaterials(dto.materialIds, enterprise.getId()));
             }
             if (dto.versions != null) {
                 if (dto.versions.isEmpty()) {
@@ -153,10 +126,6 @@ public class ProductService {
     @Transactional
     public ResponseMessage<Void> delete(UUID id) {
         try {
-            if (isCurrentUserSuperadmin()) {
-                return ResponseMessage.error("No se pudo eliminar el producto", "Superadmin no tiene acceso a productos", 403);
-            }
-
             EnterpriseEntity enterprise = resolveCurrentEnterprise();
             ProductEntity product = productRepository.findByIdAndEnterpriseId(id, enterprise.getId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
@@ -170,22 +139,17 @@ public class ProductService {
         }
     }
 
-    private Set<MaterialEntity> resolveMaterials(List<UUID> materialIds, UUID enterpriseId) {
-        Set<MaterialEntity> materials = new HashSet<>();
-        for (UUID materialId : materialIds) {
-            MaterialEntity material = materialRepository.findByIdAndEnterpriseId(materialId, enterpriseId)
-                    .orElseThrow(() -> new RuntimeException("Material no encontrado con id: " + materialId));
-            materials.add(material);
-        }
-        return materials;
-    }
-
     private EnterpriseEntity resolveCurrentEnterprise() {
         UUID enterpriseId = getCurrentEnterpriseId();
         if (enterpriseId == null) {
             throw new RuntimeException("No tienes una empresa asignada");
         }
 
+        return enterpriseRepository.findById(enterpriseId)
+                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+    }
+
+    private EnterpriseEntity resolveEnterprise(UUID enterpriseId) {
         return enterpriseRepository.findById(enterpriseId)
                 .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
     }

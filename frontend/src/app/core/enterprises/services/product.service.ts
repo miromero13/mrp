@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { HttpParams } from '@angular/common/http';
 import { map } from 'rxjs';
 import { ApiResponse } from '../../users/models/auth.models';
 import { apiEndpoint } from '../../config/api.config';
@@ -13,8 +14,9 @@ export class ProductService {
   private readonly http = inject(HttpClient);
   private readonly productsUrl = apiEndpoint(API_ROUTES.enterprise.products);
 
-  listProducts() {
-    return this.http.get<ApiResponse<ProductListItem[]>>(this.productsUrl).pipe(map((response) => response.data ?? []));
+  listProducts(enterpriseId?: string) {
+    const params = enterpriseId ? new HttpParams().set('enterpriseId', enterpriseId) : undefined;
+    return this.http.get<ApiResponse<ProductListItem[]>>(this.productsUrl, { params }).pipe(map((response) => response.data ?? []));
   }
 
   createProduct(payload: CreateProductFormValue) {
