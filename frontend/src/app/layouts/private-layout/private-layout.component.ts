@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
-import { lucideChevronDown, lucideChevronRight, lucideCog, lucideLayoutDashboard, lucideLogOut, lucidePackage, lucideReceiptText, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser, lucideBuilding, lucideBuilding2, lucideWarehouse, lucideHandCoins, lucideBoxes, lucideHardHat, lucideClipboardClock } from '@ng-icons/lucide';
+import { lucideChevronDown, lucideChevronRight, lucideCog, lucideLayoutDashboard, lucideLogOut, lucidePackage, lucideReceiptText, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser, lucideBuilding, lucideBuilding2, lucideWarehouse, lucideHandCoins, lucideBoxes, lucideHardHat, lucideClipboardClock, lucideGitBranch } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
@@ -18,6 +18,7 @@ interface NavigationItem {
   icon: string;
   exact?: boolean;
   requiredPermissions?: string[];
+  requiredRoles?: string[];
 }
 
 interface NavigationModule {
@@ -27,6 +28,7 @@ interface NavigationModule {
   items: NavigationItem[];
   expanded: boolean;
   requiredPermissions?: string[];
+  requiredRoles?: string[];
 }
 
 interface NavigationStandaloneItem {
@@ -36,6 +38,7 @@ interface NavigationStandaloneItem {
   icon: string;
   exact?: boolean;
   requiredPermissions?: string[];
+  requiredRoles?: string[];
 }
 
 type NavigationNode = NavigationModule | NavigationStandaloneItem;
@@ -52,7 +55,7 @@ type NavigationNode = NavigationModule | NavigationStandaloneItem;
     ...HlmIconImports,
     ...HlmSidebarImports,
   ],
-  providers: [provideIcons({ lucideChevronDown, lucideChevronRight, lucideCog, lucideLayoutDashboard, lucideLogOut, lucidePackage, lucideReceiptText, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser, lucideBuilding, lucideBoxes, lucideHardHat, lucideBuilding2, lucideWarehouse, lucideHandCoins, lucideClipboardClock })],
+  providers: [provideIcons({ lucideChevronDown, lucideChevronRight, lucideCog, lucideLayoutDashboard, lucideLogOut, lucidePackage, lucideReceiptText, lucideUserLock, lucideUserRoundCog, lucideUsers, lucideUser, lucideBuilding, lucideBoxes, lucideHardHat, lucideBuilding2, lucideWarehouse, lucideHandCoins, lucideClipboardClock, lucideGitBranch })],
   templateUrl: './private-layout.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -61,6 +64,7 @@ export class PrivateLayoutComponent {
   protected readonly sidebarService = inject(HlmSidebarService);
   protected readonly appRouteUrls = APP_ROUTE_URLS;
   protected readonly appName = APP_NAME;
+  protected readonly currentUserRoleName = computed(() => this.authService.currentUser()?.role?.name ?? '');
 
   protected readonly navigationNodes = signal<NavigationNode[]>([
     {
@@ -144,6 +148,36 @@ export class PrivateLayoutComponent {
           exact: true,
           requiredPermissions: [PERMISOS.machines.listar],
         },
+        {
+          title: 'Gestionar rutas',
+          url: this.appRouteUrls.productionRoutes,
+          icon: 'lucideGitBranch',
+          exact: true,
+          requiredPermissions: [PERMISOS.productionRoutes.listar],
+        },
+      ],
+      expanded: true,
+    },
+    {
+      kind: 'module',
+      title: 'Produccion',
+      icon: 'lucideClipboardClock',
+      requiredPermissions: [],
+      items: [
+        {
+          title: 'Gestionar demandas',
+          url: this.appRouteUrls.productionDemands,
+          icon: 'lucideClipboardClock',
+          exact: true,
+          requiredPermissions: [PERMISOS.production.demands.listar],
+        },
+        {
+          title: 'Gestionar MPS',
+          url: this.appRouteUrls.productionMps,
+          icon: 'lucideClipboardClock',
+          exact: true,
+          requiredPermissions: [PERMISOS.production.mps.gestionar],
+        },
       ],
       expanded: true,
     },
@@ -160,6 +194,21 @@ export class PrivateLayoutComponent {
           icon: 'lucideBoxes',
           exact: true,
           requiredPermissions: [PERMISOS.material.listar],
+        },
+        {
+          title: 'Gestionar lotes',
+          url: this.appRouteUrls.batches,
+          icon: 'lucidePackage',
+          exact: true,
+          requiredPermissions: [PERMISOS.warehouses.batches.listar],
+          requiredRoles: ['Administrador'],
+        },
+        {
+          title: 'Gestionar BOM',
+          url: this.appRouteUrls.bom,
+          icon: 'lucideReceiptText',
+          exact: true,
+          requiredPermissions: [PERMISOS.bom.listar],
         },
       ],
       expanded: true,
@@ -188,20 +237,21 @@ export class PrivateLayoutComponent {
 
   protected readonly visibleNavigationNodes = computed<NavigationNode[]>(() => {
     const userPermissions = this.userPermissions();
+    const userRoleName = this.currentUserRoleName();
 
     return this.navigationNodes().reduce<NavigationNode[]>((visibleNodes, node) => {
       if (node.kind === 'item') {
-        if (this.hasRequiredPermissions(node.requiredPermissions, userPermissions)) {
+        if (this.hasRequiredPermissions(node.requiredPermissions, userPermissions) && this.hasRequiredRoles(node.requiredRoles, userRoleName)) {
           visibleNodes.push(node);
         }
         return visibleNodes;
       }
 
-      if (!this.hasRequiredPermissions(node.requiredPermissions, userPermissions)) {
+      if (!this.hasRequiredPermissions(node.requiredPermissions, userPermissions) || !this.hasRequiredRoles(node.requiredRoles, userRoleName)) {
         return visibleNodes;
       }
 
-      const visibleItems = node.items.filter((item) => this.hasRequiredPermissions(item.requiredPermissions, userPermissions));
+      const visibleItems = node.items.filter((item) => this.hasRequiredPermissions(item.requiredPermissions, userPermissions) && this.hasRequiredRoles(item.requiredRoles, userRoleName));
 
       if (visibleItems.length > 0) {
         visibleNodes.push({ ...node, items: visibleItems });
@@ -235,5 +285,13 @@ export class PrivateLayoutComponent {
     }
 
     return requiredPermissions.every((permission) => userPermissions.includes(permission));
+  }
+
+  private hasRequiredRoles(requiredRoles: string[] | undefined, userRoleName: string): boolean {
+    if (!requiredRoles || requiredRoles.length === 0) {
+      return true;
+    }
+
+    return requiredRoles.some((role) => role === userRoleName);
   }
 }

@@ -1,0 +1,202 @@
+<main class="grid gap-4">
+  <section class="rounded-xl border bg-card p-8 text-card-foreground shadow-xs">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <h1 class="text-xl font-semibold">BOM</h1>
+        <p class="pt-1 text-sm text-muted-foreground">Gestiona la lista de materiales por versión de producto.</p>
+      </div>
+
+      @if (canCreateBom() && !selectedVersionLocked() && selectedVersionId()) {
+        <button hlmBtn type="button" class="gap-2" (click)="openCreateModal()">
+          <ng-icon hlm [name]="'lucidePlus'" size="sm" />
+          <span>Agregar componente</span>
+        </button>
+      }
+    </div>
+
+    @if (errorMessage()) {
+      <p class="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+        {{ errorMessage() }}
+      </p>
+    }
+
+    <div class="mt-6 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+      <div class="grid gap-2">
+        <label hlmLabel for="bom-version">Versión de producto</label>
+        <div hlmSelect [value]="selectedVersionId()" (valueChange)="onVersionChange($event)" [disabled]="loadingProducts() || versionOptions().length === 0">
+          <hlm-select-trigger>
+            <hlm-select-placeholder>
+              Selecciona una versión
+            </hlm-select-placeholder>
+
+            <ng-template hlmSelectValueTemplate let-value>
+              @if (versionOptions().find(v => v.id === value); as version) {
+                <div class="flex items-center gap-1">
+                  <span>{{ version.label }}</span>
+
+                  @if (version.approved) {
+                    <span class="text-xs text-emerald-600">
+                      (Aprobada)
+                    </span>
+                  }
+
+                  @if (version.usedInProduction) {
+                    <span class="text-xs text-amber-600">
+                      (Usada)
+                    </span>
+                  }
+                </div>
+              }
+            </ng-template>
+          </hlm-select-trigger>
+
+          <ng-template hlmSelectPortal>
+            <hlm-select-content>
+              @for (version of versionOptions(); track version.id) {
+                <hlm-select-item [value]="version.id">
+                  <div class="flex items-center gap-1">
+                    <span>{{ version.label }}</span>
+
+                    @if (version.approved) {
+                      <span class="text-xs text-emerald-600">
+                        (Aprobada)
+                      </span>
+                    }
+
+                    @if (version.usedInProduction) {
+                      <span class="text-xs text-amber-600">
+                        (Usada)
+                      </span>
+                    }
+                  </div>
+                </hlm-select-item>
+              }
+            </hlm-select-content>
+          </ng-template>
+        </div>
+      </div>
+
+      <div class="rounded-lg border bg-muted/30 px-4 py-3 text-sm">
+        <p class="text-muted-foreground">Costo total estimado</p>
+        <p class="text-xl font-semibold">{{ totalEstimatedCost() }}</p>
+      </div>
+    </div>
+
+    @if (selectedVersionLocked()) {
+      <p class="mt-4 rounded-md border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-sm text-amber-700">
+        Esta versión está bloqueada. Crea una nueva versión si necesitas cambiar su BOM.
+      </p>
+    }
+
+    <div class="mt-4">
+      <app-custom-table
+        [columns]="tableColumns()"
+        [rows]="bomItems()"
+        [loading]="loading()"
+        [pageSize]="25"
+        [skeletonRows]="10"
+        [emptyMessage]="'No hay componentes registrados para esta versión.'"
+      />
+    </div>
+  </section>
+
+  <ng-template #actionsTemplate let-item>
+    <div class="flex justify-end gap-2">
+      @if (canEditBom() && !selectedVersionLocked()) {
+        <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="openEditModal(item)">
+          <ng-icon hlm [name]="'lucidePencil'" size="sm" />
+        </button>
+      }
+
+      @if (canDeleteBom() && !selectedVersionLocked()) {
+        <button hlmBtn variant="ghost" size="icon-sm" type="button" class="text-destructive" (click)="deleteBomItem(item)">
+          <ng-icon hlm [name]="'lucideTrash2'" size="sm" />
+        </button>
+      }
+    </div>
+  </ng-template>
+
+  @if (isModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 px-4 py-6 backdrop-blur-sm">
+      <div class="relative flex w-full max-w-3xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl">
+        <div class="flex items-start justify-between gap-4 border-b px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold">{{ modalMode() === 'edit' ? 'Editar componente' : 'Agregar componente' }}</h2>
+            <p class="pt-1 text-sm text-muted-foreground">Configura cantidad y merma por material.</p>
+          </div>
+
+          <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="closeModal()" [disabled]="saving()">
+            <ng-icon hlm [name]="'lucideX'" size="sm" />
+          </button>
+        </div>
+
+        <form class="min-h-0 flex-1 overflow-y-auto p-6" [formGroup]="form" (ngSubmit)="saveBomItem()">
+          @if (formErrorMessage()) {
+            <p class="mb-4 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+              {{ formErrorMessage() }}
+            </p>
+          }
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="grid gap-2 md:col-span-2">
+              <label hlmLabel for="bom-material">Material</label>
+              <div
+                hlmSelect
+                [value]="form.controls.materialId.value"
+                (valueChange)="onMaterialChange($event)"
+                [disabled]="saving() || selectedVersionLocked()"
+              >
+                <hlm-select-trigger>
+                  <hlm-select-placeholder>
+                    Selecciona un material
+                  </hlm-select-placeholder>
+
+                  <ng-template hlmSelectValueTemplate let-value>
+                    <div class="flex items-center gap-1">
+                      <span>
+                        {{
+                          materials().find(m => m.id === value)?.code
+                        }}
+                      </span>
+
+                      <span class="text-muted-foreground text-xs">
+                        ({{
+                          materials().find(m => m.id === value)?.unitOfMeasure
+                        }})
+                      </span>
+                    </div>
+                  </ng-template>
+                </hlm-select-trigger>
+
+                <ng-template hlmSelectPortal>
+                  <hlm-select-content>
+                    @for (material of materials(); track material.id) {
+                      <hlm-select-item [value]="material.id">
+                        {{ material.code }} - {{ material.unitOfMeasure }} - {{ material.unitPrice }}
+                      </hlm-select-item>
+                    }
+                  </hlm-select-content>
+                </ng-template>
+              </div>
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="bom-quantity">Cantidad</label>
+              <input id="bom-quantity" hlmInput type="number" step="0.0001" formControlName="quantity" [disabled]="saving() || selectedVersionLocked()" />
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="bom-scrap">Merma %</label>
+              <input id="bom-scrap" hlmInput type="number" step="0.01" formControlName="scrapFactor" [disabled]="saving() || selectedVersionLocked()" />
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-6">
+            <button hlmBtn variant="outline" type="button" (click)="closeModal()" [disabled]="saving()">Cancelar</button>
+            <button hlmBtn type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar componente' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</main>

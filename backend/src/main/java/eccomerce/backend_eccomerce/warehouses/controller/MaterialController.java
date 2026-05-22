@@ -32,8 +32,8 @@ public class MaterialController {
 
     @RequirePermission(PermissionConstants.LISTAR_MATERIAL)
     @GetMapping
-    public ResponseMessage<List<MaterialEntity>> findAll() {
-        return materialService.findAll();
+    public ResponseMessage<List<MaterialEntity>> findAll(@RequestParam(required = false) UUID enterpriseId) {
+        return materialService.findAll(enterpriseId);
     }
 
     @RequirePermission(PermissionConstants.LISTAR_MATERIAL)

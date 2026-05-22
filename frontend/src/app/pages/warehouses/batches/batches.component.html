@@ -1,0 +1,174 @@
+<main class="grid gap-4">
+  @if (!canViewBatches()) {
+    <section class="rounded-2xl border bg-card p-6 text-card-foreground shadow-xs md:p-8">
+      <h1 class="text-2xl font-semibold tracking-tight">Lotes</h1>
+      <p class="mt-2 text-sm text-muted-foreground">{{ errorMessage() ?? 'Solo un administrador puede acceder a lotes.' }}</p>
+    </section>
+  } @else {
+    <section class="rounded-2xl border bg-card p-6 text-card-foreground shadow-xs md:p-8">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div class="space-y-1">
+        <h1 class="text-2xl font-semibold tracking-tight">Lotes</h1>
+        <p class="text-sm text-muted-foreground">Controla trazabilidad, vencimientos y estado de calidad por lote.</p>
+      </div>
+
+      @if (canCreateBatch()) {
+        <button hlmBtn type="button" class="gap-2" (click)="openCreateModal()">
+          <ng-icon hlm [name]="'lucidePlus'" size="sm" />
+          <span>Nuevo lote</span>
+        </button>
+      }
+    </div>
+
+    @if (errorMessage()) {
+      <p class="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">{{ errorMessage() }}</p>
+    }
+
+    <div class="mt-6">
+      <app-custom-table
+        [columns]="tableColumns()"
+        [rows]="batches()"
+        [loading]="loading()"
+        [pageSize]="25"
+        [skeletonRows]="10"
+        [emptyMessage]="'No hay lotes registrados.'"
+      />
+    </div>
+  </section>
+
+  @if (isModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 px-4 py-6 backdrop-blur-sm">
+      <div class="relative flex w-full max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl">
+        <div class="flex items-start justify-between gap-4 border-b px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold">{{ modalMode() === 'edit' ? 'Editar lote' : 'Nuevo lote' }}</h2>
+            <p class="pt-1 text-sm text-muted-foreground">Ajusta trazabilidad y estado del lote.</p>
+          </div>
+
+          <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="closeModal()" [disabled]="saving()">
+            <ng-icon hlm [name]="'lucideX'" size="sm" />
+          </button>
+        </div>
+
+        <form class="min-h-0 flex-1 overflow-y-auto p-6" [formGroup]="form" (ngSubmit)="saveBatch()">
+          @if (formErrorMessage()) {
+            <p class="mb-4 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">{{ formErrorMessage() }}</p>
+          }
+
+          <div class="grid gap-4 md:grid-cols-2">
+            @if (modalMode() === 'create') {
+              <div class="grid gap-2">
+                <label hlmLabel>Asociación</label>
+                <div hlmSelect [value]="form.controls.associationType.value" (valueChange)="onAssociationTypeChange($event)">
+                  <hlm-select-trigger>
+                    <hlm-select-placeholder>Selecciona tipo</hlm-select-placeholder>
+                    <ng-template hlmSelectValueTemplate let-value>
+                      <span>{{ value === 'product' ? 'Producto terminado' : 'Material' }}</span>
+                    </ng-template>
+                  </hlm-select-trigger>
+                  <ng-template hlmSelectPortal>
+                    <hlm-select-content>
+                      <hlm-select-item [value]="'material'">Material</hlm-select-item>
+                      <hlm-select-item [value]="'product'">Producto terminado</hlm-select-item>
+                    </hlm-select-content>
+                  </ng-template>
+                </div>
+              </div>
+            }
+
+            <div class="grid gap-2">
+              <label hlmLabel for="batch-number">Número de lote</label>
+              <input id="batch-number" hlmInput formControlName="batchNumber" [disabled]="saving() || modalMode() === 'edit'" />
+            </div>
+
+            @if (modalMode() === 'create') {
+              @if (form.controls.associationType.value === 'material') {
+                <div class="grid gap-2 md:col-span-2">
+                  <label hlmLabel>Material</label>
+                  <div hlmSelect [value]="form.controls.materialId.value" (valueChange)="onMaterialChange($event)">
+                    <hlm-select-trigger>
+                      <hlm-select-placeholder>Selecciona material</hlm-select-placeholder>
+                      <ng-template hlmSelectValueTemplate let-value>
+                        @if (materialOptions().find((item) => item.id === value); as material) {
+                          <span>{{ material.label }}</span>
+                        }
+                      </ng-template>
+                    </hlm-select-trigger>
+                    <ng-template hlmSelectPortal>
+                      <hlm-select-content>
+                        @for (material of materialOptions(); track material.id) {
+                          <hlm-select-item [value]="material.id">{{ material.label }}</hlm-select-item>
+                        }
+                      </hlm-select-content>
+                    </ng-template>
+                  </div>
+                </div>
+              } @else {
+                <div class="grid gap-2 md:col-span-2">
+                  <label hlmLabel>Producto terminado</label>
+                  <div hlmSelect [value]="form.controls.productId.value" (valueChange)="onProductChange($event)">
+                    <hlm-select-trigger>
+                      <hlm-select-placeholder>Selecciona producto</hlm-select-placeholder>
+                      <ng-template hlmSelectValueTemplate let-value>
+                        @if (productOptions().find((item) => item.id === value); as product) {
+                          <span>{{ product.label }}</span>
+                        }
+                      </ng-template>
+                    </hlm-select-trigger>
+                    <ng-template hlmSelectPortal>
+                      <hlm-select-content>
+                        @for (product of productOptions(); track product.id) {
+                          <hlm-select-item [value]="product.id">{{ product.label }}</hlm-select-item>
+                        }
+                      </hlm-select-content>
+                    </ng-template>
+                  </div>
+                </div>
+              }
+            }
+
+            <div class="grid gap-2">
+              <label hlmLabel for="batch-production-date">Fecha de ingreso</label>
+              <input id="batch-production-date" hlmInput type="date" formControlName="productionDate" [disabled]="saving() || modalMode() === 'edit'" />
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="batch-expiration-date">Fecha de vencimiento</label>
+              <input id="batch-expiration-date" hlmInput type="date" formControlName="expirationDate" [disabled]="saving()" />
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="batch-current-stock">Stock actual</label>
+              <input id="batch-current-stock" hlmInput type="number" formControlName="currentStock" [disabled]="saving() || modalMode() === 'edit'" />
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel>Estado</label>
+              <div hlmSelect [value]="form.controls.status.value" (valueChange)="onStatusChange($event)">
+                <hlm-select-trigger>
+                  <hlm-select-placeholder>Selecciona estado</hlm-select-placeholder>
+                  <ng-template hlmSelectValueTemplate let-value>
+                    <span>{{ statusLabel(value, false) }}</span>
+                  </ng-template>
+                </hlm-select-trigger>
+                <ng-template hlmSelectPortal>
+                  <hlm-select-content>
+                    <hlm-select-item [value]="'APPROVED'">Aprobado</hlm-select-item>
+                    <hlm-select-item [value]="'BLOCKED'">Bloqueado por Calidad</hlm-select-item>
+                    <hlm-select-item [value]="'QUARANTINE'">Cuarentena</hlm-select-item>
+                  </hlm-select-content>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-6">
+            <button hlmBtn variant="outline" type="button" (click)="closeModal()" [disabled]="saving()">Cancelar</button>
+            <button hlmBtn type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar lote' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+  }
+</main>

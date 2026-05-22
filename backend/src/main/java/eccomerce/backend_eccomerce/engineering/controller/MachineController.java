@@ -8,6 +8,7 @@ import eccomerce.backend_eccomerce.engineering.dto.UpdateMachineDto;
 import eccomerce.backend_eccomerce.engineering.entity.MachineEntity;
 import eccomerce.backend_eccomerce.engineering.service.MachineService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +30,7 @@ public class MachineController {
 
     @RequirePermission(PermissionConstants.CREAR_MAQUINARIA)
     @PostMapping
-    public ResponseMessage<MachineEntity> create(@RequestBody CreateMachineDto dto) {
+    public ResponseMessage<MachineEntity> create(@Valid @RequestBody CreateMachineDto dto) {
         return machineService.create(dto);
     }
 
@@ -41,7 +42,7 @@ public class MachineController {
 
     @RequirePermission(PermissionConstants.EDITAR_MAQUINARIA)
     @PutMapping("/{id}")
-    public ResponseMessage<MachineEntity> update(@PathVariable UUID id, @RequestBody UpdateMachineDto dto) {
+    public ResponseMessage<MachineEntity> update(@PathVariable UUID id, @Valid @RequestBody UpdateMachineDto dto) {
         return machineService.update(id, dto);
     }
 

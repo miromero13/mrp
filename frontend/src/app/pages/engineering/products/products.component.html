@@ -98,40 +98,10 @@
           </div>
 
           <section class="mt-6 grid gap-3 rounded-xl border bg-muted/20 p-4">
-            <div>
-              <h3 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Materiales</h3>
-              <p class="pt-1 text-xs text-muted-foreground">Selecciona los materiales que componen este producto.</p>
-            </div>
-
-            @if (loadingMaterials()) {
-              <p class="text-sm text-muted-foreground">Cargando materiales...</p>
-            } @else if (materials().length === 0) {
-              <p class="rounded-md border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-sm text-amber-700">
-                No hay materiales disponibles para tu empresa.
-              </p>
-            } @else {
-              <div class="grid gap-2 md:grid-cols-2">
-                @for (material of materials(); track material.id) {
-                  <label class="flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-sm">
-                    <input
-                      type="checkbox"
-                      class="size-4"
-                      [checked]="isMaterialSelected(material.id)"
-                      (change)="toggleMaterial(material.id, $any($event.target).checked)"
-                      [disabled]="saving() || isReadOnly()"
-                    />
-                    <span>{{ material.code }} - {{ material.unitOfMeasure }}</span>
-                  </label>
-                }
-              </div>
-            }
-          </section>
-
-          <section class="mt-6 grid gap-3 rounded-xl border bg-muted/20 p-4">
             <div class="flex items-center justify-between gap-2">
               <div>
                 <h3 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Versiones</h3>
-                <p class="pt-1 text-xs text-muted-foreground">Agrega colores o variantes del mismo producto.</p>
+                <p class="pt-1 text-xs text-muted-foreground">Agrega las versiones del producto. Las versiones aprobadas o usadas quedan bloqueadas para BOM.</p>
               </div>
 
               <button hlmBtn type="button" variant="outline" size="sm" class="gap-2" (click)="addVersion()" [disabled]="saving() || isReadOnly()">

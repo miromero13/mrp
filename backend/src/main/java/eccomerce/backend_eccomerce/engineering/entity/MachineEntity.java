@@ -18,6 +18,9 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class MachineEntity extends BaseEntity {
+    @Column(name = "serial_number", nullable = false)
+    private String serialNumber;
+
     @Column(nullable = false)
     private String name;
 
@@ -26,6 +29,9 @@ public class MachineEntity extends BaseEntity {
 
     @Column(name = "cost", precision = 14, scale = 2, nullable = false)
     private BigDecimal cost;
+
+    @Column(name = "status", nullable = false)
+    private String status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "enterprise_id", nullable = false)

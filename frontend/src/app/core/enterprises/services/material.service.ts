@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { HttpParams } from '@angular/common/http';
 import { map } from 'rxjs';
 import { ApiResponse } from '../../users/models/auth.models';
 import { apiEndpoint } from '../../config/api.config';
@@ -19,8 +20,9 @@ export class MaterialService {
   private readonly materialsUrl = apiEndpoint(API_ROUTES.enterprise.materials);
   private readonly materialMovementsUrl = apiEndpoint(API_ROUTES.enterprise.materialMovements);
 
-  listMaterials() {
-    return this.http.get<ApiResponse<MaterialListItem[]>>(this.materialsUrl).pipe(map((response) => response.data ?? []));
+  listMaterials(enterpriseId?: string) {
+    const params = enterpriseId ? new HttpParams().set('enterpriseId', enterpriseId) : undefined;
+    return this.http.get<ApiResponse<MaterialListItem[]>>(this.materialsUrl, { params }).pipe(map((response) => response.data ?? []));
   }
 
   createMaterial(payload: CreateMaterialFormValue) {

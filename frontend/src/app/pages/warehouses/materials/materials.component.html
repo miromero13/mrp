@@ -3,7 +3,7 @@
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div class="space-y-1">
         <h1 class="text-2xl font-semibold tracking-tight">Materiales</h1>
-        <p class="text-sm text-muted-foreground">Gestiona materiales y movimientos de entrada/salida.</p>
+        <p class="text-sm text-muted-foreground">Gestiona materiales y salidas de inventario.</p>
       </div>
     </div>
 
@@ -51,7 +51,7 @@
             @if (canCreateMovement()) {
               <button hlmBtn type="button" class="gap-2" (click)="openMovementModal()">
                 <ng-icon hlm [name]="'lucidePlus'" size="sm" />
-                <span>Registrar movimiento</span>
+                <span>Registrar salida</span>
               </button>
             }
           </div>
@@ -125,6 +125,11 @@
               <label hlmLabel for="material-stock-current">Stock actual</label>
               <input id="material-stock-current" hlmInput type="number" formControlName="stockCurrent" />
             </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="material-unit-price">Precio unitario</label>
+              <input id="material-unit-price" hlmInput type="number" formControlName="unitPrice" />
+            </div>
           </div>
 
           <div class="flex items-center justify-end gap-3 pt-6">
@@ -141,8 +146,8 @@
       <div class="relative flex w-full max-w-3xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl">
         <div class="flex items-start justify-between gap-4 border-b px-6 py-4">
           <div>
-            <h2 class="text-lg font-semibold">Registrar entrada / salida</h2>
-            <p class="pt-1 text-sm text-muted-foreground">Registra el consumo, deterioro o ingreso de materiales.</p>
+            <h2 class="text-lg font-semibold">Registrar salida</h2>
+            <p class="pt-1 text-sm text-muted-foreground">Registra el consumo o salida de materiales.</p>
           </div>
 
           <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="closeMovementModal()" [disabled]="movementSaving()">
@@ -157,27 +162,14 @@
             </p>
           }
 
-          @if (materials().length === 0) {
-            <p class="mb-4 rounded-md border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-sm text-amber-700">
-              No hay materiales disponibles para registrar movimientos.
-            </p>
-          }
-
           <div class="grid gap-4 md:grid-cols-2">
             <div class="grid gap-2">
               <label hlmLabel for="movement-material">Material</label>
-              <select id="movement-material" hlmInput formControlName="materialId">
+              <select id="movement-material" class="rounded-md border bg-background px-3 py-2 text-sm" formControlName="materialId">
+                <option value="">Selecciona material</option>
                 @for (material of materials(); track material.id) {
                   <option [value]="material.id">{{ material.code }} - {{ material.unitOfMeasure }}</option>
                 }
-              </select>
-            </div>
-
-            <div class="grid gap-2">
-              <label hlmLabel for="movement-type">Tipo</label>
-              <select id="movement-type" hlmInput formControlName="type">
-                <option [value]="'ENTRY'">Entrada</option>
-                <option [value]="'EXIT'">Salida</option>
               </select>
             </div>
 
@@ -197,14 +189,14 @@
                 id="movement-reason"
                 class="min-h-24 rounded-md border bg-background px-3 py-2 text-sm outline-none"
                 formControlName="reason"
-                placeholder="Uso en producción, deterioro, ajuste, ingreso por compra..."
+                placeholder="Uso en producción, deterioro o ajuste..."
               ></textarea>
             </div>
           </div>
 
           <div class="flex items-center justify-end gap-3 pt-6">
             <button hlmBtn variant="outline" type="button" (click)="closeMovementModal()" [disabled]="movementSaving()">Cancelar</button>
-            <button hlmBtn type="submit" [disabled]="movementSaving()">{{ movementSaving() ? 'Guardando...' : 'Registrar movimiento' }}</button>
+            <button hlmBtn type="submit" [disabled]="movementSaving()">{{ movementSaving() ? 'Guardando...' : 'Registrar salida' }}</button>
           </div>
         </form>
       </div>

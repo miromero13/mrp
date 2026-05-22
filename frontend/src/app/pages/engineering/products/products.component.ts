@@ -10,10 +10,8 @@ import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { CustomTableColumn, CustomTableComponent } from '../../../shared/components/custom-table/custom-table.component';
 import { PERMISOS } from '../../../core/config/permisos';
-import { MaterialService } from '../../../core/enterprises/services/material.service';
 import { ProductService } from '../../../core/enterprises/services/product.service';
 import { CreateProductFormValue, ProductListItem } from '../../../core/enterprises/models/product.models';
-import { MaterialListItem } from '../../../core/enterprises/models/material.models';
 import { AuthService } from '../../../core/users/services/auth.service';
 
 @Component({
@@ -30,11 +28,9 @@ export class ProductsComponent implements OnInit {
 
   private readonly formBuilder = inject(FormBuilder);
   private readonly productService = inject(ProductService);
-  private readonly materialService = inject(MaterialService);
   private readonly authService = inject(AuthService);
 
   protected readonly loading = signal(true);
-  protected readonly loadingMaterials = signal(true);
   protected readonly saving = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly createErrorMessage = signal<string | null>(null);
@@ -43,14 +39,12 @@ export class ProductsComponent implements OnInit {
   protected readonly modalMode = signal<'create' | 'view' | 'edit'>('create');
   protected readonly selectedProduct = signal<ProductListItem | null>(null);
   protected readonly products = signal<ProductListItem[]>([]);
-  protected readonly materials = signal<MaterialListItem[]>([]);
 
   protected readonly form = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required]],
     description: [''],
     productionCost: [0, [Validators.required, Validators.min(0)]],
     salePrice: [0, [Validators.required, Validators.min(0)]],
-    materialIds: this.formBuilder.nonNullable.control<string[]>([], [Validators.required]),
     versions: this.formBuilder.array([this.createVersionGroup()]),
   });
 
@@ -81,14 +75,9 @@ export class ProductsComponent implements OnInit {
       { id: 'productionCost', header: 'Costo prod.', cell: (product) => String(product.productionCost) },
       { id: 'salePrice', header: 'Precio venta', cell: (product) => String(product.salePrice) },
       {
-        id: 'materials',
-        header: 'Materiales',
-        cell: (product) => product.materials.map((material) => material.code).join(', ') || '-',
-      },
-      {
         id: 'versions',
         header: 'Versiones',
-        cell: (product) => product.versions.map((version) => version.name).join(', ') || '-',
+        cell: (product) => product.versions.map((version) => this.versionLabel(version)).join(', ') || '-',
       },
       {
         id: 'actions',
@@ -99,7 +88,6 @@ export class ProductsComponent implements OnInit {
       },
     ];
     this.loadProducts();
-    this.loadMaterials();
   }
 
   protected openCreateModal(): void {
@@ -114,7 +102,6 @@ export class ProductsComponent implements OnInit {
       description: '',
       productionCost: 0,
       salePrice: 0,
-      materialIds: [],
     });
     this.versions.clear();
     this.addVersion();
@@ -139,7 +126,6 @@ export class ProductsComponent implements OnInit {
       description: product.description ?? '',
       productionCost: product.productionCost,
       salePrice: product.salePrice,
-      materialIds: product.materials.map((material) => material.id),
     });
 
     this.versions.clear();
@@ -195,31 +181,9 @@ export class ProductsComponent implements OnInit {
     this.versions.at(0)?.get('name')?.setValue('');
   }
 
-  protected toggleMaterial(materialId: string, checked: boolean): void {
-    if (this.isReadOnly()) {
-      return;
-    }
-
-    const current = this.form.controls.materialIds.value;
-    const next = checked ? [...current, materialId] : current.filter((id) => id !== materialId);
-    this.form.controls.materialIds.setValue(next);
-    this.form.controls.materialIds.markAsDirty();
-    this.form.controls.materialIds.markAsTouched();
-  }
-
-  protected isMaterialSelected(materialId: string): boolean {
-    return this.form.controls.materialIds.value.includes(materialId);
-  }
-
   protected saveProduct(): void {
     if (this.form.invalid || this.versions.length === 0) {
       this.form.markAllAsTouched();
-      return;
-    }
-
-    const materialIds = this.form.controls.materialIds.value;
-    if (materialIds.length === 0) {
-      this.createErrorMessage.set('Debes seleccionar al menos un material.');
       return;
     }
 
@@ -241,7 +205,6 @@ export class ProductsComponent implements OnInit {
       description: value.description.trim() || null,
       productionCost: Number(value.productionCost),
       salePrice: Number(value.salePrice),
-      materialIds,
       versions: versionNames.map((name) => ({ name })),
     };
 
@@ -306,26 +269,23 @@ export class ProductsComponent implements OnInit {
       });
   }
 
-  protected loadMaterials(): void {
-    this.loadingMaterials.set(true);
-
-    this.materialService
-      .listMaterials()
-      .pipe(
-        take(1),
-        finalize(() => this.loadingMaterials.set(false)),
-      )
-      .subscribe({
-        next: (materials) => this.materials.set(materials),
-        error: () => this.materials.set([]),
-      });
-  }
-
   protected trackVersion = (index: number): number => index;
 
   private createVersionGroup() {
     return this.formBuilder.nonNullable.group({
       name: ['', [Validators.required]],
     });
+  }
+
+  private versionLabel(version: ProductListItem['versions'][number]): string {
+    const statuses: string[] = [];
+    if (version.approved) {
+      statuses.push('Aprobada');
+    }
+    if (version.usedInProduction) {
+      statuses.push('Usada');
+    }
+
+    return statuses.length > 0 ? `${version.name} (${statuses.join(', ')})` : version.name;
   }
 }

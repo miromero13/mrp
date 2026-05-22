@@ -77,6 +77,11 @@
 
           <div class="grid gap-4 md:grid-cols-2">
             <div class="grid gap-2">
+              <label hlmLabel for="machine-serial-number">Serial</label>
+              <input id="machine-serial-number" hlmInput formControlName="serialNumber" placeholder="SN-0001" [disabled]="isReadOnly() || saving()" />
+            </div>
+
+            <div class="grid gap-2">
               <label hlmLabel for="machine-name">Nombre</label>
               <input id="machine-name" hlmInput formControlName="name" placeholder="Ej. Torno CNC" [disabled]="isReadOnly() || saving()" />
             </div>
@@ -84,6 +89,15 @@
             <div class="grid gap-2">
               <label hlmLabel for="machine-cost">Costo</label>
               <input id="machine-cost" hlmInput type="number" formControlName="cost" [disabled]="isReadOnly() || saving()" />
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="machine-status">Estado</label>
+              <select id="machine-status" hlmInput formControlName="status" [disabled]="isReadOnly() || saving()">
+                <option [value]="'ACTIVE'">Activa</option>
+                <option [value]="'MAINTENANCE'">En mantenimiento</option>
+                <option [value]="'INACTIVE'">Inactiva</option>
+              </select>
             </div>
 
             <div class="grid gap-2 md:col-span-2">

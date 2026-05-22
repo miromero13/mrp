@@ -1,12 +1,8 @@
 export interface ProductVersionItem {
   id: string;
   name: string;
-}
-
-export interface ProductMaterialItem {
-  id: string;
-  code: string;
-  unitOfMeasure: string;
+  approved: boolean;
+  usedInProduction: boolean;
 }
 
 export interface ProductListItem {
@@ -15,7 +11,6 @@ export interface ProductListItem {
   description: string | null;
   productionCost: number;
   salePrice: number;
-  materials: ProductMaterialItem[];
   versions: ProductVersionItem[];
   enterprise: {
     id: string;
@@ -28,6 +23,5 @@ export interface CreateProductFormValue {
   description: string | null;
   productionCost: number;
   salePrice: number;
-  materialIds: string[];
   versions: Array<{ name: string }>;
 }

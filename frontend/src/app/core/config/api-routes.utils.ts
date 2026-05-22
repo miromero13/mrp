@@ -18,9 +18,16 @@ export const API_ROUTES = {
   enterprise: {
     materials: 'enterprise/materials',
     materialMovements: 'enterprise/materials/movements',
+    batches: 'enterprise/batches',
     products: 'enterprise/products',
+    bomItems: 'enterprise/bom-items',
+    productionRoutes: 'enterprise/production-routes',
     machines: 'enterprise/machines',
     indirectCosts: 'enterprise/indirect-costs',
+  },
+  production: {
+    demands: 'enterprise/demands',
+    mps: 'enterprise/mps',
   },
   workshifts: {
     list: 'work-shifts',
