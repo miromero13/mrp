@@ -33,6 +33,9 @@ public class MaterialEntity extends BaseEntity {
     @Column(name = "stock_current", nullable = false, precision = 14, scale = 2)
     private BigDecimal stockCurrent;
 
+    @Column(name = "unit_price", nullable = false, precision = 14, scale = 2)
+    private BigDecimal unitPrice;
+
     @ManyToOne
     @JoinColumn(name = "enterprise_id", nullable = false)
     private EnterpriseEntity enterprise;

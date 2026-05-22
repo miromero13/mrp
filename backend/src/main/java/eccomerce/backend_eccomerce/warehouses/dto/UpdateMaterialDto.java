@@ -7,4 +7,5 @@ public class UpdateMaterialDto {
     public String unitOfMeasure;
     public BigDecimal stockMin;
     public BigDecimal stockCurrent;
+    public BigDecimal unitPrice;
 }

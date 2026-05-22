@@ -4,6 +4,7 @@ export interface MaterialListItem {
   unitOfMeasure: string;
   stockMin: number;
   stockCurrent: number;
+  unitPrice: number;
   enterprise: {
     id: string;
     name: string;
@@ -20,6 +21,7 @@ export interface CreateMaterialFormValue {
   unitOfMeasure: string;
   stockMin: number;
   stockCurrent: number;
+  unitPrice: number;
 }
 
 export interface CreateMaterialMovementFormValue {
@@ -33,6 +35,13 @@ export interface MaterialMovementDetailItem {
   id: string;
   quantity: number;
   unitPrice: number;
+  batch: {
+    id: string;
+    batchNumber: string;
+    currentStock: number;
+    status: 'APPROVED' | 'BLOCKED' | 'QUARANTINE';
+    expirationDate: string | null;
+  } | null;
 }
 
 export interface MaterialMovementListItem {

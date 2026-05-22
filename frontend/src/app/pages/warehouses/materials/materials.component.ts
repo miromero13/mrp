@@ -67,11 +67,12 @@ export class MaterialsComponent implements OnInit {
     unitOfMeasure: ['', [Validators.required]],
     stockMin: [0, [Validators.required, Validators.min(0)]],
     stockCurrent: [0, [Validators.required, Validators.min(0)]],
+    unitPrice: [0, [Validators.required, Validators.min(0)]],
   });
 
   protected readonly movementForm = this.formBuilder.nonNullable.group({
     materialId: ['', [Validators.required]],
-    type: [MaterialMovementType.ENTRY, [Validators.required]],
+    type: [MaterialMovementType.EXIT, [Validators.required]],
     quantity: [0, [Validators.required, Validators.min(0.01)]],
     unitPrice: [0, [Validators.required, Validators.min(0.01)]],
     reason: ['', [Validators.required]],
@@ -82,6 +83,7 @@ export class MaterialsComponent implements OnInit {
     { id: 'unitOfMeasure', header: 'Unidad', cell: (material) => material.unitOfMeasure },
     { id: 'stockMin', header: 'Stock mín.', cell: (material) => String(material.stockMin) },
     { id: 'stockCurrent', header: 'Stock actual', cell: (material) => String(material.stockCurrent) },
+    { id: 'unitPrice', header: 'Precio', cell: (material) => String(material.unitPrice) },
   ]);
 
   protected readonly movementTableColumns = computed<ReadonlyArray<CustomTableColumn<MaterialMovementListItem>>>(() => [
@@ -100,6 +102,11 @@ export class MaterialsComponent implements OnInit {
       id: 'unitPrice',
       header: 'Precio unit.',
       cell: (movement) => String(movement.details[0]?.unitPrice ?? 0),
+    },
+    {
+      id: 'batch',
+      header: 'Lote',
+      cell: (movement) => movement.details[0]?.batch?.batchNumber ?? '-',
     },
     { id: 'reason', header: 'Motivo', cell: (movement) => movement.reason },
     {
@@ -132,7 +139,7 @@ export class MaterialsComponent implements OnInit {
     }
 
     this.createErrorMessage.set(null);
-    this.form.reset({ code: '', unitOfMeasure: '', stockMin: 0, stockCurrent: 0 });
+    this.form.reset({ code: '', unitOfMeasure: '', stockMin: 0, stockCurrent: 0, unitPrice: 0 });
     this.isCreateModalOpen.set(true);
   }
 
@@ -151,11 +158,9 @@ export class MaterialsComponent implements OnInit {
     }
 
     this.movementErrorMessage.set(null);
-
-    const firstMaterialId = this.materials()[0]?.id ?? '';
     this.movementForm.reset({
-      materialId: firstMaterialId,
-      type: MaterialMovementType.ENTRY,
+      materialId: this.materials()[0]?.id ?? '',
+      type: MaterialMovementType.EXIT,
       quantity: 0,
       unitPrice: 0,
       reason: '',
@@ -187,6 +192,7 @@ export class MaterialsComponent implements OnInit {
       unitOfMeasure: value.unitOfMeasure.trim(),
       stockMin: Number(value.stockMin),
       stockCurrent: Number(value.stockCurrent),
+      unitPrice: Number(value.unitPrice),
     };
 
     this.materialService
@@ -219,7 +225,7 @@ export class MaterialsComponent implements OnInit {
 
     const value = this.movementForm.getRawValue();
     const payload: CreateMaterialMovementFormValue = {
-      type: value.type,
+      type: MaterialMovementType.EXIT,
       quantity: Number(value.quantity),
       unitPrice: Number(value.unitPrice),
       reason: value.reason.trim(),
