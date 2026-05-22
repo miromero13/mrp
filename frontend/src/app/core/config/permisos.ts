@@ -27,11 +27,42 @@ export const PERMISOS = {
       listar: 'listar_movimiento_material',
     },
   },
+  warehouses: {
+    batches: {
+      crear: 'crear_lote',
+      editar: 'editar_lote',
+      eliminar: 'eliminar_lote',
+      listar: 'listar_lote',
+    },
+  },
   products: {
     crear: 'crear_producto',
     editar: 'editar_producto',
     eliminar: 'eliminar_producto',
     listar: 'listar_producto',
+  },
+  bom: {
+    crear: 'crear_bom',
+    editar: 'editar_bom',
+    eliminar: 'eliminar_bom',
+    listar: 'listar_bom',
+  },
+  production: {
+    demands: {
+      crear: 'crear_demanda',
+      editar: 'editar_demanda',
+      eliminar: 'eliminar_demanda',
+      listar: 'listar_demanda',
+    },
+    mps: {
+      gestionar: 'gestionar_mps',
+    },
+  },
+  productionRoutes: {
+    crear: 'crear_ruta_produccion',
+    editar: 'editar_ruta_produccion',
+    eliminar: 'eliminar_ruta_produccion',
+    listar: 'listar_ruta_produccion',
   },
   enterprises: {
     crear: 'crear_empresa',
@@ -95,10 +126,31 @@ export const LISTA_PERMISOS = [
   PERMISOS.material.movimientos.crear,
   PERMISOS.material.movimientos.listar,
 
+  PERMISOS.warehouses.batches.crear,
+  PERMISOS.warehouses.batches.editar,
+  PERMISOS.warehouses.batches.eliminar,
+  PERMISOS.warehouses.batches.listar,
+
   PERMISOS.products.crear,
   PERMISOS.products.editar,
   PERMISOS.products.eliminar,
   PERMISOS.products.listar,
+
+  PERMISOS.bom.crear,
+  PERMISOS.bom.editar,
+  PERMISOS.bom.eliminar,
+  PERMISOS.bom.listar,
+
+  PERMISOS.production.demands.crear,
+  PERMISOS.production.demands.editar,
+  PERMISOS.production.demands.eliminar,
+  PERMISOS.production.demands.listar,
+  PERMISOS.production.mps.gestionar,
+
+  PERMISOS.productionRoutes.crear,
+  PERMISOS.productionRoutes.editar,
+  PERMISOS.productionRoutes.eliminar,
+  PERMISOS.productionRoutes.listar,
 
   PERMISOS.workshifts.crear,
   PERMISOS.workshifts.editar,

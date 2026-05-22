@@ -58,10 +58,32 @@ public final class PermissionConstants {
     public static final String CREAR_MOVIMIENTO_MATERIAL = "crear_movimiento_material";
     public static final String LISTAR_MOVIMIENTO_MATERIAL = "listar_movimiento_material";
 
+    public static final String CREAR_LOTE = "crear_lote";
+    public static final String EDITAR_LOTE = "editar_lote";
+    public static final String ELIMINAR_LOTE = "eliminar_lote";
+    public static final String LISTAR_LOTE = "listar_lote";
+
     public static final String CREAR_PRODUCTO = "crear_producto";
     public static final String EDITAR_PRODUCTO = "editar_producto";
     public static final String ELIMINAR_PRODUCTO = "eliminar_producto";
     public static final String LISTAR_PRODUCTO = "listar_producto";
+
+    public static final String CREAR_BOM = "crear_bom";
+    public static final String EDITAR_BOM = "editar_bom";
+    public static final String ELIMINAR_BOM = "eliminar_bom";
+    public static final String LISTAR_BOM = "listar_bom";
+
+    public static final String CREAR_DEMANDA = "crear_demanda";
+    public static final String EDITAR_DEMANDA = "editar_demanda";
+    public static final String ELIMINAR_DEMANDA = "eliminar_demanda";
+    public static final String LISTAR_DEMANDA = "listar_demanda";
+
+    public static final String GESTIONAR_MPS = "gestionar_mps";
+
+    public static final String CREAR_RUTA_PRODUCCION = "crear_ruta_produccion";
+    public static final String EDITAR_RUTA_PRODUCCION = "editar_ruta_produccion";
+    public static final String ELIMINAR_RUTA_PRODUCCION = "eliminar_ruta_produccion";
+    public static final String LISTAR_RUTA_PRODUCCION = "listar_ruta_produccion";
 
     public record PermissionDefinition(String name, String description) {
     }
@@ -118,10 +140,32 @@ public final class PermissionConstants {
             new PermissionDefinition(CREAR_MOVIMIENTO_MATERIAL, "Registrar movimiento de material"),
             new PermissionDefinition(LISTAR_MOVIMIENTO_MATERIAL, "Listar movimientos de material"),
 
+            new PermissionDefinition(CREAR_LOTE, "Crear lotes"),
+            new PermissionDefinition(EDITAR_LOTE, "Editar lotes"),
+            new PermissionDefinition(ELIMINAR_LOTE, "Eliminar lotes"),
+            new PermissionDefinition(LISTAR_LOTE, "Listar lotes"),
+
             new PermissionDefinition(CREAR_PRODUCTO, "Crear producto"),
             new PermissionDefinition(EDITAR_PRODUCTO, "Editar producto"),
             new PermissionDefinition(ELIMINAR_PRODUCTO, "Eliminar producto"),
-            new PermissionDefinition(LISTAR_PRODUCTO, "Listar productos")
+            new PermissionDefinition(LISTAR_PRODUCTO, "Listar productos"),
+
+            new PermissionDefinition(CREAR_BOM, "Crear lista de materiales BOM"),
+            new PermissionDefinition(EDITAR_BOM, "Editar lista de materiales BOM"),
+            new PermissionDefinition(ELIMINAR_BOM, "Eliminar item de BOM"),
+            new PermissionDefinition(LISTAR_BOM, "Listar BOM"),
+
+            new PermissionDefinition(CREAR_DEMANDA, "Crear demandas"),
+            new PermissionDefinition(EDITAR_DEMANDA, "Editar demandas"),
+            new PermissionDefinition(ELIMINAR_DEMANDA, "Eliminar demandas"),
+            new PermissionDefinition(LISTAR_DEMANDA, "Listar demandas"),
+
+            new PermissionDefinition(GESTIONAR_MPS, "Gestionar MPS"),
+
+            new PermissionDefinition(CREAR_RUTA_PRODUCCION, "Crear rutas de produccion"),
+            new PermissionDefinition(EDITAR_RUTA_PRODUCCION, "Editar rutas de produccion"),
+            new PermissionDefinition(ELIMINAR_RUTA_PRODUCCION, "Eliminar rutas de produccion"),
+            new PermissionDefinition(LISTAR_RUTA_PRODUCCION, "Listar rutas de produccion")
     };
 
     private static final String[] ROLE_PERMISSION_NAMES = {
@@ -162,11 +206,28 @@ public final class PermissionConstants {
 
     private static final String[] MATERIAL_PERMISSION_NAMES = {
             CREAR_MATERIAL, EDITAR_MATERIAL, ELIMINAR_MATERIAL, LISTAR_MATERIAL,
-            CREAR_MOVIMIENTO_MATERIAL, LISTAR_MOVIMIENTO_MATERIAL
+            CREAR_MOVIMIENTO_MATERIAL, LISTAR_MOVIMIENTO_MATERIAL,
+            CREAR_LOTE, EDITAR_LOTE, ELIMINAR_LOTE, LISTAR_LOTE
     };
 
     private static final String[] PRODUCT_PERMISSION_NAMES = {
             CREAR_PRODUCTO, EDITAR_PRODUCTO, ELIMINAR_PRODUCTO, LISTAR_PRODUCTO
+    };
+
+    private static final String[] BOM_PERMISSION_NAMES = {
+            CREAR_BOM, EDITAR_BOM, ELIMINAR_BOM, LISTAR_BOM
+    };
+
+    private static final String[] DEMAND_PERMISSION_NAMES = {
+            CREAR_DEMANDA, EDITAR_DEMANDA, ELIMINAR_DEMANDA, LISTAR_DEMANDA
+    };
+
+    private static final String[] MPS_PERMISSION_NAMES = {
+            GESTIONAR_MPS
+    };
+
+    private static final String[] PRODUCTION_ROUTE_PERMISSION_NAMES = {
+            CREAR_RUTA_PRODUCCION, EDITAR_RUTA_PRODUCCION, ELIMINAR_RUTA_PRODUCCION, LISTAR_RUTA_PRODUCCION
     };
 
     public static final String[] SUPERADMIN_PERMISSION_NAMES = concat(
@@ -187,7 +248,11 @@ public final class PermissionConstants {
             WORK_SHIFT_PERMISSION_NAMES,
             EMPLOYEE_SHIFT_PERMISSION_SET_NAMES,
             MATERIAL_PERMISSION_NAMES,
-            PRODUCT_PERMISSION_NAMES
+            PRODUCT_PERMISSION_NAMES,
+            BOM_PERMISSION_NAMES,
+            DEMAND_PERMISSION_NAMES,
+            MPS_PERMISSION_NAMES,
+            PRODUCTION_ROUTE_PERMISSION_NAMES
     );
 
     public static final String[] EMPLOYEE_PERMISSION_NAMES = {

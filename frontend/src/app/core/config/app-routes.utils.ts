@@ -9,7 +9,12 @@ export const APP_ROUTES = {
   indirectCosts: 'indirect-costs',
   workshifts: 'workshifts',
   materials: 'materials',
+  batches: 'warehouses/batches',
   products: 'products',
+  bom: 'bom',
+  productionDemands: 'production/demands',
+  productionMps: 'production/mps',
+  productionRoutes: 'production-routes',
 } as const;
 
 export const APP_ROUTE_URLS = {
@@ -23,5 +28,10 @@ export const APP_ROUTE_URLS = {
   indirectCosts: `/${APP_ROUTES.indirectCosts}`,
   workshifts: `/${APP_ROUTES.workshifts}`,
   materials: `/${APP_ROUTES.materials}`,
+  batches: `/${APP_ROUTES.batches}`,
   products: `/${APP_ROUTES.products}`,
+  bom: `/${APP_ROUTES.bom}`,
+  productionDemands: `/${APP_ROUTES.productionDemands}`,
+  productionMps: `/${APP_ROUTES.productionMps}`,
+  productionRoutes: `/${APP_ROUTES.productionRoutes}`,
 } as const;
