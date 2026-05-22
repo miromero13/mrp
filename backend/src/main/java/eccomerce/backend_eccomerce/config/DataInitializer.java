@@ -6,11 +6,14 @@ import eccomerce.backend_eccomerce.enterprise.entity.EnterpriseEntity;
 import eccomerce.backend_eccomerce.enterprise.repository.EnterpriseRepository;
 import eccomerce.backend_eccomerce.finance.entity.IndirectCostEntity;
 import eccomerce.backend_eccomerce.finance.repository.IndirectCostRepository;
+import eccomerce.backend_eccomerce.engineering.entity.ProductionRouteEntity;
+import eccomerce.backend_eccomerce.engineering.entity.RouteOperationEntity;
 import eccomerce.backend_eccomerce.engineering.entity.MachineEntity;
 import eccomerce.backend_eccomerce.engineering.entity.ProductEntity;
 import eccomerce.backend_eccomerce.engineering.entity.ProductVersionEntity;
 import eccomerce.backend_eccomerce.engineering.repository.MachineRepository;
 import eccomerce.backend_eccomerce.engineering.repository.ProductRepository;
+import eccomerce.backend_eccomerce.engineering.repository.ProductionRouteRepository;
 import eccomerce.backend_eccomerce.users.entity.PermissionEntity;
 import eccomerce.backend_eccomerce.users.entity.RoleEntity;
 import eccomerce.backend_eccomerce.users.entity.UserEntity;
@@ -21,12 +24,14 @@ import eccomerce.backend_eccomerce.users.entity.EmployeeShiftEntity;
 import eccomerce.backend_eccomerce.users.entity.WorkShiftEntity;
 import eccomerce.backend_eccomerce.users.repository.EmployeeShiftRepository;
 import eccomerce.backend_eccomerce.users.repository.WorkShiftRepository;
+import eccomerce.backend_eccomerce.warehouses.entity.BomItemEntity;
 import eccomerce.backend_eccomerce.warehouses.entity.MaterialEntity;
 import eccomerce.backend_eccomerce.warehouses.entity.MaterialMovementDetailEntity;
 import eccomerce.backend_eccomerce.warehouses.entity.MaterialMovementEntity;
 import eccomerce.backend_eccomerce.warehouses.enums.MaterialMovementType;
 import eccomerce.backend_eccomerce.warehouses.repository.MaterialMovementRepository;
 import eccomerce.backend_eccomerce.warehouses.repository.MaterialRepository;
+import eccomerce.backend_eccomerce.warehouses.repository.BomItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -75,10 +80,16 @@ public class DataInitializer implements CommandLineRunner {
     private MaterialMovementRepository materialMovementRepository;
 
     @Autowired
+    private BomItemRepository bomItemRepository;
+
+    @Autowired
     private ProductRepository productRepository;
 
     @Autowired
     private MachineRepository machineRepository;
+
+    @Autowired
+    private ProductionRouteRepository productionRouteRepository;
 
     @Autowired
     private IndirectCostRepository indirectCostRepository;
@@ -226,10 +237,13 @@ public class DataInitializer implements CommandLineRunner {
             }
 
             Map<String, MaterialEntity> materialsByCode = createMaterialsForEnterprise(enterprise, seed.materials());
-            createProductsForEnterprise(enterprise, seed.products(), materialsByCode);
+            createProductsForEnterprise(enterprise, seed.products());
+            Map<String, ProductEntity> productsByName = loadProductsByName(enterprise);
             createMachinesForEnterprise(enterprise, seed.machines());
             createIndirectCostsForEnterprise(enterprise, seed.indirectCosts());
             createMaterialMovementsForEnterprise(enterprise, seed.materialMovements(), materialsByCode);
+            createBomItemsForEnterprise(enterprise, seed.products(), materialsByCode, productsByName);
+            createProductionRoutesForEnterprise(enterprise, seed.products(), productsByName);
         }
     }
 
@@ -244,6 +258,7 @@ public class DataInitializer implements CommandLineRunner {
             material.setUnitOfMeasure(seed.unitOfMeasure());
             material.setStockMin(seed.stockMin());
             material.setStockCurrent(seed.stockCurrent());
+            material.setUnitPrice(seed.unitPrice());
             material.setEnterprise(enterprise);
             materialRepository.save(material);
         }
@@ -256,7 +271,7 @@ public class DataInitializer implements CommandLineRunner {
                 .collect(Collectors.toMap(MaterialEntity::getCode, material -> material, (left, right) -> left, LinkedHashMap::new));
     }
 
-    private void createProductsForEnterprise(EnterpriseEntity enterprise, List<ProductSeed> products, Map<String, MaterialEntity> materialsByCode) {
+    private void createProductsForEnterprise(EnterpriseEntity enterprise, List<ProductSeed> products) {
         for (ProductSeed seed : products) {
             if (productRepository.existsByNameAndEnterpriseId(seed.name(), enterprise.getId())) {
                 continue;
@@ -268,10 +283,6 @@ public class DataInitializer implements CommandLineRunner {
             product.setProductionCost(seed.productionCost());
             product.setSalePrice(seed.salePrice());
             product.setEnterprise(enterprise);
-            product.setMaterials(seed.materialCodes().stream()
-                    .map(materialsByCode::get)
-                    .filter(material -> material != null)
-                    .collect(Collectors.toSet()));
 
             if (seed.versions() != null) {
                 for (String versionName : seed.versions()) {
@@ -286,6 +297,11 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
+    private Map<String, ProductEntity> loadProductsByName(EnterpriseEntity enterprise) {
+        return productRepository.findByEnterpriseId(enterprise.getId()).stream()
+                .collect(Collectors.toMap(ProductEntity::getName, product -> product, (left, right) -> left, LinkedHashMap::new));
+    }
+
     private void createMachinesForEnterprise(EnterpriseEntity enterprise, List<MachineSeed> machines) {
         List<MachineEntity> existingMachines = machineRepository.findByEnterpriseIdOrderByCreatedAtDesc(enterprise.getId());
 
@@ -297,9 +313,11 @@ public class DataInitializer implements CommandLineRunner {
             }
 
             MachineEntity machine = new MachineEntity();
+            machine.setSerialNumber((enterprise.getNit() + "-" + seed.name()).replaceAll("\\s+", "-").toUpperCase());
             machine.setName(seed.name());
             machine.setDescription(seed.description());
             machine.setCost(seed.cost());
+            machine.setStatus("ACTIVE");
             machine.setEnterprise(enterprise);
             machineRepository.save(machine);
         }
@@ -343,6 +361,77 @@ public class DataInitializer implements CommandLineRunner {
             movement.getDetails().add(detail);
 
             materialMovementRepository.save(movement);
+        }
+    }
+
+    private void createBomItemsForEnterprise(EnterpriseEntity enterprise, List<ProductSeed> products, Map<String, MaterialEntity> materialsByCode, Map<String, ProductEntity> productsByName) {
+        for (ProductSeed seed : products) {
+            ProductEntity product = productsByName.get(seed.name());
+            if (product == null || product.getVersions().isEmpty()) {
+                continue;
+            }
+
+            ProductVersionEntity version = product.getVersions().get(0);
+            for (String materialCode : seed.materialCodes()) {
+                MaterialEntity material = materialsByCode.get(materialCode);
+                if (material == null || bomItemRepository.findByProductVersionIdAndMaterialId(version.getId(), material.getId()).isPresent()) {
+                    continue;
+                }
+
+                BomItemEntity item = new BomItemEntity();
+                item.setProductVersion(version);
+                item.setMaterial(material);
+                item.setQuantity(BigDecimal.ONE);
+                item.setScrapFactor(BigDecimal.ZERO);
+                bomItemRepository.save(item);
+            }
+        }
+    }
+
+    private void createProductionRoutesForEnterprise(EnterpriseEntity enterprise, List<ProductSeed> products, Map<String, ProductEntity> productsByName) {
+        List<MachineEntity> machines = machineRepository.findByEnterpriseIdOrderByCreatedAtDesc(enterprise.getId());
+        if (machines.isEmpty()) {
+            return;
+        }
+
+        MachineEntity firstMachine = machines.get(0);
+        MachineEntity secondMachine = machines.size() > 1 ? machines.get(1) : firstMachine;
+
+        for (ProductSeed seed : products) {
+            ProductEntity product = productsByName.get(seed.name());
+            if (product == null || product.getVersions().isEmpty()) {
+                continue;
+            }
+
+            ProductVersionEntity version = product.getVersions().get(0);
+            if (!productionRouteRepository.findByProductVersionIdOrderByCreatedAtDesc(version.getId()).isEmpty()) {
+                continue;
+            }
+
+            ProductionRouteEntity route = new ProductionRouteEntity();
+            route.setName("Ruta " + product.getName());
+            route.setActive(true);
+            route.setProductVersion(version);
+
+            RouteOperationEntity operation1 = new RouteOperationEntity();
+            operation1.setProductionRoute(route);
+            operation1.setOperationOrder(1);
+            operation1.setDescription("Preparacion de materiales");
+            operation1.setSetupTimeMinutes(new BigDecimal("15.00"));
+            operation1.setRunTimeMinutes(new BigDecimal("0.50"));
+            operation1.setMachine(firstMachine);
+
+            RouteOperationEntity operation2 = new RouteOperationEntity();
+            operation2.setProductionRoute(route);
+            operation2.setOperationOrder(2);
+            operation2.setDescription("Proceso principal de fabricacion");
+            operation2.setSetupTimeMinutes(new BigDecimal("10.00"));
+            operation2.setRunTimeMinutes(new BigDecimal("1.00"));
+            operation2.setMachine(secondMachine);
+
+            route.getOperations().add(operation1);
+            route.getOperations().add(operation2);
+            productionRouteRepository.save(route);
         }
     }
 

@@ -2,6 +2,7 @@ package eccomerce.backend_eccomerce.warehouses.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import eccomerce.backend_eccomerce.common.entity.BaseEntity;
+import eccomerce.backend_eccomerce.warehouses.entity.BatchEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -28,4 +29,8 @@ public class MaterialMovementDetailEntity extends BaseEntity {
     @JoinColumn(name = "material_movement_id", nullable = false)
     @JsonIgnore
     private MaterialMovementEntity materialMovement;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "batch_id", nullable = false)
+    private BatchEntity batch;
 }

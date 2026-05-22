@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.UUID;
 
 public interface MaterialMovementRepository extends JpaRepository<MaterialMovementEntity, UUID> {
-    @Query("select distinct m from MaterialMovementEntity m join fetch m.material material join fetch material.enterprise enterprise left join fetch m.details details where enterprise.id = :enterpriseId order by m.createdAt desc")
+    @Query("select distinct m from MaterialMovementEntity m join fetch m.material material join fetch material.enterprise enterprise left join fetch m.details details left join fetch details.batch batch where enterprise.id = :enterpriseId order by m.createdAt desc")
     List<MaterialMovementEntity> findByEnterpriseIdOrderByCreatedAtDesc(@Param("enterpriseId") UUID enterpriseId);
 
-    @EntityGraph(attributePaths = {"material", "material.enterprise", "details"})
+    @EntityGraph(attributePaths = {"material", "material.enterprise", "details", "details.batch"})
     List<MaterialMovementEntity> findByMaterialIdOrderByCreatedAtDesc(UUID materialId);
 }

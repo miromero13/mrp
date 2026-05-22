@@ -9,10 +9,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ProductRepository extends JpaRepository<ProductEntity, UUID> {
-    @EntityGraph(attributePaths = {"enterprise", "materials", "versions"})
+    @EntityGraph(attributePaths = {"enterprise", "versions"})
     List<ProductEntity> findByEnterpriseId(UUID enterpriseId);
 
-    @EntityGraph(attributePaths = {"enterprise", "materials", "versions"})
+    @EntityGraph(attributePaths = {"enterprise", "versions"})
     Optional<ProductEntity> findByIdAndEnterpriseId(UUID id, UUID enterpriseId);
 
     boolean existsByNameAndEnterpriseId(String name, UUID enterpriseId);

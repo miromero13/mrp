@@ -2,6 +2,7 @@ package eccomerce.backend_eccomerce.warehouses.service;
 
 import eccomerce.backend_eccomerce.common.constants.RoleConstants;
 import eccomerce.backend_eccomerce.common.utils.ResponseMessage;
+import eccomerce.backend_eccomerce.warehouses.entity.BatchEntity;
 import eccomerce.backend_eccomerce.warehouses.dto.CreateMaterialDto;
 import eccomerce.backend_eccomerce.warehouses.dto.CreateMaterialMovementDto;
 import eccomerce.backend_eccomerce.warehouses.dto.UpdateMaterialDto;
@@ -10,6 +11,7 @@ import eccomerce.backend_eccomerce.warehouses.entity.MaterialEntity;
 import eccomerce.backend_eccomerce.warehouses.entity.MaterialMovementEntity;
 import eccomerce.backend_eccomerce.warehouses.entity.MaterialMovementDetailEntity;
 import eccomerce.backend_eccomerce.warehouses.enums.MaterialMovementType;
+import eccomerce.backend_eccomerce.warehouses.service.BatchService;
 import eccomerce.backend_eccomerce.warehouses.repository.MaterialRepository;
 import eccomerce.backend_eccomerce.warehouses.repository.MaterialMovementRepository;
 import eccomerce.backend_eccomerce.enterprise.repository.EnterpriseRepository;
@@ -31,6 +33,9 @@ public class MaterialService {
     private MaterialMovementRepository materialMovementRepository;
 
     @Autowired
+    private BatchService batchService;
+
+    @Autowired
     private EnterpriseRepository enterpriseRepository;
 
     @Autowired
@@ -39,10 +44,6 @@ public class MaterialService {
     @Transactional
     public ResponseMessage<MaterialEntity> create(CreateMaterialDto dto) {
         try {
-            if (isCurrentUserSuperadmin()) {
-                return ResponseMessage.error("No se pudo crear el material", "Superadmin no tiene acceso a materiales", 403);
-            }
-
             EnterpriseEntity enterprise = resolveCurrentEnterprise();
             if (materialRepository.existsByCodeAndEnterpriseId(dto.code, enterprise.getId())) {
                 return ResponseMessage.error("No se pudo crear el material", "Ya existe un material con ese código en tu empresa", 400);
@@ -53,6 +54,7 @@ public class MaterialService {
             material.setUnitOfMeasure(dto.unitOfMeasure);
             material.setStockMin(dto.stockMin);
             material.setStockCurrent(dto.stockCurrent);
+            material.setUnitPrice(dto.unitPrice);
             material.setEnterprise(enterprise);
 
             materialRepository.save(material);
@@ -62,13 +64,9 @@ public class MaterialService {
         }
     }
 
-    public ResponseMessage<List<MaterialEntity>> findAll() {
+    public ResponseMessage<List<MaterialEntity>> findAll(UUID enterpriseId) {
         try {
-            if (isCurrentUserSuperadmin()) {
-                return ResponseMessage.error("No se pudieron obtener los materiales", "Superadmin no tiene acceso a materiales", 403);
-            }
-
-            EnterpriseEntity enterprise = resolveCurrentEnterprise();
+            EnterpriseEntity enterprise = enterpriseId != null ? resolveEnterprise(enterpriseId) : resolveCurrentEnterprise();
             List<MaterialEntity> materials = materialRepository.findByEnterpriseId(enterprise.getId());
             return ResponseMessage.success(materials, "Materiales obtenidos correctamente", materials.size());
         } catch (Exception ex) {
@@ -78,10 +76,6 @@ public class MaterialService {
 
     public ResponseMessage<MaterialEntity> findById(UUID id) {
         try {
-            if (isCurrentUserSuperadmin()) {
-                return ResponseMessage.error("No se pudo obtener el material", "Superadmin no tiene acceso a materiales", 403);
-            }
-
             EnterpriseEntity enterprise = resolveCurrentEnterprise();
             MaterialEntity material = materialRepository.findByIdAndEnterpriseId(id, enterprise.getId())
                     .orElseThrow(() -> new RuntimeException("Material no encontrado"));
@@ -95,10 +89,6 @@ public class MaterialService {
 
     public ResponseMessage<List<MaterialMovementEntity>> findMovements() {
         try {
-            if (isCurrentUserSuperadmin()) {
-                return ResponseMessage.error("No se pudieron obtener los movimientos", "Superadmin no tiene acceso a materiales", 403);
-            }
-
             EnterpriseEntity enterprise = resolveCurrentEnterprise();
             List<MaterialMovementEntity> movements = materialMovementRepository.findByEnterpriseIdOrderByCreatedAtDesc(enterprise.getId());
             return ResponseMessage.success(movements, "Movimientos obtenidos correctamente", movements.size());
@@ -109,10 +99,6 @@ public class MaterialService {
 
     public ResponseMessage<List<MaterialMovementEntity>> findMovementsByMaterial(UUID materialId) {
         try {
-            if (isCurrentUserSuperadmin()) {
-                return ResponseMessage.error("No se pudieron obtener los movimientos", "Superadmin no tiene acceso a materiales", 403);
-            }
-
             EnterpriseEntity enterprise = resolveCurrentEnterprise();
             MaterialEntity material = materialRepository.findByIdAndEnterpriseId(materialId, enterprise.getId())
                     .orElseThrow(() -> new RuntimeException("Material no encontrado"));
@@ -128,10 +114,6 @@ public class MaterialService {
     @Transactional
     public ResponseMessage<MaterialMovementEntity> registerMovement(UUID materialId, CreateMaterialMovementDto dto) {
         try {
-            if (isCurrentUserSuperadmin()) {
-                return ResponseMessage.error("No se pudo registrar el movimiento", "Superadmin no tiene acceso a materiales", 403);
-            }
-
             EnterpriseEntity enterprise = resolveCurrentEnterprise();
             MaterialEntity material = materialRepository.findByIdAndEnterpriseId(materialId, enterprise.getId())
                     .orElseThrow(() -> new RuntimeException("Material no encontrado"));
@@ -140,21 +122,26 @@ public class MaterialService {
                 return ResponseMessage.error("No se pudo registrar el movimiento", "No hay stock suficiente para la salida", 400);
             }
 
+            BatchEntity batch = batchService.resolveBatchForMovement(dto.batchId, material.getId(), dto.quantity, dto.type == MaterialMovementType.EXIT);
+
             MaterialMovementEntity movement = new MaterialMovementEntity();
             movement.setMaterial(material);
             movement.setType(dto.type);
-            movement.setReason(dto.reason.trim());
+            movement.setReason(dto.reason == null ? "" : dto.reason.trim());
 
             MaterialMovementDetailEntity detail = new MaterialMovementDetailEntity();
             detail.setQuantity(dto.quantity);
             detail.setUnitPrice(dto.unitPrice);
             detail.setMaterialMovement(movement);
+            detail.setBatch(batch);
             movement.getDetails().add(detail);
 
             if (dto.type == MaterialMovementType.ENTRY) {
                 material.setStockCurrent(material.getStockCurrent().add(dto.quantity));
+                batchService.applyMovementToBatch(batch, dto.quantity, true);
             } else {
                 material.setStockCurrent(material.getStockCurrent().subtract(dto.quantity));
+                batchService.applyMovementToBatch(batch, dto.quantity, false);
             }
 
             materialRepository.save(material);
@@ -171,10 +158,6 @@ public class MaterialService {
     @Transactional
     public ResponseMessage<MaterialEntity> update(UUID id, UpdateMaterialDto dto) {
         try {
-            if (isCurrentUserSuperadmin()) {
-                return ResponseMessage.error("No se pudo actualizar el material", "Superadmin no tiene acceso a materiales", 403);
-            }
-
             EnterpriseEntity enterprise = resolveCurrentEnterprise();
             MaterialEntity material = materialRepository.findByIdAndEnterpriseId(id, enterprise.getId())
                     .orElseThrow(() -> new RuntimeException("Material no encontrado"));
@@ -191,6 +174,9 @@ public class MaterialService {
             if (dto.stockCurrent != null) {
                 material.setStockCurrent(dto.stockCurrent);
             }
+            if (dto.unitPrice != null) {
+                material.setUnitPrice(dto.unitPrice);
+            }
 
             materialRepository.save(material);
             return ResponseMessage.success(material, "Material actualizado correctamente", 1);
@@ -204,10 +190,6 @@ public class MaterialService {
     @Transactional
     public ResponseMessage<Void> delete(UUID id) {
         try {
-            if (isCurrentUserSuperadmin()) {
-                return ResponseMessage.error("No se pudo eliminar el material", "Superadmin no tiene acceso a materiales", 403);
-            }
-
             EnterpriseEntity enterprise = resolveCurrentEnterprise();
             MaterialEntity material = materialRepository.findByIdAndEnterpriseId(id, enterprise.getId())
                     .orElseThrow(() -> new RuntimeException("Material no encontrado"));
@@ -227,6 +209,11 @@ public class MaterialService {
             throw new RuntimeException("No tienes una empresa asignada");
         }
 
+        return enterpriseRepository.findById(enterpriseId)
+                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+    }
+
+    private EnterpriseEntity resolveEnterprise(UUID enterpriseId) {
         return enterpriseRepository.findById(enterpriseId)
                 .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
     }

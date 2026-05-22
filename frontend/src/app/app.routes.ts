@@ -64,9 +64,34 @@ export const routes: Routes = [
 				data: { permisos: [PERMISOS.material.listar] },
 			},
 			{
+				path: APP_ROUTES.batches,
+				loadComponent: () => import('./pages/warehouses/batches/batches.component').then((m) => m.BatchesComponent),
+				data: { permisos: [PERMISOS.warehouses.batches.listar], roles: ['Administrador'] },
+			},
+			{
 				path: APP_ROUTES.products,
 				loadComponent: () => import('./pages/engineering/products/products.component').then((m) => m.ProductsComponent),
 				data: { permisos: [PERMISOS.products.listar] },
+			},
+			{
+				path: APP_ROUTES.bom,
+				loadComponent: () => import('./pages/warehouses/bom/bom.component').then((m) => m.BomComponent),
+				data: { permisos: [PERMISOS.bom.listar] },
+			},
+			{
+				path: APP_ROUTES.productionDemands,
+				loadComponent: () => import('./pages/production/demands/demands.component').then((m) => m.DemandsComponent),
+				data: { permisos: [PERMISOS.production.demands.listar] },
+			},
+			{
+				path: APP_ROUTES.productionMps,
+				loadComponent: () => import('./pages/production/mps/mps.component').then((m) => m.MpsComponent),
+				data: { permisos: [PERMISOS.production.mps.gestionar] },
+			},
+			{
+				path: APP_ROUTES.productionRoutes,
+				loadComponent: () => import('./pages/engineering/production-routes/production-routes.component').then((m) => m.ProductionRoutesComponent),
+				data: { permisos: [PERMISOS.productionRoutes.listar] },
 			},
 			{ path: '', pathMatch: 'full', redirectTo: APP_ROUTES.dashboard },
 		],

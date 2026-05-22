@@ -10,7 +10,7 @@ import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { CustomTableColumn, CustomTableComponent } from '../../../shared/components/custom-table/custom-table.component';
 import { PERMISOS } from '../../../core/config/permisos';
-import { MachineFormValue, MachineListItem } from '../../../core/enterprises/models/machine.models';
+import { MachineFormValue, MachineListItem, MachineStatus } from '../../../core/enterprises/models/machine.models';
 import { MachineService } from '../../../core/enterprises/services/machine.service';
 import { AuthService } from '../../../core/users/services/auth.service';
 
@@ -52,16 +52,20 @@ export class MachinesComponent implements OnInit {
   protected readonly isReadOnly = computed(() => this.modalMode() === 'view');
 
   protected readonly form = this.formBuilder.nonNullable.group({
+    serialNumber: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(255)]],
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
     description: ['', [Validators.maxLength(255)]],
     cost: [0, [Validators.required, Validators.min(0)]],
+    status: [MachineStatus.ACTIVE, [Validators.required]],
   });
 
   ngOnInit(): void {
     this.tableColumns = [
+      { id: 'serialNumber', header: 'Serie', cell: (machine) => machine.serialNumber },
       { id: 'name', header: 'Nombre', cell: (machine) => machine.name },
       { id: 'description', header: 'Descripción', cell: (machine) => machine.description ?? '-' },
       { id: 'cost', header: 'Costo', cell: (machine) => String(machine.cost) },
+      { id: 'status', header: 'Estado', cell: (machine) => this.statusLabel(machine.status) },
       {
         id: 'actions',
         header: 'Acciones',
@@ -95,9 +99,11 @@ export class MachinesComponent implements OnInit {
     this.editingMachineId.set(machine?.id ?? null);
     this.selectedMachine.set(machine);
     this.form.reset({
+      serialNumber: machine?.serialNumber ?? '',
       name: machine?.name ?? '',
       description: machine?.description ?? '',
       cost: machine?.cost ?? 0,
+      status: machine?.status ?? MachineStatus.ACTIVE,
     });
     this.isModalOpen.set(true);
   }
@@ -122,9 +128,11 @@ export class MachinesComponent implements OnInit {
 
     const value = this.form.getRawValue();
     const payload: MachineFormValue = {
+      serialNumber: value.serialNumber.trim(),
       name: value.name.trim(),
       description: value.description.trim() || null,
       cost: Number(value.cost),
+      status: value.status,
     };
 
     this.saving.set(true);
@@ -187,5 +195,16 @@ export class MachinesComponent implements OnInit {
           this.errorMessage.set(backendError ?? fallbackError);
         },
       });
+  }
+
+  protected statusLabel(status: MachineStatus): string {
+    switch (status) {
+      case MachineStatus.MAINTENANCE:
+        return 'En mantenimiento';
+      case MachineStatus.INACTIVE:
+        return 'Inactiva';
+      default:
+        return 'Activa';
+    }
   }
 }

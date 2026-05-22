@@ -17,4 +17,7 @@ public class CreateMaterialDto {
 
     @NotNull
     public BigDecimal stockCurrent;
+
+    @NotNull
+    public BigDecimal unitPrice;
 }
