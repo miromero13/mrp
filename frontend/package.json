@@ -11,7 +11,7 @@
     "postinstall": "node scripts/fix-angular-vite-url.cjs && node scripts/generate-env-config.js"
   },
   "private": true,
-  "packageManager": "npm@10.9.3",
+  "packageManager": "pnpm",
   "dependencies": {
     "@angular/cdk": "21.0.0",
     "@angular/common": "^21.2.0",

@@ -44,6 +44,22 @@ export const routes: Routes = [
           import('./pages/indirect-cost/indirect-cost.component').then((m) => m.IndirectCostComponent),
         data: { permisos: [PERMISOS.indirectCosts.listar] },
       },
+      {
+        path: APP_ROUTES.reports,
+        loadComponent: () =>
+          import('./pages/reports/reports.component').then((m) => m.ReportsComponent),
+        data: { permisos: [PERMISOS.reportes.listar] },
+      },
+      {
+        path: 'batches',
+        loadComponent: () => import('./pages/batches/batch-list/batch-list.component').then((m) => m.BatchListComponent),
+        data: { permisos: [] },
+      },
+      {
+        path: 'batches/new',
+        loadComponent: () => import('./pages/batches/batch-form/batch-form.component').then((m) => m.BatchFormComponent),
+        data: { permisos: [] },
+      },
       { path: '', pathMatch: 'full', redirectTo: APP_ROUTES.dashboard },
     ],
   },

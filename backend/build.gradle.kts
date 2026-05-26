@@ -62,6 +62,15 @@ dependencies {
 
     // Load environment variables from .env file
     implementation("io.github.cdimascio:dotenv-java:3.0.0")
+
+    // Reporting - DynamicReports (reportes dinámicos por código)
+    implementation("net.sourceforge.dynamicreports:dynamicreports-core:6.20.1")
+
+    // Reporting - JasperReports (reportes formales PDF)
+    implementation("net.sf.jasperreports:jasperreports:6.21.3")
+
+    // Apache POI - exportación Excel
+    implementation("org.apache.poi:poi-ooxml:5.3.0")
 }
 
 tasks.withType<Test> {

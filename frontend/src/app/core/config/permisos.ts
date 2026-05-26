@@ -28,6 +28,9 @@ export const PERMISOS = {
     editar: 'editar_costo_indirecto',
     eliminar: 'eliminar_costo_indirecto',
     listar: 'listar_costo_indirecto',
+  },
+  reportes: {
+    listar: 'listar_reportes',
   }
 } as const;
 
@@ -52,4 +55,5 @@ export const LISTA_PERMISOS = [
   PERMISOS.indirectCosts.editar,
   PERMISOS.indirectCosts.eliminar,
   PERMISOS.indirectCosts.listar,
+  PERMISOS.reportes.listar,
 ] as const;
