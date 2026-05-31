@@ -179,6 +179,22 @@ export class PrivateLayoutComponent {
         },
       ],
       expanded: true,
+    },
+    {
+      kind: 'module',
+      title: 'Backups',
+      icon: 'lucideDatabaseBackup',
+      requiredPermissions: [],
+      items: [
+        {
+          title: 'Gestionar copias de seguridad',
+          url: this.appRouteUrls.backups,
+          icon: 'lucideReceiptText',
+          exact: true,
+          requiredPermissions: [PERMISOS.backup.listar],
+        },
+      ],
+      expanded: true,
     }
   ]);
 

@@ -1,0 +1,31 @@
+<form class="grid gap-6" (ngSubmit)="submit()">
+  @if (serverError()) {
+    <p class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+      {{ serverError() }}
+    </p>
+  }
+
+  <section class="grid gap-4 rounded-xl border bg-muted/20 p-4">
+    <!-- Información del usuario y empresa actual -->
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="grid gap-2">
+        <label hlmLabel for="userName">Usuario</label>
+        <div id="userName" class="rounded-md border border-input bg-background px-3 py-2 text-sm">
+          {{ userName() }}
+        </div>
+      </div>
+
+      <div class="grid gap-2">
+        <label hlmLabel for="companyName">Nombre de la empresa</label>
+        <div id="companyName" class="rounded-md border border-input bg-background px-3 py-2 text-sm">
+          {{ enterpriseName() }}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="flex items-center justify-end gap-3 pt-2">
+    <button hlmBtn variant="outline" type="button" (click)="cancel()" [disabled]="loading()">Cancelar</button>
+    <button hlmBtn type="submit" [disabled]="loading()">{{ loading() ? 'Guardando...' : submitLabel() }}</button>
+  </div>
+</form>

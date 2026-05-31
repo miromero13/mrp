@@ -57,6 +57,12 @@ export const PERMISOS = {
     eliminar: 'eliminar_turno',
     listar: 'listar_turno',
   },
+  backup: {
+    crear: 'crear_backup',
+    cancelar: 'cancelar_backup',
+    descargar: 'descargar_backup',
+    listar: 'listar_backups'
+  }
 } as const;
 
 export const LISTA_PERMISOS = [
@@ -104,4 +110,10 @@ export const LISTA_PERMISOS = [
   PERMISOS.workshifts.editar,
   PERMISOS.workshifts.eliminar,
   PERMISOS.workshifts.listar,
+
+  PERMISOS.backup.crear,
+  PERMISOS.backup.cancelar,
+  PERMISOS.backup.descargar,
+  PERMISOS.backup.listar,
+
 ] as const;

@@ -10,6 +10,7 @@ export const APP_ROUTES = {
   workshifts: 'workshifts',
   materials: 'materials',
   products: 'products',
+  backups: 'backups'
 } as const;
 
 export const APP_ROUTE_URLS = {
@@ -24,4 +25,5 @@ export const APP_ROUTE_URLS = {
   workshifts: `/${APP_ROUTES.workshifts}`,
   materials: `/${APP_ROUTES.materials}`,
   products: `/${APP_ROUTES.products}`,
+  backups: `/${APP_ROUTES.backups}`,  
 } as const;

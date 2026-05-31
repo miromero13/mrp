@@ -68,6 +68,11 @@ export const routes: Routes = [
 				loadComponent: () => import('./pages/engineering/products/products.component').then((m) => m.ProductsComponent),
 				data: { permisos: [PERMISOS.products.listar] },
 			},
+			{
+				path: APP_ROUTES.backups,
+				loadComponent: () => import('./pages/backup/backups.component').then((m) => m.BackupsComponent),
+				data: { permisos: [PERMISOS.backup.listar] },
+			},
 			{ path: '', pathMatch: 'full', redirectTo: APP_ROUTES.dashboard },
 		],
 	},

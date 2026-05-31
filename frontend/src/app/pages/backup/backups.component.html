@@ -1,0 +1,99 @@
+<main class="grid gap-4">
+  @if (loading()) {
+    <section class="rounded-xl border bg-card p-8 text-card-foreground shadow-xs">
+      <h1 class="text-xl font-semibold">Empresa</h1>
+      <p class="mt-2 text-sm text-muted-foreground">Cargando backups...</p>
+    </section>
+  } @else {
+    <section class="rounded-xl border bg-card p-8 text-card-foreground shadow-xs">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-semibold">Empresa</h1>
+          <p class="pt-1 text-sm text-muted-foreground">Listado de copias de seguridad de la empresa.</p>
+        </div>
+
+        @if (canCreateBackup()) {
+          <button hlmBtn type="button" class="gap-2" (click)="openCreateManualModal()">
+            <ng-icon hlm [name]="'lucidePlus'" size="sm" />
+            <span>Crear backup</span>
+          </button>
+
+          <button hlmBtn type="button" class="gap-2" (click)="openCreateScheduledModal()">
+            <ng-icon hlm [name]="'lucidePlus'" size="sm" />
+            <span>Programar backup</span>
+          </button>
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <p class="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          {{ errorMessage() }}
+        </p>
+      }
+
+      <div class="mt-4">
+        <app-custom-table
+          [columns]="tableColumns()"
+          [rows]="backups()"
+          [loading]="loading()"
+          [pageSize]="25"
+          [skeletonRows]="10"
+          [emptyMessage]="'No hay backups registrados.'"
+        />
+      </div>
+    </section>
+  }
+
+  @if (isCreateManualModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 px-4 py-6 backdrop-blur-sm">
+      <div class="relative flex w-full max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl">
+        <div class="flex items-start justify-between gap-4 border-b px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold">Crear copia de seguridad manual</h2>
+            <p class="pt-1 text-sm text-muted-foreground">Inicia un proceso de backup inmediato para tu empresa.</p>
+          </div>
+
+          <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="closeCreateModal()" [disabled]="saving()">
+            <ng-icon hlm [name]="'lucideX'" size="sm" />
+          </button>
+        </div>
+
+        <div class="min-h-0 flex-1 overflow-y-auto p-6">
+          <app-backup-form
+            [loading]="saving()"
+            [serverError]="createErrorMessage()"
+            [submitLabel]="'Crear Backup'"
+            (cancelled)="closeCreateModal()"
+            (submitted)="createManualBackup($event)"
+          />
+        </div>
+      </div>
+    </div>
+  }
+  @if (isCreateScheduledModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 px-4 py-6 backdrop-blur-sm">
+      <div class="relative flex w-full max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl">
+        <div class="flex items-start justify-between gap-4 border-b px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold">Programar copia de seguridad</h2>
+            <p class="pt-1 text-sm text-muted-foreground">Configura la expresión cron para la programación automática.</p>
+          </div>
+
+          <button hlmBtn variant="ghost" size="icon-sm" type="button" (click)="closeCreateModal()" [disabled]="saving()">
+            <ng-icon hlm [name]="'lucideX'" size="sm" />
+          </button>
+        </div>
+
+        <div class="min-h-0 flex-1 overflow-y-auto p-6">
+          <app-scheduled-backup-form
+            [loading]="saving()"
+            [serverError]="createErrorMessage()"
+            [submitLabel]="'Programar Backup'"
+            (cancelled)="closeCreateModal()"
+            (submitted)="createScheduledBackup($event)"
+          />
+        </div>
+      </div>
+    </div>
+  }
+</main>

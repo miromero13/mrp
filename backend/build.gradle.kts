@@ -52,6 +52,9 @@ dependencies {
     // PostgreSQL Database
     runtimeOnly("org.postgresql:postgresql")
 
+    // Quartz Scheduler
+    implementation("org.springframework.boot:spring-boot-starter-quartz")    
+
     // Spring Boot DevTools (for live reload)
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 

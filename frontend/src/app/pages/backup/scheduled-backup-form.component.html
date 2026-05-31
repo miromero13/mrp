@@ -1,0 +1,51 @@
+<form class="grid gap-6" [formGroup]="form" (ngSubmit)="submit()">
+  @if (serverError()) {
+    <p class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+      {{ serverError() }}
+    </p>
+  }
+
+  <!-- Información del usuario y empresa actual -->
+  <section class="grid gap-4 rounded-xl border bg-muted/20 p-4">
+    <h3 class="font-semibold text-sm">Información de la empresa</h3>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="grid gap-2">
+        <label hlmLabel for="userName">Usuario</label>
+        <div id="userName" class="rounded-md border border-input bg-background px-3 py-2 text-sm">
+          {{ userName() }}
+        </div>
+      </div>
+
+      <div class="grid gap-2">
+        <label hlmLabel for="companyName">Nombre de la empresa</label>
+        <div id="companyName" class="rounded-md border border-input bg-background px-3 py-2 text-sm">
+          {{ enterpriseName() }}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Configuración de la programación -->
+  <section class="grid gap-4 rounded-xl border bg-muted/20 p-4">
+    <h3 class="font-semibold text-sm">Configuración de la programación</h3>
+    <div class="grid gap-2">
+      <label hlmLabel for="cronExpression">Expresión Cron</label>
+      <input 
+        hlmInput 
+        id="cronExpression" 
+        formControlName="cronExpression" 
+        placeholder="Ej. 0 2 * * * (Todos los días a las 2 AM)" 
+        type="text"
+      />
+      @if (form.get('cronExpression')?.invalid && form.get('cronExpression')?.touched) {
+        <p class="text-xs text-destructive">La expresión cron es requerida y debe ser válida.</p>
+      }
+      <p class="text-xs text-muted-foreground">Formato cron: segundo minuto hora día mes díaSemana</p>
+    </div>
+  </section>
+
+  <div class="flex items-center justify-end gap-3 pt-2">
+    <button hlmBtn variant="outline" type="button" (click)="cancel()" [disabled]="loading()">Cancelar</button>
+    <button hlmBtn type="submit" [disabled]="loading()">{{ loading() ? 'Guardando...' : submitLabel() }}</button>
+  </div>
+</form>

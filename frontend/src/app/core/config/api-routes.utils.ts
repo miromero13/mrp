@@ -25,4 +25,7 @@ export const API_ROUTES = {
   workshifts: {
     list: 'work-shifts',
   },
+  backups: {
+    list: 'backups',
+  }
 } as const;
