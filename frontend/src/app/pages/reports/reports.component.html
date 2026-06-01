@@ -17,7 +17,7 @@
             {{ tab.label }}
             @if (tab.id === 'excepciones' && (dashboard()?.totalExcepciones ?? 0) > 0) {
               <span class="flex size-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white">
-                <span class="text-xs">{{ dashboard()?.totalExcepciones }}</span>
+                {{ dashboard()?.totalExcepciones }}
               </span>
             }
           </button>
@@ -26,26 +26,208 @@
     </div>
 
     <div class="p-6">
-      <!-- Inventario Tab -->
-      @if (activeTab() === 'inventario') {
-        <div class="grid gap-4">
+
+      <!-- ── DASHBOARD TAB ─────────────────────────────────────────────── -->
+      @if (activeTab() === 'dashboard') {
+        <div class="grid gap-6">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 class="text-xl font-semibold tracking-tight">Resumen de Inventario</h2>
-              <p class="text-sm text-muted-foreground">Estado actual del stock de materiales</p>
+              <h2 class="text-xl font-semibold tracking-tight">Dashboard Gerencial</h2>
+              <p class="text-sm text-muted-foreground">KPIs consolidados del sistema MRP</p>
             </div>
             <div class="flex items-center gap-2">
-              <button hlmBtn variant="outline" size="sm" (click)="loadInventario()" [disabled]="inventarioLoading()">
-                <ng-icon hlm name="lucideRefreshCcw" size="sm" class="mr-2" [class.animate-spin]="inventarioLoading()" />
+              <button hlmBtn variant="outline" size="sm" (click)="loadDashboard()" [disabled]="dashboardLoading()">
+                <ng-icon hlm name="lucideRefreshCcw" size="sm" class="mr-2" [class.animate-spin]="dashboardLoading()" />
                 Actualizar
               </button>
-              <button hlmBtn size="sm" (click)="exportToExcel('inventario')" [disabled]="exporting()">
+              <!-- Export format selector -->
+              <select
+                class="h-9 rounded-md border bg-background px-3 text-sm"
+                [(ngModel)]="exportFormatValue"
+              >
+                @for (opt of exportOptions; track opt.format) {
+                  <option [value]="opt.format">{{ opt.label }}</option>
+                }
+              </select>
+              <button hlmBtn size="sm" (click)="exportReport('dashboard')" [disabled]="exporting() || dashboardLoading()">
                 <ng-icon hlm name="lucideDownload" size="sm" class="mr-2" />
-                Excel
+                Exportar
               </button>
             </div>
           </div>
 
+          @if (dashboardLoading()) {
+            <div class="flex items-center justify-center py-12">
+              <ng-icon hlm name="lucideRefreshCcw" size="lg" class="animate-spin text-muted-foreground" />
+            </div>
+          } @else if (dashboard(); as kpi) {
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+              <!-- Órdenes -->
+              <div class="rounded-xl border bg-card p-5 shadow-xs">
+                <p class="text-xs font-medium uppercase text-muted-foreground">Órdenes Sugeridas</p>
+                <p class="mt-1 text-3xl font-bold">{{ kpi.totalOrdenesSugeridas }}</p>
+                <p class="mt-1 text-sm text-muted-foreground">Costo total: <strong class="text-foreground">{{ formatCurrency(kpi.costoTotalOrdenes) }}</strong></p>
+              </div>
+
+              <!-- Acciones -->
+              <div class="rounded-xl border bg-card p-5 shadow-xs">
+                <p class="text-xs font-medium uppercase text-muted-foreground">Acciones Recomendadas</p>
+                <p class="mt-1 text-3xl font-bold">{{ kpi.totalAcciones }}</p>
+                <p class="mt-1 text-sm text-muted-foreground">
+                  Alta prioridad: <strong class="text-red-600">{{ kpi.accionesUrgentes }}</strong>
+                </p>
+              </div>
+
+              <!-- Excepciones -->
+              <div class="rounded-xl border bg-card p-5 shadow-xs">
+                <p class="text-xs font-medium uppercase text-muted-foreground">Excepciones</p>
+                <p class="mt-1 text-3xl font-bold">{{ kpi.totalExcepciones }}</p>
+                <p class="mt-1 text-sm text-muted-foreground">
+                  Críticas: <strong class="text-red-600">{{ kpi.excepcionesCriticas }}</strong>
+                </p>
+              </div>
+
+              <!-- Materiales críticos -->
+              <div class="rounded-xl border bg-card p-5 shadow-xs">
+                <p class="text-xs font-medium uppercase text-muted-foreground">Materiales en Stock Cero</p>
+                <p class="mt-1 text-3xl font-bold text-red-600">{{ kpi.materialesCriticos }}</p>
+                <p class="mt-1 text-sm text-muted-foreground">
+                  Stock bajo: <strong class="text-amber-600">{{ kpi.materialesBajos }}</strong>
+                </p>
+              </div>
+
+              <!-- Valor inventario -->
+              <div class="rounded-xl border bg-card p-5 shadow-xs sm:col-span-2">
+                <p class="text-xs font-medium uppercase text-muted-foreground">Valor Total del Inventario</p>
+                <p class="mt-1 text-3xl font-bold">{{ formatCurrency(kpi.valorTotalInventario) }}</p>
+                <p class="mt-1 text-sm text-muted-foreground">Materiales activos valorados a costo unitario</p>
+              </div>
+
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ── TOOLBAR COMPARTIDO (filtros + exportar) para tabs analíticos ── -->
+      @if (activeTab() !== 'dashboard') {
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <button hlmBtn variant="outline" size="sm" (click)="showFilters.set(!showFilters())">
+              <ng-icon hlm name="lucideFilter" size="sm" class="mr-2" />
+              Filtros
+              @if (hasActiveFilters()) {
+                <span class="ml-1.5 inline-flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">✓</span>
+              }
+            </button>
+            @if (hasActiveFilters()) {
+              <button hlmBtn variant="ghost" size="sm" (click)="clearFilters()">
+                <ng-icon hlm name="lucideX" size="sm" class="mr-1" />
+                Limpiar
+              </button>
+            }
+          </div>
+          <div class="flex items-center gap-2">
+            <select
+              class="h-9 rounded-md border bg-background px-3 text-sm"
+              [(ngModel)]="exportFormatValue"
+            >
+              @for (opt of exportOptions; track opt.format) {
+                <option [value]="opt.format">{{ opt.label }}</option>
+              }
+            </select>
+            @if (activeTab() === 'inventario') {
+              <button hlmBtn variant="outline" size="sm" (click)="loadInventario()" [disabled]="inventarioLoading()">
+                <ng-icon hlm name="lucideRefreshCcw" size="sm" [class.animate-spin]="inventarioLoading()" />
+              </button>
+              <button hlmBtn size="sm" (click)="exportReport('inventario')" [disabled]="exporting()">
+                <ng-icon hlm name="lucideDownload" size="sm" class="mr-2" /> Exportar
+              </button>
+            }
+            @if (activeTab() === 'ordenes') {
+              <button hlmBtn variant="outline" size="sm" (click)="loadOrdenes()" [disabled]="ordenesLoading()">
+                <ng-icon hlm name="lucideRefreshCcw" size="sm" [class.animate-spin]="ordenesLoading()" />
+              </button>
+              <button hlmBtn size="sm" (click)="exportReport('ordenes')" [disabled]="exporting()">
+                <ng-icon hlm name="lucideDownload" size="sm" class="mr-2" /> Exportar
+              </button>
+            }
+            @if (activeTab() === 'excepciones') {
+              <button hlmBtn variant="outline" size="sm" (click)="loadExcepciones()" [disabled]="excepcionesLoading()">
+                <ng-icon hlm name="lucideRefreshCcw" size="sm" [class.animate-spin]="excepcionesLoading()" />
+              </button>
+              <button hlmBtn size="sm" (click)="exportReport('excepciones')" [disabled]="exporting()">
+                <ng-icon hlm name="lucideDownload" size="sm" class="mr-2" /> Exportar
+              </button>
+            }
+            @if (activeTab() === 'acciones') {
+              <button hlmBtn variant="outline" size="sm" (click)="loadAcciones()" [disabled]="accionesLoading()">
+                <ng-icon hlm name="lucideRefreshCcw" size="sm" [class.animate-spin]="accionesLoading()" />
+              </button>
+              <button hlmBtn size="sm" (click)="exportReport('acciones')" [disabled]="exporting()">
+                <ng-icon hlm name="lucideDownload" size="sm" class="mr-2" /> Exportar
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Filter panel -->
+        @if (showFilters()) {
+          <div class="mb-4 rounded-lg border bg-muted/30 p-4">
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div class="grid gap-1">
+                <label class="text-xs font-medium text-muted-foreground">Desde</label>
+                <input type="date" [(ngModel)]="filterStartDate"
+                  class="h-9 rounded-md border bg-background px-3 text-sm" />
+              </div>
+              <div class="grid gap-1">
+                <label class="text-xs font-medium text-muted-foreground">Hasta</label>
+                <input type="date" [(ngModel)]="filterEndDate"
+                  class="h-9 rounded-md border bg-background px-3 text-sm" />
+              </div>
+              <div class="grid gap-1">
+                <label class="text-xs font-medium text-muted-foreground">Código material</label>
+                <input type="text" [(ngModel)]="filterMaterialCode" placeholder="MAT-001"
+                  class="h-9 rounded-md border bg-background px-3 text-sm" />
+              </div>
+              @if (activeTab() === 'excepciones') {
+                <div class="grid gap-1">
+                  <label class="text-xs font-medium text-muted-foreground">Severidad</label>
+                  <select [(ngModel)]="filterSeverity" class="h-9 rounded-md border bg-background px-3 text-sm">
+                    <option value="">Todas</option>
+                    <option value="CRITICAL">CRITICAL</option>
+                    <option value="WARNING">WARNING</option>
+                    <option value="INFO">INFO</option>
+                  </select>
+                </div>
+              }
+              @if (activeTab() === 'acciones') {
+                <div class="grid gap-1">
+                  <label class="text-xs font-medium text-muted-foreground">Prioridad</label>
+                  <select [(ngModel)]="filterPriority" class="h-9 rounded-md border bg-background px-3 text-sm">
+                    <option value="">Todas</option>
+                    <option value="HIGH">HIGH</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="LOW">LOW</option>
+                  </select>
+                </div>
+              }
+            </div>
+            <div class="mt-3 flex gap-2">
+              <button hlmBtn size="sm" (click)="applyFilters()">Aplicar filtros</button>
+              <button hlmBtn variant="outline" size="sm" (click)="showFilters.set(false)">Cancelar</button>
+            </div>
+          </div>
+        }
+      }
+
+      <!-- ── INVENTARIO TAB ──────────────────────────────────────────────── -->
+      @if (activeTab() === 'inventario') {
+        <div class="grid gap-4">
+          <div>
+            <h2 class="text-xl font-semibold tracking-tight">Resumen de Inventario</h2>
+            <p class="text-sm text-muted-foreground">Estado actual del stock de materiales</p>
+          </div>
           @if (inventarioLoading()) {
             <div class="flex items-center justify-center py-12">
               <ng-icon hlm name="lucideRefreshCcw" size="lg" class="animate-spin text-muted-foreground" />
@@ -73,26 +255,20 @@
                     <tr class="border-b last:border-0 transition-colors hover:bg-muted/30">
                       <td class="px-4 py-3 font-mono text-xs">{{ item.codigo }}</td>
                       <td class="px-4 py-3">
-                        <div>
-                          <p class="font-medium">{{ item.nombre }}</p>
-                          <p class="text-xs text-muted-foreground">{{ item.unidadMedida }}</p>
-                        </div>
+                        <p class="font-medium">{{ item.nombre }}</p>
+                        <p class="text-xs text-muted-foreground">{{ item.unidadMedida }}</p>
                       </td>
                       <td class="px-4 py-3 text-right font-mono">{{ formatNumber(item.stockActual) }}</td>
                       <td class="px-4 py-3 text-right font-mono text-muted-foreground">{{ formatNumber(item.stockMinimo) }}</td>
                       <td class="px-4 py-3 text-right font-mono">{{ formatNumber(item.disponibleNeto) }}</td>
-                      <td class="px-4 py-3 text-right font-mono font-medium">${{ formatNumber(item.valorTotal) }}</td>
+                      <td class="px-4 py-3 text-right font-mono font-medium">{{ formatCurrency(item.valorTotal) }}</td>
                       <td class="px-4 py-3 text-center">
                         <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                          [class]="getEstadoClass(item.estado)">
-                          {{ item.estado }}
-                        </span>
+                          [class]="getEstadoClass(item.estado)">{{ item.estado }}</span>
                       </td>
                     </tr>
                   } @empty {
-                    <tr>
-                      <td colspan="7" class="px-4 py-8 text-center text-muted-foreground">No hay materiales registrados.</td>
-                    </tr>
+                    <tr><td colspan="7" class="px-4 py-8 text-center text-muted-foreground">No hay materiales registrados.</td></tr>
                   }
                 </tbody>
               </table>
@@ -101,26 +277,13 @@
         </div>
       }
 
-      <!-- Órdenes Sugeridas Tab -->
+      <!-- ── ÓRDENES SUGERIDAS TAB ──────────────────────────────────────── -->
       @if (activeTab() === 'ordenes') {
         <div class="grid gap-4">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 class="text-xl font-semibold tracking-tight">Órdenes Sugeridas</h2>
-              <p class="text-sm text-muted-foreground">Materiales que requieren reabastecimiento</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <button hlmBtn variant="outline" size="sm" (click)="loadOrdenes()" [disabled]="ordenesLoading()">
-                <ng-icon hlm name="lucideRefreshCcw" size="sm" class="mr-2" [class.animate-spin]="ordenesLoading()" />
-                Actualizar
-              </button>
-              <button hlmBtn size="sm" (click)="exportToExcel('ordenes')" [disabled]="exporting()">
-                <ng-icon hlm name="lucideDownload" size="sm" class="mr-2" />
-                Excel
-              </button>
-            </div>
+          <div>
+            <h2 class="text-xl font-semibold tracking-tight">Órdenes Sugeridas</h2>
+            <p class="text-sm text-muted-foreground">Materiales que requieren reabastecimiento</p>
           </div>
-
           @if (ordenesLoading()) {
             <div class="flex items-center justify-center py-12">
               <ng-icon hlm name="lucideRefreshCcw" size="lg" class="animate-spin text-muted-foreground" />
@@ -153,21 +316,17 @@
                       <td class="px-4 py-3 text-right font-mono text-muted-foreground">{{ formatNumber(orden.disponible) }}</td>
                       <td class="px-4 py-3 text-right font-mono font-semibold text-amber-600">{{ formatNumber(orden.ordenar) }}</td>
                       <td class="px-4 py-3">{{ orden.fechaNecesidad }}</td>
-                      <td class="px-4 py-3 text-right font-mono font-medium">${{ formatNumber(orden.costoTotal) }}</td>
+                      <td class="px-4 py-3 text-right font-mono font-medium">{{ formatCurrency(orden.costoTotal) }}</td>
                       <td class="px-4 py-3 text-center">
-                        <span class="inline-flex items-center rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
-                          {{ orden.accion }}
-                        </span>
+                        <span class="inline-flex items-center rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-700">{{ orden.accion }}</span>
                       </td>
                     </tr>
                   } @empty {
                     <tr>
                       <td colspan="8" class="px-4 py-8 text-center text-muted-foreground">
-                        <div class="grid gap-1">
-                          <ng-icon hlm name="lucideCheckCircle" size="lg" class="mx-auto text-emerald-500" />
-                          <p class="font-medium">Sin órdenes sugeridas</p>
-                          <p class="text-xs">Todos los materiales tienen stock suficiente.</p>
-                        </div>
+                        <ng-icon hlm name="lucideCheckCircle" size="lg" class="mx-auto text-emerald-500" />
+                        <p class="mt-1 font-medium">Sin órdenes sugeridas</p>
+                        <p class="text-xs">Todos los materiales tienen stock suficiente.</p>
                       </td>
                     </tr>
                   }
@@ -178,26 +337,13 @@
         </div>
       }
 
-      <!-- Excepciones Tab -->
+      <!-- ── EXCEPCIONES TAB ────────────────────────────────────────────── -->
       @if (activeTab() === 'excepciones') {
         <div class="grid gap-4">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 class="text-xl font-semibold tracking-tight">Excepciones</h2>
-              <p class="text-sm text-muted-foreground">Alertas y anomalías detectadas en el inventario</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <button hlmBtn variant="outline" size="sm" (click)="loadExcepciones()" [disabled]="excepcionesLoading()">
-                <ng-icon hlm name="lucideRefreshCcw" size="sm" class="mr-2" [class.animate-spin]="excepcionesLoading()" />
-                Actualizar
-              </button>
-              <button hlmBtn size="sm" (click)="exportToExcel('excepciones')" [disabled]="exporting()">
-                <ng-icon hlm name="lucideDownload" size="sm" class="mr-2" />
-                Excel
-              </button>
-            </div>
+          <div>
+            <h2 class="text-xl font-semibold tracking-tight">Excepciones</h2>
+            <p class="text-sm text-muted-foreground">Alertas y anomalías detectadas en el inventario</p>
           </div>
-
           @if (excepcionesLoading()) {
             <div class="flex items-center justify-center py-12">
               <ng-icon hlm name="lucideRefreshCcw" size="lg" class="animate-spin text-muted-foreground" />
@@ -209,12 +355,10 @@
           } @else {
             <div class="grid gap-3">
               @for (excepcion of excepciones(); track $index) {
-                <div class="rounded-lg border p-4 transition-colors hover:bg-muted/30"
-                  [class]="getSeveridadBorderClass(excepcion.severidad)">
+                <div class="rounded-lg border p-4 transition-colors hover:bg-muted/30" [class]="getSeveridadBorderClass(excepcion.severidad)">
                   <div class="flex flex-wrap items-start justify-between gap-3">
                     <div class="flex items-start gap-3">
-                      <span class="mt-0.5 grid size-8 place-items-center rounded-lg"
-                        [class]="getSeveridadIconClass(excepcion.severidad)">
+                      <span class="mt-0.5 grid size-8 place-items-center rounded-lg" [class]="getSeveridadIconClass(excepcion.severidad)">
                         <ng-icon hlm [name]="getSeveridadIcon(excepcion.severidad)" size="sm" />
                       </span>
                       <div>
@@ -231,13 +375,8 @@
                       </div>
                     </div>
                     <div class="flex items-center gap-2">
-                      <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                        [class]="getSeveridadBadgeClass(excepcion.severidad)">
-                        {{ excepcion.severidad }}
-                      </span>
-                      <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                        {{ excepcion.tipoExcepcion }}
-                      </span>
+                      <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold" [class]="getSeveridadBadgeClass(excepcion.severidad)">{{ excepcion.severidad }}</span>
+                      <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">{{ excepcion.tipoExcepcion }}</span>
                     </div>
                   </div>
                 </div>
@@ -253,26 +392,13 @@
         </div>
       }
 
-      <!-- Acciones Tab -->
+      <!-- ── ACCIONES TAB ───────────────────────────────────────────────── -->
       @if (activeTab() === 'acciones') {
         <div class="grid gap-4">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 class="text-xl font-semibold tracking-tight">Mensajes de Acción</h2>
-              <p class="text-sm text-muted-foreground">Acciones recomendadas sobre órdenes y movimientos</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <button hlmBtn variant="outline" size="sm" (click)="loadAcciones()" [disabled]="accionesLoading()">
-                <ng-icon hlm name="lucideRefreshCcw" size="sm" class="mr-2" [class.animate-spin]="accionesLoading()" />
-                Actualizar
-              </button>
-              <button hlmBtn size="sm" (click)="exportToExcel('acciones')" [disabled]="exporting()">
-                <ng-icon hlm name="lucideDownload" size="sm" class="mr-2" />
-                Excel
-              </button>
-            </div>
+          <div>
+            <h2 class="text-xl font-semibold tracking-tight">Mensajes de Acción</h2>
+            <p class="text-sm text-muted-foreground">Acciones recomendadas sobre órdenes y movimientos</p>
           </div>
-
           @if (accionesLoading()) {
             <div class="flex items-center justify-center py-12">
               <ng-icon hlm name="lucideRefreshCcw" size="lg" class="animate-spin text-muted-foreground" />
@@ -289,8 +415,8 @@
                     <th class="px-4 py-3 text-left font-medium text-muted-foreground">Código</th>
                     <th class="px-4 py-3 text-left font-medium text-muted-foreground">Ítem</th>
                     <th class="px-4 py-3 text-center font-medium text-muted-foreground">Acción</th>
-                    <th class="px-4 py-3 text-left font-medium text-muted-foreground">Fecha Anterior</th>
-                    <th class="px-4 py-3 text-left font-medium text-muted-foreground">Fecha Nueva</th>
+                    <th class="px-4 py-3 text-left font-medium text-muted-foreground">F. Anterior</th>
+                    <th class="px-4 py-3 text-left font-medium text-muted-foreground">F. Nueva</th>
                     <th class="px-4 py-3 text-left font-medium text-muted-foreground">Razón</th>
                     <th class="px-4 py-3 text-center font-medium text-muted-foreground">Prioridad</th>
                   </tr>
@@ -301,28 +427,21 @@
                       <td class="px-4 py-3 font-mono text-xs">{{ accion.codigoItem }}</td>
                       <td class="px-4 py-3 font-medium">{{ accion.nombreItem }}</td>
                       <td class="px-4 py-3 text-center">
-                        <span class="inline-flex items-center rounded-full bg-purple-500/10 px-2.5 py-0.5 text-xs font-semibold text-purple-700">
-                          {{ accion.tipoAccion }}
-                        </span>
+                        <span class="inline-flex items-center rounded-full bg-purple-500/10 px-2.5 py-0.5 text-xs font-semibold text-purple-700">{{ accion.tipoAccion }}</span>
                       </td>
-                      <td class="px-4 py-3">{{ accion.fechaAnterior }}</td>
-                      <td class="px-4 py-3">{{ accion.fechaNueva }}</td>
-                      <td class="px-4 py-3 text-sm text-muted-foreground max-w-xs truncate">{{ accion.razon }}</td>
+                      <td class="px-4 py-3">{{ accion.fechaAnterior ?? '—' }}</td>
+                      <td class="px-4 py-3">{{ accion.fechaNueva ?? '—' }}</td>
+                      <td class="max-w-xs truncate px-4 py-3 text-sm text-muted-foreground">{{ accion.razon }}</td>
                       <td class="px-4 py-3 text-center">
-                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                          [class]="getPrioridadClass(accion.prioridad)">
-                          {{ accion.prioridad }}
-                        </span>
+                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold" [class]="getPrioridadClass(accion.prioridad)">{{ accion.prioridad }}</span>
                       </td>
                     </tr>
                   } @empty {
                     <tr>
                       <td colspan="7" class="px-4 py-8 text-center text-muted-foreground">
-                        <div class="grid gap-1">
-                          <ng-icon hlm name="lucideCheckCircle" size="lg" class="mx-auto text-emerald-500" />
-                          <p class="font-medium">Sin acciones pendientes</p>
-                          <p class="text-xs">No se requieren ajustes en este momento.</p>
-                        </div>
+                        <ng-icon hlm name="lucideCheckCircle" size="lg" class="mx-auto text-emerald-500" />
+                        <p class="mt-1 font-medium">Sin acciones pendientes</p>
+                        <p class="text-xs">No se requieren ajustes en este momento.</p>
                       </td>
                     </tr>
                   }
@@ -332,6 +451,7 @@
           }
         </div>
       }
+
     </div>
   </section>
 </main>

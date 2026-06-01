@@ -1,17 +1,27 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { provideIcons } from '@ng-icons/core';
 import {
   lucideActivity,
   lucideAlertTriangle,
+  lucideBarChart2,
   lucideCheckCircle,
   lucideDownload,
+  lucideFilter,
   lucideInfo,
   lucidePackage,
   lucideRefreshCcw,
   lucideShieldAlert,
   lucideShoppingCart,
+  lucideX,
 } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
@@ -19,19 +29,32 @@ import { finalize, take } from 'rxjs/operators';
 import { AuthService } from '../../core/users/services/auth.service';
 import {
   ActionMessage,
-  DashboardSummary,
   ExcepcionMrp,
+  ExportFormat,
   InventorySummary,
+  KpiDashboard,
   OrdenSugerida,
 } from './models/report.models';
-import { ReportService } from './services/report.service';
+import { ReportFilters, ReportService } from './services/report.service';
 
-type TabId = 'inventario' | 'ordenes' | 'excepciones' | 'acciones';
+type TabId = 'dashboard' | 'inventario' | 'ordenes' | 'excepciones' | 'acciones';
+
+interface ExportOption {
+  label: string;
+  format: ExportFormat;
+  ext: string;
+}
+
+const EXPORT_OPTIONS: ExportOption[] = [
+  { label: 'PDF', format: 'pdf', ext: '.pdf' },
+  { label: 'Excel', format: 'excel', ext: '.xlsx' },
+  { label: 'CSV', format: 'csv', ext: '.csv' },
+];
 
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, ...HlmButtonImports, ...HlmIconImports],
+  imports: [CommonModule, FormsModule, ...HlmButtonImports, ...HlmIconImports],
   providers: [
     provideIcons({
       lucideRefreshCcw,
@@ -43,6 +66,9 @@ type TabId = 'inventario' | 'ordenes' | 'excepciones' | 'acciones';
       lucideCheckCircle,
       lucideShieldAlert,
       lucideInfo,
+      lucideBarChart2,
+      lucideFilter,
+      lucideX,
     }),
   ],
   templateUrl: './reports.component.html',
@@ -52,18 +78,24 @@ export class ReportsComponent implements OnInit {
   private readonly reportService = inject(ReportService);
   private readonly authService = inject(AuthService);
 
+  protected readonly exportOptions = EXPORT_OPTIONS;
+  protected readonly selectedExportFormat = signal<ExportFormat>('excel');
+  /** Two-way ngModel binding proxy for the format <select> */
+  protected exportFormatValue: ExportFormat = 'excel';
+
   protected readonly tabs: { id: TabId; label: string; icon: string }[] = [
+    { id: 'dashboard', label: 'Dashboard', icon: 'lucideBarChart2' },
     { id: 'inventario', label: 'Inventario', icon: 'lucidePackage' },
     { id: 'ordenes', label: 'Órdenes Sugeridas', icon: 'lucideShoppingCart' },
     { id: 'excepciones', label: 'Excepciones', icon: 'lucideAlertTriangle' },
     { id: 'acciones', label: 'Acciones', icon: 'lucideActivity' },
   ];
 
-  protected readonly activeTab = signal<TabId>('inventario');
+  protected readonly activeTab = signal<TabId>('dashboard');
 
-  // Dashboard
+  // Dashboard / KPIs
   protected readonly dashboardLoading = signal(true);
-  protected readonly dashboard = signal<DashboardSummary | null>(null);
+  protected readonly dashboard = signal<KpiDashboard | null>(null);
 
   // Inventario
   protected readonly inventarioLoading = signal(false);
@@ -88,28 +120,87 @@ export class ReportsComponent implements OnInit {
   // Export
   protected readonly exporting = signal(false);
 
+  // Filters
+  protected readonly showFilters = signal(false);
+  protected readonly filters = signal<ReportFilters>({});
+  protected filterStartDate = '';
+  protected filterEndDate = '';
+  protected filterMaterialCode = '';
+  protected filterStatus = '';
+  protected filterSeverity = '';
+  protected filterPriority = '';
+
   ngOnInit(): void {
     this.loadDashboard();
-    this.loadInventario();
   }
 
   protected setActiveTab(tab: TabId): void {
     this.activeTab.set(tab);
-
     switch (tab) {
+      case 'dashboard':
+        if (!this.dashboard()) this.loadDashboard();
+        break;
       case 'inventario':
-        if (this.inventario().length === 0 && !this.inventarioLoading()) this.loadInventario();
+        if (this.inventario().length === 0 && !this.inventarioLoading())
+          this.loadInventario();
         break;
       case 'ordenes':
-        if (this.ordenes().length === 0 && !this.ordenesLoading()) this.loadOrdenes();
+        if (this.ordenes().length === 0 && !this.ordenesLoading())
+          this.loadOrdenes();
         break;
       case 'excepciones':
-        if (this.excepciones().length === 0 && !this.excepcionesLoading()) this.loadExcepciones();
+        if (this.excepciones().length === 0 && !this.excepcionesLoading())
+          this.loadExcepciones();
         break;
       case 'acciones':
-        if (this.acciones().length === 0 && !this.accionesLoading()) this.loadAcciones();
+        if (this.acciones().length === 0 && !this.accionesLoading())
+          this.loadAcciones();
         break;
     }
+  }
+
+  protected applyFilters(): void {
+    this.filters.set({
+      startDate: this.filterStartDate || undefined,
+      endDate: this.filterEndDate || undefined,
+      materialCode: this.filterMaterialCode || undefined,
+      status: this.filterStatus || undefined,
+      severity: this.filterSeverity || undefined,
+      priority: this.filterPriority || undefined,
+    });
+    this.showFilters.set(false);
+    this.reloadCurrentTab();
+  }
+
+  protected clearFilters(): void {
+    this.filterStartDate = '';
+    this.filterEndDate = '';
+    this.filterMaterialCode = '';
+    this.filterStatus = '';
+    this.filterSeverity = '';
+    this.filterPriority = '';
+    this.filters.set({});
+    this.reloadCurrentTab();
+  }
+
+  private reloadCurrentTab(): void {
+    const tab = this.activeTab();
+    if (tab === 'inventario') this.loadInventario();
+    else if (tab === 'ordenes') this.loadOrdenes();
+    else if (tab === 'excepciones') this.loadExcepciones();
+    else if (tab === 'acciones') this.loadAcciones();
+  }
+
+  protected hasActiveFilters(): boolean {
+    const f = this.filters();
+    return !!(
+      f.startDate ||
+      f.endDate ||
+      f.materialCode ||
+      f.status ||
+      f.severity ||
+      f.priority
+    );
   }
 
   protected loadDashboard(): void {
@@ -130,7 +221,7 @@ export class ReportsComponent implements OnInit {
     this.inventarioLoading.set(true);
     this.inventarioError.set(null);
     this.reportService
-      .getInventario()
+      .getInventario(this.filters())
       .pipe(
         take(1),
         finalize(() => this.inventarioLoading.set(false)),
@@ -148,7 +239,7 @@ export class ReportsComponent implements OnInit {
     this.ordenesLoading.set(true);
     this.ordenesError.set(null);
     this.reportService
-      .getOrdenesSugeridas()
+      .getOrdenesSugeridas(this.filters())
       .pipe(
         take(1),
         finalize(() => this.ordenesLoading.set(false)),
@@ -166,7 +257,7 @@ export class ReportsComponent implements OnInit {
     this.excepcionesLoading.set(true);
     this.excepcionesError.set(null);
     this.reportService
-      .getExcepciones()
+      .getExcepciones(this.filters())
       .pipe(
         take(1),
         finalize(() => this.excepcionesLoading.set(false)),
@@ -184,7 +275,7 @@ export class ReportsComponent implements OnInit {
     this.accionesLoading.set(true);
     this.accionesError.set(null);
     this.reportService
-      .getAcciones()
+      .getAcciones(this.filters())
       .pipe(
         take(1),
         finalize(() => this.accionesLoading.set(false)),
@@ -198,101 +289,110 @@ export class ReportsComponent implements OnInit {
       });
   }
 
-  protected exportToExcel(type: 'inventario' | 'ordenes' | 'excepciones' | 'acciones'): void {
+  protected exportReport(
+    type: 'dashboard' | 'inventario' | 'ordenes' | 'excepciones' | 'acciones',
+  ): void {
     this.exporting.set(true);
+    const fmt = this.exportFormatValue;
+    this.selectedExportFormat.set(fmt);
+    const filters = this.filters();
 
-    const exportMap = {
-      inventario: { fn: () => this.reportService.exportInventarioExcel(), name: 'inventario.xlsx' },
-      ordenes: { fn: () => this.reportService.exportOrdenesSugeridasExcel(), name: 'ordenes-sugeridas.xlsx' },
-      excepciones: { fn: () => this.reportService.exportExcepcionesExcel(), name: 'excepciones.xlsx' },
-      acciones: { fn: () => this.reportService.exportAccionesExcel(), name: 'acciones.xlsx' },
+    const exportFileNames: Record<string, string> = {
+      dashboard: `kpi-dashboard${this.extFor(fmt)}`,
+      inventario: `inventario${this.extFor(fmt)}`,
+      ordenes: `ordenes-sugeridas${this.extFor(fmt)}`,
+      excepciones: `excepciones${this.extFor(fmt)}`,
+      acciones: `acciones${this.extFor(fmt)}`,
     };
 
-    const { fn, name } = exportMap[type];
+    const exportCalls: Record<string, () => import('rxjs').Observable<Blob>> = {
+      dashboard: () => this.reportService.exportDashboard(fmt),
+      inventario: () => this.reportService.exportInventario(fmt, filters),
+      ordenes: () => this.reportService.exportOrdenesSugeridas(fmt, filters),
+      excepciones: () => this.reportService.exportExcepciones(fmt, filters),
+      acciones: () => this.reportService.exportAcciones(fmt, filters),
+    };
 
-    fn()
+    exportCalls[type]()
       .pipe(
         take(1),
         finalize(() => this.exporting.set(false)),
       )
       .subscribe({
-        next: (blob) => this.downloadBlob(blob, name),
+        next: (blob) => this.downloadBlob(blob, exportFileNames[type]),
         error: (err: HttpErrorResponse) => {
           this.handleError(err);
-          alert('Error al exportar el reporte.');
         },
       });
   }
 
-  protected formatNumber(value: number): string {
-    return new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value);
+  private extFor(format: ExportFormat): string {
+    return format === 'pdf' ? '.pdf' : format === 'csv' ? '.csv' : '.xlsx';
+  }
+
+  protected formatNumber(value: number | null | undefined): string {
+    if (value == null) return '—';
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(value);
+  }
+
+  protected formatCurrency(value: number | null | undefined): string {
+    if (value == null) return '—';
+    return new Intl.NumberFormat('es-VE', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+    }).format(value);
   }
 
   protected getEstadoClass(estado: string): string {
     switch (estado) {
-      case 'CRITICO':
-        return 'bg-red-500/10 text-red-700';
-      case 'BAJO':
-        return 'bg-amber-500/10 text-amber-700';
-      case 'EXCESO':
-        return 'bg-purple-500/10 text-purple-700';
-      default:
-        return 'bg-emerald-500/10 text-emerald-700';
+      case 'CRITICO': return 'bg-red-500/10 text-red-700';
+      case 'BAJO': return 'bg-amber-500/10 text-amber-700';
+      case 'EXCESO': return 'bg-purple-500/10 text-purple-700';
+      default: return 'bg-emerald-500/10 text-emerald-700';
     }
   }
 
   protected getSeveridadBorderClass(severity: string): string {
     switch (severity) {
-      case 'CRITICAL':
-        return 'border-red-500/30';
-      case 'WARNING':
-        return 'border-amber-500/30';
-      default:
-        return 'border-blue-500/30';
+      case 'CRITICAL': return 'border-red-500/30';
+      case 'WARNING': return 'border-amber-500/30';
+      default: return 'border-blue-500/30';
     }
   }
 
   protected getSeveridadIconClass(severity: string): string {
     switch (severity) {
-      case 'CRITICAL':
-        return 'bg-red-500/10 text-red-600';
-      case 'WARNING':
-        return 'bg-amber-500/10 text-amber-600';
-      default:
-        return 'bg-blue-500/10 text-blue-600';
+      case 'CRITICAL': return 'bg-red-500/10 text-red-600';
+      case 'WARNING': return 'bg-amber-500/10 text-amber-600';
+      default: return 'bg-blue-500/10 text-blue-600';
     }
   }
 
   protected getSeveridadIcon(severity: string): string {
     switch (severity) {
-      case 'CRITICAL':
-        return 'lucideShieldAlert';
-      case 'WARNING':
-        return 'lucideAlertTriangle';
-      default:
-        return 'lucideInfo';
+      case 'CRITICAL': return 'lucideShieldAlert';
+      case 'WARNING': return 'lucideAlertTriangle';
+      default: return 'lucideInfo';
     }
   }
 
   protected getSeveridadBadgeClass(severity: string): string {
     switch (severity) {
-      case 'CRITICAL':
-        return 'bg-red-500/10 text-red-700';
-      case 'WARNING':
-        return 'bg-amber-500/10 text-amber-700';
-      default:
-        return 'bg-blue-500/10 text-blue-700';
+      case 'CRITICAL': return 'bg-red-500/10 text-red-700';
+      case 'WARNING': return 'bg-amber-500/10 text-amber-700';
+      default: return 'bg-blue-500/10 text-blue-700';
     }
   }
 
   protected getPrioridadClass(prioridad: string): string {
     switch (prioridad) {
-      case 'HIGH':
-        return 'bg-red-500/10 text-red-700';
-      case 'MEDIUM':
-        return 'bg-amber-500/10 text-amber-700';
-      default:
-        return 'bg-emerald-500/10 text-emerald-700';
+      case 'HIGH': return 'bg-red-500/10 text-red-700';
+      case 'MEDIUM': return 'bg-amber-500/10 text-amber-700';
+      default: return 'bg-emerald-500/10 text-emerald-700';
     }
   }
 
@@ -312,6 +412,10 @@ export class ReportsComponent implements OnInit {
   }
 
   private extractErrorMessage(err: HttpErrorResponse): string {
-    return err?.error?.message ?? err?.error?.error ?? 'Error al cargar los datos.';
+    return (
+      err?.error?.message ??
+      err?.error?.error ??
+      'Error al cargar los datos.'
+    );
   }
 }
