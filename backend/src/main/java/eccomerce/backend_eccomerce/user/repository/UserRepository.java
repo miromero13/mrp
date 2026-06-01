@@ -13,7 +13,7 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<UserEntity, UUID> {            
     Optional<UserEntity> findByPhone(String phone);
 
-    @EntityGraph(attributePaths = {"role", "role.permissions"})
+    @EntityGraph(attributePaths = {"role", "role.permissions", "enterprise"})
     Optional<UserEntity> findByEmail(String email);
 }
 

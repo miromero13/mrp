@@ -3,6 +3,7 @@ package eccomerce.backend_eccomerce.user.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import eccomerce.backend_eccomerce.common.entity.BaseEntity;
 import eccomerce.backend_eccomerce.common.enums.GenderEnum;
+import eccomerce.backend_eccomerce.enterprise.entity.EnterpriseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -38,4 +39,7 @@ public class UserEntity extends BaseEntity {
     @JoinColumn(name = "role_id", nullable = false)
     public RoleEntity role;
 
+    @ManyToOne
+    @JoinColumn(name = "enterprise_id")
+    public EnterpriseEntity enterprise;
 }
