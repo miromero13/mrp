@@ -114,6 +114,13 @@ export class PrivateLayoutComponent {
           exact: true,
           requiredPermissions: [PERMISOS.indirectCosts.listar],
         },
+        {
+          title: 'Lotes',
+          url: this.appRouteUrls.batches,
+          icon: 'lucidePackage',
+          exact: true,
+          requiredPermissions: [PERMISOS.batches.listar],
+        }
       ],
       expanded: true,
     },
