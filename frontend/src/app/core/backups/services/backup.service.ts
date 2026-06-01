@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { map } from 'rxjs';
 import { apiEndpoint } from '../../config/api.config';
@@ -12,9 +12,11 @@ export class BackupService {
   private readonly http = inject(HttpClient);
   private readonly backupsUrl = apiEndpoint(API_ROUTES.backups.list);
 
-  listBackups() {
-    // acceder a .../api/backups
-    return this.http.get<ApiResponse<BackupItem[]>>(this.backupsUrl).pipe(map((response) => response.data ?? []));
+  listBackups(payload:BackupFormValue) {
+    const params = new HttpParams()
+        .set('userId', payload.userId)
+        .set('enterpriseId', payload.enterpriseId);
+    return this.http.get<ApiResponse<BackupItem[]>>(this.backupsUrl, { params }).pipe(map((response) => response.data ?? []));
   }
 
   createManualBackup(payload: BackupFormValue) {
@@ -22,27 +24,7 @@ export class BackupService {
   }
 
   createScheduledBackup(schedulePayload: ScheduleBackupFormValue, createPayload: BackupFormValue) {
-    return this.http.post<ApiResponse<void>>(this.backupsUrl, { ...createPayload, ...schedulePayload });
+    return this.http.post<ApiResponse<void>>(`${this.backupsUrl}/programar`, { ...createPayload, ...schedulePayload });
   }
 
-  deleteBackup(id: string) {
-    return this.http.delete<ApiResponse<void>>(`${this.backupsUrl}/${id}`);
-  }
-
-  // descargar un backup, recibir un archivo
-  downloadBackup(id: string) {
-    return this.http.get(`${this.backupsUrl}/${id}/download`, {
-      responseType: 'blob',
-    });
-  }
-  
-  
-
-  /* deleteEnterprise(id: string) {
-    return this.http.delete<ApiResponse<void>>(`${this.enterprisesUrl}/${id}`);
-  } */
-
-  /* getBackup(id: string,) {
-    return this.http.get<ApiResponse<BackupItem>>(`${this.backupsUrl}/${id}`).pipe(map((response) => response.data ?? null));
-  } */
 }

@@ -53,8 +53,10 @@ public class BackupService {
             "enterprise_machines", "enterprise_id",
             "enterprise_indirect_costs", "enterprise_id");
 
-    @Async
+    @Async  // BackupService
     public CompletableFuture<BackupEntity> generarBackup(UUID empresaId, BackupType tipo) {
+        log.info(">>> generarBackup llamado para empresa: {}", empresaId);
+
         return CompletableFuture.supplyAsync(() -> {
             BackupEntity backup = new BackupEntity();
             backup.setEnterpriseId(empresaId);
@@ -70,19 +72,24 @@ public class BackupService {
                 // 2. Comprimir
                 Path archivoZip = comprimirArchivo(archivoSql);
 
+                // Obtener tamaño ANTES de mover
+                long archivoSize = Files.size(archivoZip);
+
                 // 3. Guardar en storage (local o nube)
                 String rutaFinal = storageService.guardar(archivoZip, empresaId);
 
                 // 4. Actualizar registro
                 backup.setFileName(archivoZip.getFileName().toString());
                 backup.setFilePath(rutaFinal);
-                backup.setSizeBytes(Files.size(archivoZip));
+                backup.setSizeBytes(archivoSize);
                 backup.setState(BackupState.COMPLETADO);
                 backup.setMessage("Se ha generado el backup correctamente");
        
                 // Limpiar temporales
                 Files.deleteIfExists(archivoSql);
                 Files.deleteIfExists(archivoZip);
+                log.info(">>> Backup completado para empresa: {}", empresaId);
+
             } catch (Exception e) {
                 log.error("Error generando backup para empresa {}", empresaId, e);
                 backup.setState(BackupState.ERROR);
@@ -97,11 +104,14 @@ public class BackupService {
 
     public ResponseMessage<List<BackupEntity>> getAllBackups(UUID empresaId) {
         try {
+            System.out.println(">>> getAllBackups llamado para empresa: " + empresaId);
             List<BackupEntity> backups = backupRepository.findByEnterpriseIdOrderByStartDateDesc(empresaId);
             return ResponseMessage.success(backups, "Backups obtenidas correctamente", backups.size());
         } catch (RuntimeException ex) {
+            log.error("Error al obtener los backup de la empresa {}", empresaId, ex);
             return ResponseMessage.error("No se pudieron obtener los backups", ex.getMessage(), 400);
         } catch (Exception ex) {
+            log.error("Error inesperadp al obtener los backup de la empresa {}", empresaId, ex);
             return ResponseMessage.error("No se pudieron obtener los backups", ex.getMessage(), 500);
         }
     }
@@ -185,47 +195,4 @@ public class BackupService {
         return zipPath;
     }
 
-    /*
-     * @Async
-     * public CompletableFuture<BackupEntity> generarBackup(UUID empresaId,
-     * BackupTipo tipo) {
-     * BackupEntity backup = new BackupEntity();
-     * backup.setEmpresaId(empresaId);
-     * backup.setTipo(tipo);
-     * backup.setEstado(BackupEstado.EN_PROGRESO);
-     * backup.setFechaInicio(LocalDateTime.now());
-     * backupRepository.save(backup);
-     * 
-     * try {
-     * // 1. Exportar datos filtrados por empresa
-     * Path archivoSql = exportarDatosEmpresa(empresaId);
-     * 
-     * // 2. Comprimir
-     * Path archivoZip = comprimirArchivo(archivoSql);
-     * 
-     * // 3. Guardar en storage (local o nube)
-     * String rutaFinal = storageService.guardar(archivoZip, empresaId);
-     * 
-     * // 4. Actualizar registro
-     * backup.setNombreArchivo(archivoZip.getFileName().toString());
-     * backup.setRutaArchivo(rutaFinal);
-     * backup.setTamanoBytes(Files.size(archivoZip));
-     * backup.setEstado(BackupEstado.COMPLETADO);
-     * backup.setFechaFin(LocalDateTime.now());
-     * 
-     * // Limpiar temporales
-     * Files.deleteIfExists(archivoSql);
-     * Files.deleteIfExists(archivoZip);
-     * 
-     * } catch (Exception e) {
-     * log.error("Error generando backup para empresa {}", empresaId, e);
-     * backup.setEstado(BackupEstado.ERROR);
-     * backup.setMensajeError(e.getMessage());
-     * backup.setFechaFin(LocalDateTime.now());
-     * }
-     * 
-     * backupRepository.save(backup);
-     * return CompletableFuture.completedFuture(backup);
-     * }
-     */
 }

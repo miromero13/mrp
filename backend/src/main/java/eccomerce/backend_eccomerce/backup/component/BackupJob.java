@@ -13,7 +13,8 @@ import eccomerce.backend_eccomerce.backup.service.BackupService;
 @Component
 public class BackupJob implements Job {
 
-    @Autowired private BackupService backupService;
+    @Autowired
+    private BackupService backupService;
 
     @Override
     public void execute(JobExecutionContext context) {

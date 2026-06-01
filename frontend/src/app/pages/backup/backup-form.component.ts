@@ -45,12 +45,16 @@ export class BackupFormComponent {
   });
 
   constructor() {
-    // Sincronizar los valores del formulario cuando cambien los datos del usuario
     effect(() => {
-      this.form.patchValue({
-        userId: this.userId(),
-        enterpriseId: this.enterpriseId(),
-      });
+      const user = this.currentUser();
+      if (user) {
+        this.form.patchValue({
+          userId: user.id ?? '',
+          enterpriseId: user.enterprise?.id ?? '',
+        });
+        console.log('userId:', user.id);
+        console.log('enterpriseId:', user.enterprise?.id);
+      }
     });
   }
 

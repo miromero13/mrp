@@ -1,4 +1,8 @@
 <form class="grid gap-6" [formGroup]="form" (ngSubmit)="submit()">
+  <input type="hidden" formControlName="userId" />
+  <input type="hidden" formControlName="enterpriseId" />
+  <input type="hidden" formControlName="cronExpression" />
+
   @if (serverError()) {
     <p class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
       {{ serverError() }}
@@ -28,19 +32,61 @@
   <!-- Configuración de la programación -->
   <section class="grid gap-4 rounded-xl border bg-muted/20 p-4">
     <h3 class="font-semibold text-sm">Configuración de la programación</h3>
+    
     <div class="grid gap-2">
-      <label hlmLabel for="cronExpression">Expresión Cron</label>
-      <input 
-        hlmInput 
-        id="cronExpression" 
-        formControlName="cronExpression" 
-        placeholder="Ej. 0 2 * * * (Todos los días a las 2 AM)" 
-        type="text"
-      />
-      @if (form.get('cronExpression')?.invalid && form.get('cronExpression')?.touched) {
-        <p class="text-xs text-destructive">La expresión cron es requerida y debe ser válida.</p>
-      }
-      <p class="text-xs text-muted-foreground">Formato cron: segundo minuto hora día mes díaSemana</p>
+      <label hlmLabel for="frequency">Frecuencia</label>
+      <select hlmInput id="frequency" formControlName="frequency" class="h-9">
+        @for (option of frequencyOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="grid gap-2">
+        <label hlmLabel for="hour">Hora</label>
+        <select hlmInput id="hour" formControlName="hour" class="h-9">
+          @for (h of hours; track h) {
+            <option [value]="h">{{ (h < 10 ? '0' : '') + h }}:00</option>
+          }
+        </select>
+      </div>
+
+      <div class="grid gap-2">
+        <label hlmLabel for="minute">Minuto</label>
+        <select hlmInput id="minute" formControlName="minute" class="h-9">
+          @for (m of minutes; track m) {
+            <option [value]="m">{{ (m < 10 ? '0' : '') + m }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    @if (showDaysOfWeek()) {
+      <div class="grid gap-2">
+        <label hlmLabel>Días de la semana</label>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          @for (day of daysOfWeek; track day.value) {
+            <div class="flex items-center gap-2">
+              <input 
+                type="checkbox" 
+                [id]="'day-' + day.value"
+                class="rounded border border-input"
+                [checked]="isDaySelected(day.value)"
+                (change)="toggleDay(day.value)"
+              />
+              <label [for]="'day-' + day.value" class="text-sm cursor-pointer">{{ day.label }}</label>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="grid gap-2 pt-2">
+      <label hlmLabel for="cronExpression" class="text-xs text-muted-foreground">Expresión cron generada:</label>
+      <div id="cronExpression" class="rounded-md border border-input bg-muted/50 px-3 py-2 text-sm font-mono">
+        {{ form.get('cronExpression')?.value }}
+      </div>
     </div>
   </section>
 

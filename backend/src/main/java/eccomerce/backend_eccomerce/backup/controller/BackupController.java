@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -51,6 +52,7 @@ public class BackupController {
     @Operation(summary = "Generar backup manual")
     @PostMapping("/manual")
     public ResponseMessage<Void> backupManual(@RequestBody BackupSessionDto dto) {
+        System.out.println("DTO recibido: User :" + dto.getUserId() + "Enterprise: " + dto.getEnterpriseId());
         UUID empresaId = obtenerEmpresaId(dto);
         backupService.generarBackup(empresaId, BackupType.MANUAL);
         return ResponseMessage.ok("Backup iniciado correctamente", 202);
@@ -59,13 +61,14 @@ public class BackupController {
     @RequirePermission(PermissionConstants.CREAR_BACKUP)
     @Operation(summary = "Generar backup programado")
     @PostMapping("/programar")
-    public ResponseMessage<Void> programar(@RequestBody ScheduleBackupDto backupDto,
-            BackupSessionDto dto) throws SchedulerException {
-        UUID empresaId = obtenerEmpresaId(dto);
-        // req.getCronExpression() ej: "0 0 2 * * ?" = todos los días a las 2am
-        schedulerConfig.programarBackup(empresaId, backupDto.getCronExpression());
+    public ResponseMessage<Void> programar(@RequestBody ScheduleBackupDto backupDto) throws SchedulerException {
+        UUID enterpriseId = obtenerEmpresaId(backupDto);
+        System.out.println("Backup programado para la empresa: " + backupDto.getEnterpriseId());
+        System.out.println("Cron recibido : "+ backupDto.getCronExpression());
+        schedulerConfig.programarBackup(enterpriseId, backupDto.getCronExpression());
         return ResponseMessage.ok("Backup programado correctamente", 202);
     }
+
 
     @RequirePermission(PermissionConstants.CANCELAR_BACKUP)
     @Operation(summary = "Cancelar backup programado")
@@ -79,9 +82,8 @@ public class BackupController {
     @RequirePermission(PermissionConstants.LISTAR_BACKUPS)
     @Operation(summary = "Obtener historial de backups")
     @GetMapping
-    public ResponseMessage<List<BackupEntity>> historial(BackupSessionDto dto) {
-        UUID empresaId = obtenerEmpresaId(dto);
-        return backupService.getAllBackups(empresaId);
+    public ResponseMessage<List<BackupEntity>> historial(@RequestParam UUID userId, @RequestParam UUID enterpriseId) {
+        return backupService.getAllBackups(enterpriseId);
     }
 
     @GetMapping("/descargar/{backupId}")
@@ -110,6 +112,17 @@ public class BackupController {
      */
     private UUID obtenerEmpresaId(BackupSessionDto dto) {
         return dto.getEnterpriseId();
+    }
+
+    /**
+     * Obtener el Id de la empresa de la sesión del usuario administrador
+     * autenticado
+     * 
+     * @param backupDto tipo ScheduleBackupDto
+     * @return UUID
+     */
+    private UUID obtenerEmpresaId(ScheduleBackupDto backupDto) {
+        return backupDto.getEnterpriseId();
     }
 
 }

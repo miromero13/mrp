@@ -18,4 +18,6 @@ public interface BackupRepository extends JpaRepository<BackupEntity, Long> {
 
     List<BackupEntity> findByEnterpriseIdOrderByStartDateDesc(UUID empresaId);
 
+    BackupEntity findByEnterpriseId(UUID empresaId);
+
 }

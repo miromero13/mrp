@@ -1,4 +1,7 @@
-<form class="grid gap-6" (ngSubmit)="submit()">
+<form class="grid gap-6" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <input type="hidden" formControlName="userId" />
+  <input type="hidden" formControlName="enterpriseId" />
+
   @if (serverError()) {
     <p class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
       {{ serverError() }}

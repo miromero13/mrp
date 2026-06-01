@@ -74,9 +74,13 @@ export class BackupsComponent implements OnInit {
   ]);
 
   ngOnInit(): void {
-    this.loadBackups();
+    this.loadBackups({
+      userId: this.authService.currentUser()?.id ?? '',
+      enterpriseId: this.authService.currentUser()?.enterprise?.id ?? '',
+    });
   }
 
+  
   protected openCreateManualModal(): void {
     if (!this.canCreateBackup()) {
       return;
@@ -106,6 +110,10 @@ export class BackupsComponent implements OnInit {
   }
 
   protected createManualBackup(payload: BackupFormValue): void {
+    // imprimir en consola los datos de payload
+    console.log('Payload.enterpriseId para backup manual: ', payload.enterpriseId);
+    console.log('Payload.userId para backup manual: ', payload.userId);
+
     this.saving.set(true);
     this.createErrorMessage.set(null);
     this.backupService
@@ -117,12 +125,12 @@ export class BackupsComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isCreateManualModalOpen.set(false);
-          this.loadBackups();
+          this.loadBackups(payload);
         },
         error: (error: HttpErrorResponse) => {
           if (error.status === 401 || error.status === 403) {
-            this.errorMessage.set('Tu sesión expiró. Inicia sesión nuevamente.');
-            this.authService.logout();
+            //this.errorMessage.set('Tu sesión expiró. Inicia sesión nuevamente.');
+            //this.authService.logout();
             return;
           }
           const backendError = error?.error?.error ?? error?.error?.message;
@@ -133,6 +141,8 @@ export class BackupsComponent implements OnInit {
   }
 
   protected createScheduledBackup(payload: ScheduledBackupSubmitPayload): void {
+    console.log('Payload.enterpriseId para backup programado: ', payload.createPayload.enterpriseId);
+    console.log('Payload.userId para backup programado: ', payload.createPayload.userId);
     this.saving.set(true);
     this.createErrorMessage.set(null);
 
@@ -145,12 +155,12 @@ export class BackupsComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isCreateScheduledModalOpen.set(false);
-          this.loadBackups();
+          this.loadBackups(payload.createPayload);
         },
         error: (error: HttpErrorResponse) => {
           if (error.status === 401 || error.status === 403) {
-            this.errorMessage.set('Tu sesión expiró. Inicia sesión nuevamente.');
-            this.authService.logout();
+            //this.errorMessage.set('Tu sesión expiró. Inicia sesión nuevamente.');
+            //this.authService.logout();
             return;
           }
 
@@ -161,13 +171,13 @@ export class BackupsComponent implements OnInit {
       });
   }
 
-  protected loadBackups(): void {
+  protected loadBackups(payload: BackupFormValue): void {
     this.loading.set(true);
     this.errorMessage.set(null);
     this.backupErrorMessage.set(null);
 
     this.backupService
-      .listBackups()
+      .listBackups(payload)
       .pipe(
         take(1),
         finalize(() => this.loading.set(false)),
@@ -175,12 +185,11 @@ export class BackupsComponent implements OnInit {
       .subscribe({
         next: (backups) => {
           this.backups.set(backups);
-          this.backup.set(backups[0] ?? null);
         },
         error: (error: HttpErrorResponse) => {
           if (error.status === 401 || error.status === 403) {
-            this.errorMessage.set('Tu sesión expiró. Inicia sesión nuevamente.');
-            this.authService.logout();
+            //this.errorMessage.set('Tu sesión expiró. Inicia sesión nuevamente.');
+            //this.authService.logout();
             return;
           }
 
