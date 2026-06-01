@@ -5,9 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -27,6 +25,7 @@ import eccomerce.backend_eccomerce.reports.dto.ActionMessageDto;
 import eccomerce.backend_eccomerce.reports.dto.ExceptionDto;
 import eccomerce.backend_eccomerce.reports.dto.InventorySummaryDto;
 import eccomerce.backend_eccomerce.reports.dto.OrdenSugeridaDto;
+import eccomerce.backend_eccomerce.reports.dto.gerencial.KpiReportDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,11 +40,11 @@ public class MrpCalculationService {
     private final InventoryRepository inventoryRepository;
     private final MrpProperties mrpProperties;
 
-    public List<OrdenSugeridaDto> generateOrdenesSugeridas() {
+    public List<OrdenSugeridaDto> generateOrdenesSugeridas(UUID enterpriseId) {
         List<OrdenSugeridaDto> ordenes = new ArrayList<>();
         LocalDate horizonDate = LocalDate.now().plusDays(mrpProperties.getHorizonDays());
 
-        List<ProductEntity> productsToProduce = inferProductionFromStock();
+        List<ProductEntity> productsToProduce = inferProductionFromStock(enterpriseId);
 
         for (ProductEntity product : productsToProduce) {
             BigDecimal productionQty = product.getStockMin().subtract(getProductAvailableStock(product));
@@ -59,7 +58,7 @@ public class MrpCalculationService {
             for (ProductMaterialEntity pm : materials) {
                 MaterialEntity material = pm.getMaterial();
                 BigDecimal requiredQty = productionQty.multiply(pm.getQuantity());
-                BigDecimal availableQty = getMaterialAvailableStock(material);
+                BigDecimal availableQty = getMaterialAvailableStock(material, enterpriseId);
 
                 if (availableQty.compareTo(requiredQty) < 0) {
                     BigDecimal orderQty = requiredQty.subtract(availableQty);
@@ -85,8 +84,8 @@ public class MrpCalculationService {
         return ordenes;
     }
 
-    private List<ProductEntity> inferProductionFromStock() {
-        return productRepository.findProductsWithMinStock().stream()
+    private List<ProductEntity> inferProductionFromStock(UUID enterpriseId) {
+        return productRepository.findProductsWithMinStockAndEnterprise(enterpriseId).stream()
                 .filter(p -> getProductAvailableStock(p).compareTo(p.getStockMin()) < 0)
                 .collect(Collectors.toList());
     }
@@ -97,10 +96,10 @@ public class MrpCalculationService {
                 .orElse(BigDecimal.ZERO);
     }
 
-    private BigDecimal getMaterialAvailableStock(MaterialEntity material) {
+    private BigDecimal getMaterialAvailableStock(MaterialEntity material, UUID enterpriseId) {
         BigDecimal onHand = material.getStockCurrent() != null ? material.getStockCurrent() : BigDecimal.ZERO;
         BigDecimal committed = calculateCommittedStock(material);
-        BigDecimal onOrder = calculateOnOrderStock(material);
+        BigDecimal onOrder = calculateOnOrderStock(material, enterpriseId);
         return onHand.subtract(committed).add(onOrder);
     }
 
@@ -108,7 +107,7 @@ public class MrpCalculationService {
         return BigDecimal.ZERO;
     }
 
-    private BigDecimal calculateOnOrderStock(MaterialEntity material) {
+    private BigDecimal calculateOnOrderStock(MaterialEntity material, UUID enterpriseId) {
         LocalDateTime cutoffDate = LocalDateTime.now().plusDays(mrpProperties.getHorizonDays());
         List<InventoryMomentDetailEntity> pendingOrders = inventoryRepository
                 .findInventoryHistoryByMaterial(material, cutoffDate);
@@ -119,12 +118,12 @@ public class MrpCalculationService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public List<ActionMessageDto> generateActionMessages() {
+    public List<ActionMessageDto> generateActionMessages(UUID enterpriseId) {
         List<ActionMessageDto> messages = new ArrayList<>();
         LocalDateTime startDate = LocalDateTime.now().minusDays(mrpProperties.getHorizonDays());
         LocalDateTime endDate = LocalDateTime.now();
 
-        List<InventoryMomentEntity> movements = inventoryRepository.findByMovementDateBetween(startDate, endDate);
+        List<InventoryMomentEntity> movements = inventoryRepository.findByMovementDateBetweenAndEnterprise(startDate, endDate, enterpriseId);
 
         for (InventoryMomentEntity movement : movements) {
             if (movement.getType() == InventoryMomentEntity.InventoryMomentType.ORDEN_COMPRA ||
@@ -159,10 +158,10 @@ public class MrpCalculationService {
         return messages;
     }
 
-    public List<ExceptionDto> generateExceptions() {
+    public List<ExceptionDto> generateExceptions(UUID enterpriseId) {
         List<ExceptionDto> exceptions = new ArrayList<>();
 
-        List<MaterialEntity> lowStockMaterials = materialRepository.findMaterialsBelowMinStock();
+        List<MaterialEntity> lowStockMaterials = materialRepository.findMaterialsBelowMinStockAndEnterprise(enterpriseId);
         for (MaterialEntity material : lowStockMaterials) {
             exceptions.add(ExceptionDto.builder()
                     .codigo(material.getCode())
@@ -178,7 +177,7 @@ public class MrpCalculationService {
                     .build());
         }
 
-        List<MaterialEntity> excessStockMaterials = materialRepository.findMaterialsWithExcessStock();
+        List<MaterialEntity> excessStockMaterials = materialRepository.findMaterialsWithExcessStockAndEnterprise(enterpriseId);
         for (MaterialEntity material : excessStockMaterials) {
             exceptions.add(ExceptionDto.builder()
                     .codigo(material.getCode())
@@ -195,7 +194,7 @@ public class MrpCalculationService {
         }
 
         LocalDateTime cutoffDate = LocalDateTime.now().minusDays(mrpProperties.getObsoleteDays());
-        List<MaterialEntity> materialsWithStock = materialRepository.findMaterialsWithStock();
+        List<MaterialEntity> materialsWithStock = materialRepository.findMaterialsWithStockAndEnterprise(enterpriseId);
         for (MaterialEntity material : materialsWithStock) {
             LocalDateTime lastMovement = getLastMovementDate(material);
             if (lastMovement == null || lastMovement.isBefore(cutoffDate)) {
@@ -231,14 +230,14 @@ public class MrpCalculationService {
         };
     }
 
-    public List<InventorySummaryDto> generateInventorySummary() {
+    public List<InventorySummaryDto> generateInventorySummary(UUID enterpriseId) {
         List<InventorySummaryDto> summaries = new ArrayList<>();
-        List<MaterialEntity> materials = materialRepository.findByIsActiveTrue();
+        List<MaterialEntity> materials = materialRepository.findAllActiveAndEnterprise(enterpriseId);
 
         for (MaterialEntity material : materials) {
             BigDecimal onHand = material.getStockCurrent() != null ? material.getStockCurrent() : BigDecimal.ZERO;
             BigDecimal committed = BigDecimal.ZERO;
-            BigDecimal onOrder = calculateOnOrderStock(material);
+            BigDecimal onOrder = calculateOnOrderStock(material, enterpriseId);
             BigDecimal available = onHand.subtract(committed).add(onOrder);
 
             LocalDateTime lastMovement = getLastMovementDate(material);
@@ -285,36 +284,46 @@ public class MrpCalculationService {
         return "NORMAL";
     }
 
-    public Map<String, Object> getDashboardSummary() {
-        Map<String, Object> summary = new HashMap<>();
+    public KpiReportDto getDashboardSummary(UUID enterpriseId) {
+        List<OrdenSugeridaDto> ordenes = generateOrdenesSugeridas(enterpriseId);
+        List<ActionMessageDto> acciones = generateActionMessages(enterpriseId);
+        List<ExceptionDto> excepciones = generateExceptions(enterpriseId);
+        List<InventorySummaryDto> inventario = generateInventorySummary(enterpriseId);
 
-        List<OrdenSugeridaDto> ordenes = generateOrdenesSugeridas();
-        List<ActionMessageDto> acciones = generateActionMessages();
-        List<ExceptionDto> excepciones = generateExceptions();
-        List<InventorySummaryDto> inventario = generateInventorySummary();
-
-        summary.put("totalOrdenesSugeridas", ordenes.size());
-        summary.put("costoTotalOrdenes", ordenes.stream()
+        BigDecimal costoTotal = ordenes.stream()
                 .map(OrdenSugeridaDto::getCostoTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
-        summary.put("totalAcciones", acciones.size());
-        summary.put("accionesUrgentes", acciones.stream()
-                .filter(a -> "HIGH".equals(a.getPrioridad()))
-                .count());
-        summary.put("totalExcepciones", excepciones.size());
-        summary.put("excepcionesCriticas", excepciones.stream()
-                .filter(e -> "CRITICAL".equals(e.getSeveridad()))
-                .count());
-        summary.put("materialesCriticos", inventario.stream()
-                .filter(i -> "CRITICO".equals(i.getEstado()))
-                .count());
-        summary.put("materialesBajos", inventario.stream()
-                .filter(i -> "BAJO".equals(i.getEstado()))
-                .count());
-        summary.put("valorTotalInventario", inventario.stream()
-                .map(InventorySummaryDto::getValorTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        return summary;
+        long accionesUrgentes = acciones.stream()
+                .filter(a -> "HIGH".equals(a.getPrioridad()))
+                .count();
+
+        long excepcionesCriticas = excepciones.stream()
+                .filter(e -> "CRITICAL".equals(e.getSeveridad()))
+                .count();
+
+        long materialesCriticos = inventario.stream()
+                .filter(i -> "CRITICO".equals(i.getEstado()))
+                .count();
+
+        long materialesBajos = inventario.stream()
+                .filter(i -> "BAJO".equals(i.getEstado()))
+                .count();
+
+        BigDecimal valorTotal = inventario.stream()
+                .map(InventorySummaryDto::getValorTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return KpiReportDto.builder()
+                .totalOrdenesSugeridas(ordenes.size())
+                .costoTotalOrdenes(costoTotal)
+                .totalAcciones(acciones.size())
+                .accionesUrgentes(accionesUrgentes)
+                .totalExcepciones(excepciones.size())
+                .excepcionesCriticas(excepcionesCriticas)
+                .materialesCriticos(materialesCriticos)
+                .materialesBajos(materialesBajos)
+                .valorTotalInventario(valorTotal)
+                .build();
     }
 }
