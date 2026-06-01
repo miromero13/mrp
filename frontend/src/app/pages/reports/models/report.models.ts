@@ -35,8 +35,6 @@ export interface ExcepcionMrp {
   cantidadActual: number;
   cantidadMinima: number;
   cantidadAfectada: number;
-  fechaEsperada: string | null;
-  fechaActual: string | null;
   severidad: 'CRITICAL' | 'WARNING' | 'INFO';
   estado: string;
   descripcion: string;
@@ -47,16 +45,17 @@ export interface ActionMessage {
   nombreItem: string;
   tipoItem: string;
   tipoAccion: string;
-  fechaAnterior: string;
-  fechaNueva: string;
+  fechaAnterior: string | null;
+  fechaNueva: string | null;
   cantidadAnterior: number;
   cantidadNueva: number;
   razon: string;
   prioridad: 'HIGH' | 'MEDIUM' | 'LOW';
-  fechaActual: string;
+  fechaActual: string | null;
 }
 
-export interface DashboardSummary {
+/** Matches backend KpiReportDto from GerencialReportController */
+export interface KpiDashboard {
   totalOrdenesSugeridas: number;
   costoTotalOrdenes: number;
   totalAcciones: number;
@@ -67,3 +66,8 @@ export interface DashboardSummary {
   materialesBajos: number;
   valorTotalInventario: number;
 }
+
+/** @deprecated Use KpiDashboard */
+export type DashboardSummary = KpiDashboard;
+
+export type ExportFormat = 'pdf' | 'excel' | 'csv';

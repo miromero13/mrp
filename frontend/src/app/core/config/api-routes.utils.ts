@@ -17,15 +17,18 @@ export const API_ROUTES = {
     costCenters: 'cost-centers',
   },
   reports: {
-    dashboard: 'reports/dashboard',
-    inventario: 'reports/inventario',
-    inventarioExcel: 'reports/inventario/excel',
-    ordenesSugeridas: 'reports/ordenes-sugeridas',
-    ordenesSugeridasExcel: 'reports/ordenes-sugeridas/excel',
-    ordenesSugeridasHtml: 'reports/ordenes-sugeridas/html',
-    excepciones: 'reports/excepciones',
-    excepcionesExcel: 'reports/excepciones/excel',
-    acciones: 'reports/acciones',
-    accionesExcel: 'reports/acciones/excel',
+    // Gerencial
+    dashboard: 'reports/gerenciales/dashboard',
+    dashboardExport: 'reports/gerenciales/export',
+    // Analítico — datos JSON
+    inventario: 'reports/analiticos/inventario',
+    ordenesSugeridas: 'reports/analiticos/ordenes-sugeridas',
+    excepciones: 'reports/analiticos/excepciones',
+    acciones: 'reports/analiticos/acciones',
+    // Analítico — exportación (query param ?format=pdf|excel|csv)
+    inventarioExport: 'reports/analiticos/inventario/export',
+    ordenesSugeridasExport: 'reports/analiticos/ordenes-sugeridas/export',
+    excepcionesExport: 'reports/analiticos/excepciones/export',
+    accionesExport: 'reports/analiticos/acciones/export',
   },
 } as const;
