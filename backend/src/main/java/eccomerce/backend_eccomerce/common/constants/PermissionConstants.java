@@ -29,13 +29,17 @@ public final class PermissionConstants {
     public static final String LISTAR_CENTRO_COSTO = "listar_centro_costo";
 
     public static final String LISTAR_REPORTES = "listar_reportes";
+    public static final String VER_REPORTES_GERENCIALES = "ver_reportes_gerenciales";
+    public static final String VER_REPORTES_ANALITICOS = "ver_reportes_analiticos";
+    public static final String EXPORTAR_REPORTES = "exportar_reportes";
 
     public static final String[] NAMES = {
             CREAR_ROL, EDITAR_ROL, ELIMINAR_ROL, LISTAR_ROL,
             CREAR_PERMISO, EDITAR_PERMISO, ELIMINAR_PERMISO, LISTAR_PERMISO,
             CREAR_USUARIO, EDITAR_USUARIO, ELIMINAR_USUARIO, LISTAR_USUARIO,
             CREAR_COSTO_INDIRECTO, EDITAR_COSTO_INDIRECTO, ELIMINAR_COSTO_INDIRECTO, LISTAR_COSTO_INDIRECTO,
-            LISTAR_CATEGORIA_COSTO, LISTAR_CENTRO_COSTO, LISTAR_REPORTES
+            LISTAR_CATEGORIA_COSTO, LISTAR_CENTRO_COSTO, LISTAR_REPORTES,
+            VER_REPORTES_GERENCIALES, VER_REPORTES_ANALITICOS, EXPORTAR_REPORTES
     };
 
     public static final String[] DESCRIPTIONS = {
@@ -43,13 +47,15 @@ public final class PermissionConstants {
             "Crear nuevos permisos", "Editar permisos existentes", "Eliminar permisos", "Listar todos los permisos",
             "Crear nuevos usuarios", "Editar usuarios existentes", "Eliminar usuarios", "Listar todos los usuarios",
             "Crear costos indirectos", "Editar costos indirectos", "Eliminar costos indirectos", "Listar costos indirectos",
-            "Listar categorías de costos", "Listar centros de costo", "Listar reportes"
+            "Listar categorías de costos", "Listar centros de costo", "Listar reportes",
+            "Ver reportes gerenciales", "Ver reportes analíticos", "Exportar reportes"
     };
 
     public static final String[] ADMIN_PERMISSION_NAMES = {
             CREAR_ROL, EDITAR_ROL, ELIMINAR_ROL, LISTAR_ROL,
             CREAR_USUARIO, EDITAR_USUARIO, ELIMINAR_USUARIO, LISTAR_USUARIO,
             CREAR_COSTO_INDIRECTO, EDITAR_COSTO_INDIRECTO, ELIMINAR_COSTO_INDIRECTO, LISTAR_COSTO_INDIRECTO,
-            LISTAR_CATEGORIA_COSTO, LISTAR_CENTRO_COSTO, LISTAR_REPORTES
+            LISTAR_CATEGORIA_COSTO, LISTAR_CENTRO_COSTO, LISTAR_REPORTES,
+            VER_REPORTES_GERENCIALES, VER_REPORTES_ANALITICOS, EXPORTAR_REPORTES
     };
 }
