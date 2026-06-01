@@ -28,6 +28,11 @@ public final class PermissionConstants {
     public static final String LISTAR_CATEGORIA_COSTO = "listar_categoria_costo";
     public static final String LISTAR_CENTRO_COSTO = "listar_centro_costo";
 
+    public static final String CREAR_LOTE = "crear_lote";
+    public static final String EDITAR_LOTE = "editar_lote";
+    public static final String ELIMINAR_LOTE = "eliminar_lote";
+    public static final String LISTAR_LOTE = "listar_lote";
+
     public static final String LISTAR_REPORTES = "listar_reportes";
     public static final String VER_REPORTES_GERENCIALES = "ver_reportes_gerenciales";
     public static final String VER_REPORTES_ANALITICOS = "ver_reportes_analiticos";
@@ -38,8 +43,9 @@ public final class PermissionConstants {
             CREAR_PERMISO, EDITAR_PERMISO, ELIMINAR_PERMISO, LISTAR_PERMISO,
             CREAR_USUARIO, EDITAR_USUARIO, ELIMINAR_USUARIO, LISTAR_USUARIO,
             CREAR_COSTO_INDIRECTO, EDITAR_COSTO_INDIRECTO, ELIMINAR_COSTO_INDIRECTO, LISTAR_COSTO_INDIRECTO,
-            LISTAR_CATEGORIA_COSTO, LISTAR_CENTRO_COSTO, LISTAR_REPORTES,
-            VER_REPORTES_GERENCIALES, VER_REPORTES_ANALITICOS, EXPORTAR_REPORTES
+            LISTAR_CATEGORIA_COSTO, LISTAR_CENTRO_COSTO,
+            CREAR_LOTE, EDITAR_LOTE, ELIMINAR_LOTE, LISTAR_LOTE,
+            LISTAR_REPORTES, VER_REPORTES_GERENCIALES, VER_REPORTES_ANALITICOS, EXPORTAR_REPORTES
     };
 
     public static final String[] DESCRIPTIONS = {
@@ -47,7 +53,9 @@ public final class PermissionConstants {
             "Crear nuevos permisos", "Editar permisos existentes", "Eliminar permisos", "Listar todos los permisos",
             "Crear nuevos usuarios", "Editar usuarios existentes", "Eliminar usuarios", "Listar todos los usuarios",
             "Crear costos indirectos", "Editar costos indirectos", "Eliminar costos indirectos", "Listar costos indirectos",
-            "Listar categorías de costos", "Listar centros de costo", "Listar reportes",
+            "Listar categorías de costos", "Listar centros de costo",
+            "Crear lotes", "Editar lotes",
+            "Eliminar lotes", "Listar lotes", "Listar reportes",
             "Ver reportes gerenciales", "Ver reportes analíticos", "Exportar reportes"
     };
 
@@ -55,7 +63,8 @@ public final class PermissionConstants {
             CREAR_ROL, EDITAR_ROL, ELIMINAR_ROL, LISTAR_ROL,
             CREAR_USUARIO, EDITAR_USUARIO, ELIMINAR_USUARIO, LISTAR_USUARIO,
             CREAR_COSTO_INDIRECTO, EDITAR_COSTO_INDIRECTO, ELIMINAR_COSTO_INDIRECTO, LISTAR_COSTO_INDIRECTO,
-            LISTAR_CATEGORIA_COSTO, LISTAR_CENTRO_COSTO, LISTAR_REPORTES,
-            VER_REPORTES_GERENCIALES, VER_REPORTES_ANALITICOS, EXPORTAR_REPORTES
+            LISTAR_CATEGORIA_COSTO, LISTAR_CENTRO_COSTO,
+            CREAR_LOTE, EDITAR_LOTE, ELIMINAR_LOTE, LISTAR_LOTE,
+            LISTAR_REPORTES, VER_REPORTES_GERENCIALES, VER_REPORTES_ANALITICOS, EXPORTAR_REPORTES
     };
 }
