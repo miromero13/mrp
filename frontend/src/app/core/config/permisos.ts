@@ -29,6 +29,12 @@ export const PERMISOS = {
     eliminar: 'eliminar_costo_indirecto',
     listar: 'listar_costo_indirecto',
   },
+  batches: {
+    crear: 'crear_lote',
+    editar: 'editar_lote',
+    eliminar: 'eliminar_lote',
+    listar: 'listar_lote',
+  },
   reportes: {
     listar: 'listar_reportes',
   }

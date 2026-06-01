@@ -5,6 +5,7 @@ export const APP_ROUTES = {
   permissions: 'permissions',
   roles: 'roles',
   indirectCosts: 'indirect-costs',
+  batches: 'batches',
   reports: 'reports',
 } as const;
 
@@ -15,6 +16,7 @@ export const APP_ROUTE_URLS = {
   permissions: `/${APP_ROUTES.permissions}`,
   roles: `/${APP_ROUTES.roles}`,
   indirectCosts: `/${APP_ROUTES.indirectCosts}`,
+  batches: `/${APP_ROUTES.batches}`,
   reports: `/${APP_ROUTES.reports}`,
 } as const;
 
